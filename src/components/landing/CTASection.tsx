@@ -1,10 +1,11 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { ArrowRight, CheckCircle2, Trophy } from 'lucide-react';
 import { ScrollReveal } from '../ui/ScrollReveal';
 
-export function CTASection({ onOpenLogin }: { onOpenLogin: () => void }) {
+export function CTASection({ onOpenLogin }: { onOpenLogin?: () => void }) {
   return (
     <section className="py-20 bg-blue-600 relative overflow-hidden text-white">
       {/* Decorative background circles */}
@@ -27,13 +28,14 @@ export function CTASection({ onOpenLogin }: { onOpenLogin: () => void }) {
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button
-              onClick={onOpenLogin}
+            <Link
+              href="/login"
+              target="_blank"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl bg-white text-blue-600 text-base font-extrabold hover:bg-blue-50 active:scale-[0.98] transition-all shadow-lg shadow-blue-900/20"
             >
               <span>Masuk ke Platform GLS</span>
               <ArrowRight className="w-5 h-5" />
-            </button>
+            </Link>
 
             <a
               href="#fitur"

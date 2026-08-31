@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
-import { Layers, ArrowRight, Play, Eye } from 'lucide-react';
+import { ArrowRight, Play, Eye } from 'lucide-react';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '../ui/ScrollReveal';
 
-export function ApparatusSection({ onOpenLogin }: { onOpenLogin: () => void }) {
+export function ApparatusSection({ onOpenLogin }: { onOpenLogin?: () => void }) {
   const [activeCategory, setActiveCategory] = useState('Semua');
 
   const categories = ['Semua', 'Floor (Lantai)', 'Balance Beam (Balok)', 'Vault (Meja Lompat)', 'Bars & Rings'];
@@ -13,39 +14,39 @@ export function ApparatusSection({ onOpenLogin }: { onOpenLogin: () => void }) {
   const sampleSkills = [
     {
       id: 1,
-      name: 'Back Handspring & Layout',
+      name: 'Fondasi & Awalan Senam Lantai',
       category: 'Floor (Lantai)',
-      level: 'Menengah',
-      duration: '4 Menit',
+      level: 'Dasar',
+      duration: '03:45',
       image: '/images/apparatus-floor.webp',
       coach: 'Pelatih Budi S.',
     },
     {
       id: 2,
-      name: 'Split Leap & Full Turn',
-      category: 'Balance Beam (Balok)',
-      level: 'Dasar',
-      duration: '5 Menit',
-      image: '/images/apparatus-beam.webp',
-      coach: 'Pelatih Sarah M.',
+      name: 'Rangkaian Eksekusi & Dinamika FX',
+      category: 'Floor (Lantai)',
+      level: 'Menengah',
+      duration: '04:12',
+      image: '/images/hero-gymnast.webp',
+      coach: 'Pelatih Budi S.',
     },
     {
       id: 3,
-      name: 'Yurchenko Drill Progression',
-      category: 'Vault (Meja Lompat)',
+      name: 'Koreksi Pendaratan (Stick Landing)',
+      category: 'Floor (Lantai)',
       level: 'Mahir',
-      duration: '6 Menit',
-      image: '/images/feature-structured.webp',
-      coach: 'Pelatih Hendra',
+      duration: '05:08',
+      image: '/images/feature-progress.webp',
+      coach: 'Pelatih Budi S.',
     },
     {
       id: 4,
-      name: 'Forward Roll to Handstand',
-      category: 'Floor (Lantai)',
+      name: 'Split Leap & Full Turn',
+      category: 'Balance Beam (Balok)',
       level: 'Dasar',
-      duration: '3 Menit',
-      image: '/images/hero-gymnast.webp',
-      coach: 'Pelatih Budi S.',
+      duration: '05:00',
+      image: '/images/apparatus-beam.webp',
+      coach: 'Pelatih Sarah M.',
     },
   ];
 
@@ -136,13 +137,14 @@ export function ApparatusSection({ onOpenLogin }: { onOpenLogin: () => void }) {
 
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                     <span className="text-[11px] font-medium text-slate-400">Step-by-step video</span>
-                    <button
-                      onClick={onOpenLogin}
+                    <Link
+                      href="/login"
+                      target="_blank"
                       className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 group/btn"
                     >
                       <span>Buka Modul</span>
                       <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -155,13 +157,14 @@ export function ApparatusSection({ onOpenLogin }: { onOpenLogin: () => void }) {
           <p className="text-xs sm:text-sm text-slate-500 mb-3">
             Tersedia puluhan modul gerakan senam artistik putra &amp; putri yang siap dipelajari.
           </p>
-          <button
-            onClick={onOpenLogin}
+          <Link
+            href="/login"
+            target="_blank"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-bold hover:bg-slate-800 transition-all shadow-xs"
           >
             <Eye className="w-4 h-4" />
             <span>Lihat Seluruh Perpustakaan Gerakan di Dashboard</span>
-          </button>
+          </Link>
         </ScrollReveal>
       </div>
     </section>

@@ -1,15 +1,12 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Sparkles, CheckCircle2, PlayCircle, Shield } from 'lucide-react';
 import { ScrollReveal } from '../ui/ScrollReveal';
 
-interface HeroSectionProps {
-  onOpenLogin: () => void;
-}
-
-export function HeroSection({ onOpenLogin }: HeroSectionProps) {
+export function HeroSection({ onOpenLogin }: { onOpenLogin?: () => void }) {
   return (
     <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden bg-gradient-to-b from-blue-50/60 via-[#F8FAFC] to-[#F8FAFC]">
       {/* Background Soft Glow Accents */}
@@ -55,16 +52,17 @@ export function HeroSection({ onOpenLogin }: HeroSectionProps) {
               </p>
             </ScrollReveal>
 
-            {/* CTA Buttons */}
+            {/* CTA Buttons: Opens /login */}
             <ScrollReveal direction="up" delay={0.4} className="w-full sm:w-auto">
               <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full">
-                <button
-                  onClick={onOpenLogin}
+                <Link
+                  href="/login"
+                  target="_blank"
                   className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl bg-blue-600 text-white text-base font-bold hover:bg-blue-700 active:scale-[0.98] transition-all shadow-md shadow-blue-600/25 group cursor-pointer"
                 >
                   <span>Masuk Sekarang</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </button>
+                </Link>
 
                 <a
                   href="#tentang"

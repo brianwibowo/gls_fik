@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Activity, ShieldCheck, Heart } from 'lucide-react';
 
-export function Footer({ onOpenLogin }: { onOpenLogin: () => void }) {
+export function Footer({ onOpenLogin }: { onOpenLogin?: () => void }) {
   return (
     <footer className="bg-slate-900 text-slate-400 py-16 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -62,12 +62,13 @@ export function Footer({ onOpenLogin }: { onOpenLogin: () => void }) {
                 </a>
               </li>
               <li>
-                <button
-                  onClick={onOpenLogin}
+                <Link
+                  href="/login"
+                  target="_blank"
                   className="text-blue-400 hover:text-blue-300 font-semibold transition-colors"
                 >
                   Masuk ke Akun
-                </button>
+                </Link>
               </li>
             </ul>
           </div>

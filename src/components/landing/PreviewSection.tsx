@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
 import {
   Sparkles,
@@ -16,7 +17,7 @@ import {
 } from 'lucide-react';
 import { ScrollReveal } from '../ui/ScrollReveal';
 
-export function PreviewSection({ onOpenLogin }: { onOpenLogin: () => void }) {
+export function PreviewSection({ onOpenLogin }: { onOpenLogin?: () => void }) {
   const [activeTab, setActiveTab] = useState<'athlete' | 'coach'>('athlete');
 
   return (
@@ -102,7 +103,7 @@ export function PreviewSection({ onOpenLogin }: { onOpenLogin: () => void }) {
                       </p>
                     </div>
 
-                    {/* Search Bar as per PRD */}
+                    {/* Search Bar */}
                     <div className="relative max-w-xs w-full">
                       <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
@@ -114,9 +115,8 @@ export function PreviewSection({ onOpenLogin }: { onOpenLogin: () => void }) {
                     </div>
                   </div>
 
-                  {/* PRD Section 16: Progress Overview (Circle 68%, Selesai 12, Dipelajari 3, Waktu 24 Jam) */}
+                  {/* Progress Overview */}
                   <div className="mt-6 grid grid-cols-1 sm:grid-cols-4 gap-4">
-                    {/* Circle Card */}
                     <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-gls flex items-center gap-4 sm:col-span-1">
                       <div className="relative w-16 h-16 rounded-full border-4 border-blue-100 flex items-center justify-center">
                         <div className="absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent -rotate-45" />
@@ -161,14 +161,16 @@ export function PreviewSection({ onOpenLogin }: { onOpenLogin: () => void }) {
                     </div>
                   </div>
 
-                  {/* Lanjutkan Belajar Section (Grid, not Carousel) */}
+                  {/* Lanjutkan Belajar Section */}
                   <div className="mt-8">
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-base font-bold text-slate-900 flex items-center gap-2">
                         <Play className="w-4 h-4 text-blue-600 fill-blue-600" />
                         <span>Lanjutkan Belajar</span>
                       </h4>
-                      <span className="text-xs font-semibold text-blue-600">Semua Modul (15)</span>
+                      <Link href="/login" target="_blank" className="text-xs font-semibold text-blue-600 hover:underline">
+                        Semua Modul (15) →
+                      </Link>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -186,12 +188,13 @@ export function PreviewSection({ onOpenLogin }: { onOpenLogin: () => void }) {
                         <div className="w-full bg-slate-100 rounded-full h-2 mb-3 overflow-hidden">
                           <div className="bg-blue-600 h-2 rounded-full w-3/4" />
                         </div>
-                        <button
-                          onClick={onOpenLogin}
-                          className="w-full py-2 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors"
+                        <Link
+                          href="/login"
+                          target="_blank"
+                          className="w-full text-center py-2 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors block"
                         >
                           Lanjut Belajar
-                        </button>
+                        </Link>
                       </div>
 
                       {/* Card 2 */}
@@ -208,12 +211,13 @@ export function PreviewSection({ onOpenLogin }: { onOpenLogin: () => void }) {
                         <div className="w-full bg-slate-100 rounded-full h-2 mb-3 overflow-hidden">
                           <div className="bg-blue-600 h-2 rounded-full w-1/2" />
                         </div>
-                        <button
-                          onClick={onOpenLogin}
-                          className="w-full py-2 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors"
+                        <Link
+                          href="/login"
+                          target="_blank"
+                          className="w-full text-center py-2 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors block"
                         >
                           Lanjut Belajar
-                        </button>
+                        </Link>
                       </div>
 
                       {/* Card 3 */}
@@ -230,12 +234,13 @@ export function PreviewSection({ onOpenLogin }: { onOpenLogin: () => void }) {
                         <div className="w-full bg-slate-100 rounded-full h-2 mb-3 overflow-hidden">
                           <div className="bg-blue-600 h-2 rounded-full w-1/4" />
                         </div>
-                        <button
-                          onClick={onOpenLogin}
-                          className="w-full py-2 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors"
+                        <Link
+                          href="/login"
+                          target="_blank"
+                          className="w-full text-center py-2 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors block"
                         >
                           Lanjut Belajar
-                        </button>
+                        </Link>
                       </div>
                     </div>
                   </div>
@@ -253,15 +258,16 @@ export function PreviewSection({ onOpenLogin }: { onOpenLogin: () => void }) {
                       </p>
                     </div>
 
-                    <button
-                      onClick={onOpenLogin}
+                    <Link
+                      href="/login"
+                      target="_blank"
                       className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700"
                     >
                       + Tambah Modul Baru
-                    </button>
+                    </Link>
                   </div>
 
-                  {/* Coach Simple Table based on PRD Section 17 */}
+                  {/* Coach Simple Table */}
                   <div className="mt-6 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-gls">
                     <div className="p-4 border-b border-slate-100 flex items-center justify-between">
                       <span className="text-sm font-bold text-slate-800">
@@ -345,12 +351,13 @@ export function PreviewSection({ onOpenLogin }: { onOpenLogin: () => void }) {
                       Akses fleksibel di Laptop, Tablet, dan Smartphone
                     </h5>
                   </div>
-                  <button
-                    onClick={onOpenLogin}
+                  <Link
+                    href="/login"
+                    target="_blank"
                     className="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 shadow-md"
                   >
                     Buka Versi Lengkap
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
