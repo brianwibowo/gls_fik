@@ -7,6 +7,7 @@ import { AboutSection } from '@/components/landing/AboutSection';
 import { FeaturesSection } from '@/components/landing/FeaturesSection';
 import { ApparatusSection } from '@/components/landing/ApparatusSection';
 import { PreviewSection } from '@/components/landing/PreviewSection';
+import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 import { FAQSection } from '@/components/landing/FAQSection';
 import { CTASection } from '@/components/landing/CTASection';
 import { Footer } from '@/components/landing/Footer';
@@ -34,14 +35,17 @@ export default function LandingPage() {
         {/* 6. Dashboard Preview Section */}
         <PreviewSection />
 
-        {/* 7. Frequently Asked Questions (FAQ) */}
+        {/* 7. Testimonials Section */}
+        <TestimonialsSection />
+
+        {/* 8. Frequently Asked Questions (FAQ) */}
         <FAQSection />
 
-        {/* 8. Call To Action (CTA) */}
+        {/* 9. Call To Action (CTA) */}
         <CTASection />
       </main>
 
-      {/* 9. Footer */}
+      {/* 10. Footer */}
       <Footer />
     </div>
   );

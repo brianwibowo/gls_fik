@@ -522,8 +522,9 @@ export default function NetflixDashboard() {
                       <span className="px-2 py-0.5 rounded bg-white/10 text-slate-300 font-semibold text-[11px]">
                         {ep.level}
                       </span>
-                      <span className="text-blue-400 font-semibold flex items-center gap-1 group-hover:underline">
-                        <span>▶ Tonton Sekarang</span>
+                      <span className="text-blue-400 font-semibold flex items-center gap-1.5 group-hover:underline">
+                        <Play className="w-3 h-3 fill-current" />
+                        <span>Tonton Sekarang</span>
                       </span>
                     </div>
                   </div>

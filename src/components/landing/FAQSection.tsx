@@ -26,11 +26,11 @@ export function FAQSection() {
     },
     {
       q: 'Perangkat apa saja yang bisa digunakan untuk mengakses GLS?',
-      a: 'GLS adalah web application responsif yang dapat dibuka melalui Browser di Smartphone (Android/iPhone), Tablet/iPad, maupun Laptop/Komputer tanpa perlu instalasi aplikasi yang memberatkan memori.',
+      a: 'GLS adalah web application responsif yang dapat dibuka melalui browser di smartphone (Android & iPhone), tablet/iPad, maupun laptop/komputer tanpa perlu instalasi aplikasi yang memberatkan memori.',
     },
     {
-      q: 'Bagaimana cara mendapatkan akun GLS?',
-      a: 'Akun atlet dan orang tua didaftarkan langsung oleh Pelatih atau Manajemen Klub Senam yang terdaftar di GLS agar materi latihan yang diterima sesuai dengan tingkatan kelas atlet.',
+      q: 'Bagaimana cara mendapatkan akun GLS untuk klub atau atlet?',
+      a: 'Akun atlet dan orang tua didaftarkan langsung oleh Pelatih atau Manajemen Klub Senam yang terdaftar di GLS agar materi latihan yang diterima sesuai dengan nomor alat dan tingkatan kelas atlet.',
     },
   ];
 
@@ -44,14 +44,14 @@ export function FAQSection() {
         {/* Section Header */}
         <div className="text-center">
           <ScrollReveal direction="up">
-            <span className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-3 py-1.5 rounded-md">
-              Pertanyaan Umum
+            <span className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 border border-blue-200/60 px-3.5 py-1.5 rounded-full">
+              Pusat Bantuan
             </span>
             <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-              Kerap Ditanyakan (FAQ)
+              Pertanyaan yang Kerap Ditanyakan (FAQ)
             </h2>
-            <p className="mt-4 text-base sm:text-lg text-slate-600">
-              Jawaban lengkap seputar cara kerja, aksesibilitas, dan manfaat GLS untuk ekosistem senam Anda.
+            <p className="mt-4 text-base sm:text-lg text-slate-600 leading-relaxed">
+              Jawaban lengkap seputar cara kerja, aksesibilitas, dan manfaat ekosistem GLS untuk klub senam Anda.
             </p>
           </ScrollReveal>
         </div>
@@ -66,7 +66,7 @@ export function FAQSection() {
                   <div
                     className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
                       isOpen
-                        ? 'border-blue-300 bg-blue-50/30 shadow-xs'
+                        ? 'border-blue-300 bg-blue-50/20 shadow-xs'
                         : 'border-slate-200 bg-white hover:border-slate-300'
                     }`}
                   >
@@ -75,13 +75,15 @@ export function FAQSection() {
                       className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 cursor-pointer"
                       aria-expanded={isOpen}
                     >
-                      <span className="text-base font-bold text-slate-800 flex items-center gap-3">
-                        <MessageCircleQuestion className={`w-5 h-5 shrink-0 ${isOpen ? 'text-blue-600' : 'text-slate-400'}`} />
-                        {item.q}
+                      <span className="text-base font-bold text-slate-900 flex items-center gap-3.5">
+                        <MessageCircleQuestion
+                          className={`w-5 h-5 shrink-0 ${isOpen ? 'text-blue-600' : 'text-slate-400'}`}
+                        />
+                        <span>{item.q}</span>
                       </span>
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-transform duration-200 ${
-                          isOpen ? 'bg-blue-600 text-white rotate-180' : 'bg-slate-100 text-slate-500'
+                        className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 ${
+                          isOpen ? 'bg-blue-600 text-white rotate-180 shadow-xs' : 'bg-slate-100 text-slate-500'
                         }`}
                       >
                         <ChevronDown className="w-4 h-4" />
@@ -99,16 +101,6 @@ export function FAQSection() {
             })}
           </StaggerContainer>
         </div>
-
-        {/* Contact help card */}
-        <ScrollReveal direction="up" delay={0.3} className="mt-12 text-center p-6 bg-slate-50 rounded-2xl border border-slate-200/80">
-          <p className="text-sm font-semibold text-slate-700">
-            Punya pertanyaan lain seputar implementasi di klub atau sekolah Anda?
-          </p>
-          <p className="text-xs text-slate-500 mt-1">
-            Tim GLS siap membantu pelatih dan pengurus klub untuk pengenalan sistem.
-          </p>
-        </ScrollReveal>
       </div>
     </section>
   );

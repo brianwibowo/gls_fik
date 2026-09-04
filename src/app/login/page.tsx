@@ -45,7 +45,7 @@ export default function LoginPage() {
       <div className="hidden lg:col-span-6 lg:flex flex-col justify-between p-12 lg:p-14 bg-slate-950 text-white relative overflow-hidden">
         {/* Background Image with Dark Overlay */}
         <Image
-          src="/images/hero-gymnast.webp"
+          src="/images/hero-gymnast-elite.webp"
           alt="Gymnastics Learning System"
           fill
           priority
