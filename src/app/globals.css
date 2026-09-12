@@ -2,16 +2,16 @@
 
 @layer base {
   :root {
-    --background: #F8FAFC;
-    --card: #FFFFFF;
+    --background: #0a0a0a;
+    --card: #141414;
     --primary: #2563EB;
     --primary-hover: #1D4ED8;
-    --primary-light: #EFF6FF;
+    --primary-light: #1E293B;
     --success: #16A34A;
     --warning: #F59E0B;
-    --border: #E2E8F0;
-    --text-main: #1E293B;
-    --text-secondary: #64748B;
+    --border: #262626;
+    --text-main: #FFFFFF;
+    --text-secondary: #94A3B8;
   }
 
   body {

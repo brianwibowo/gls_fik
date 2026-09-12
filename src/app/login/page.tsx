@@ -1,220 +1,121 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/lib/auth';
 import {
   Activity,
-  ArrowRight,
-  ShieldCheck,
-  Trophy,
-  Zap,
   ArrowLeft,
-  CheckCircle2,
-  Lock,
   Mail,
+  Lock,
+  LogIn,
+  AlertCircle,
+  ShieldCheck,
 } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { login, isLoggedIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Handle Quick Login as Coach (Bypass)
-  const handleCoachBypass = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      router.push('/dashboard');
-    }, 300);
-  };
+  // If already logged in, redirect
+  if (isLoggedIn) {
+    const redirect = searchParams.get('redirect') || '/';
+    router.push(redirect);
+    return null;
+  }
 
-  // Handle Regular Form Submit
-  const handleRegularSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     setIsLoading(true);
+
     setTimeout(() => {
-      router.push('/dashboard');
+      const result = login(email, password);
+      if (result.success) {
+        const redirect = searchParams.get('redirect') || '/';
+        router.push(redirect);
+      } else {
+        setError(result.error || 'Login gagal.');
+        setIsLoading(false);
+      }
     }, 300);
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-white font-sans text-slate-800">
-      {/* SISI KIRI: 50% Visual Showcase & Gymnastics Banner */}
-      <div className="hidden lg:col-span-6 lg:flex flex-col justify-between p-12 lg:p-14 bg-slate-950 text-white relative overflow-hidden">
-        {/* Background Image with Dark Overlay */}
-        <Image
-          src="/images/hero-gymnast-elite.webp"
-          alt="Gymnastics Learning System"
-          fill
-          priority
-          className="object-cover object-center opacity-35"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-950/80 pointer-events-none" />
+    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md">
+        {/* Back to home */}
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-white transition-colors mb-8 group"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span>Kembali ke Katalog</span>
+        </Link>
 
-        {/* Top Badge */}
-        <div className="relative z-10 flex items-center justify-between">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-bold uppercase tracking-wider backdrop-blur-md">
-            <Trophy className="w-3.5 h-3.5 text-blue-400" />
-            <span>Platform Pembelajaran Senam</span>
-          </div>
-
-          <span className="text-xs font-semibold text-slate-400">Versi 2.0 — UX First</span>
-        </div>
-
-        {/* Center Content */}
-        <div className="relative z-10 max-w-lg my-auto py-10">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-snug">
-            Pembelajaran Senam yang Lebih Terarah &amp; Terstruktur
-          </h2>
-          <p className="mt-4 text-base text-slate-300 leading-relaxed font-normal">
-            Akses seluruh rangkaian video pembelajaran teknik senam lantai (FX), balok keseimbangan, dan meja lompat langsung dalam format seri edukasi modern.
-          </p>
-
-          {/* 3 Pillars Checklist */}
-          <div className="mt-8 space-y-3.5 pt-6 border-t border-slate-800">
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" />
-              <span className="text-sm font-semibold text-slate-200">
-                Pusat Video Latihan Google Drive Terintegrasi
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" />
-              <span className="text-sm font-semibold text-slate-200">
-                Format Seri &amp; Episode seperti Streaming Video
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" />
-              <span className="text-sm font-semibold text-slate-200">
-                Monitoring Progres Belajar Atlet &amp; Catatan Pelatih
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Coach Profile Card */}
-        <div className="relative z-10 p-4 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-extrabold text-white text-sm">
-              CB
+        {/* Login card */}
+        <div className="bg-[#141414] rounded-2xl border border-white/10 p-8 sm:p-10 shadow-2xl">
+          {/* Logo */}
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/20">
+              <Activity className="w-6 h-6 stroke-[2.5]" />
             </div>
             <div>
-              <p className="text-xs font-bold text-white">Coach Budi Santoso</p>
-              <p className="text-[11px] text-slate-400">Head Coach Senam Artistik</p>
+              <h1 className="text-xl font-extrabold text-white tracking-tight">
+                Masuk ke GLS
+              </h1>
+              <p className="text-xs text-slate-500">
+                Akses seluruh video pembelajaran senam
+              </p>
             </div>
           </div>
-          <span className="px-2.5 py-1 rounded bg-green-500/20 text-green-300 text-[11px] font-bold border border-green-500/30">
-            Verified Coach
-          </span>
-        </div>
-      </div>
 
-      {/* SISI KANAN: 50% Form Login Clean */}
-      <div className="lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-14 bg-white relative z-10">
-        {/* Top Header & Back Button */}
-        <div className="flex items-center justify-between">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-500 hover:text-blue-600 transition-colors group"
-          >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span>Kembali ke Beranda</span>
-          </Link>
-
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-xs">
-              <Activity className="w-4 h-4" />
+          {/* Error message */}
+          {error && (
+            <div className="mb-5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3 text-sm text-red-300">
+              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-red-400" />
+              <span>{error}</span>
             </div>
-            <span className="font-extrabold text-sm text-slate-900">
-              GLS<span className="text-blue-600">.</span>
-            </span>
-          </div>
-        </div>
+          )}
 
-        {/* Center: Form Area */}
-        <div className="max-w-md w-full mx-auto my-auto py-8">
-          <div className="mb-6">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider mb-2">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Portal Masuk Sistem</span>
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Selamat Datang Kembali
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">
-              Masuk untuk mengakses modul dan rangkaian video senam.
-            </p>
-          </div>
-
-          {/* STANDOUT COACH BYPASS BUTTON */}
-          <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/20">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-blue-100 flex items-center gap-1.5">
-                <Zap className="w-4 h-4 text-amber-300 fill-amber-300" />
-                <span>Autentikasi Cepat (Bypass)</span>
-              </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 font-semibold">
-                Mode Pelatih
-              </span>
-            </div>
-            <p className="text-xs text-blue-100 mb-3.5 leading-relaxed">
-              Langsung masuk ke Dashboard Pelatih dan tonton 3 video seri Senam Lantai (FX) dari Google Drive.
-            </p>
-            <button
-              type="button"
-              onClick={handleCoachBypass}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 active:scale-[0.99] transition-all shadow-sm cursor-pointer"
-            >
-              {isLoading ? (
-                <span>Memuat Dashboard...</span>
-              ) : (
-                <>
-                  <span>Masuk Cepat sebagai Pelatih (Coach)</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* Regular Login Form (Clean without role tabs/divider) */}
-          <form onSubmit={handleRegularSubmit} className="space-y-4">
+          {/* Login form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Nomor WhatsApp / Email
+              <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">
+                Email
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="contoh: 08123456789 atau pelatih@gls.id"
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all placeholder:text-slate-400"
+                  placeholder="admin@gls.id"
+                  required
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#1a1a1a] border border-white/10 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-600/40 focus:border-blue-600/60 transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label className="block text-xs font-bold text-slate-700">
-                  Kata Sandi
-                </label>
-                <span className="text-xs text-blue-600 hover:underline cursor-pointer">
-                  Lupa sandi?
-                </span>
-              </div>
+              <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">
+                Kata Sandi
+              </label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all placeholder:text-slate-400"
+                  placeholder="Masukkan kata sandi"
+                  required
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#1a1a1a] border border-white/10 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-600/40 focus:border-blue-600/60 transition-all"
                 />
               </div>
             </div>
@@ -222,25 +123,46 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 rounded-lg bg-slate-900 text-white font-bold text-sm hover:bg-slate-800 active:scale-[0.99] transition-all shadow-xs cursor-pointer"
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-sm hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
             >
-              <span>Masuk ke Akun</span>
+              {isLoading ? (
+                <span>Memuat...</span>
+              ) : (
+                <>
+                  <LogIn className="w-4 h-4" />
+                  <span>Masuk ke Akun</span>
+                </>
+              )}
             </button>
           </form>
 
-          {/* Help Footer */}
-          <div className="mt-6 p-3.5 bg-slate-50 rounded-lg border border-slate-100 text-center">
-            <p className="text-xs text-slate-500">
-              Belum terdaftar? Hubungi <span className="font-semibold text-slate-700">Admin Klub Senam</span> untuk aktivasi akun atlet/pelatih.
-            </p>
+          {/* Demo credentials */}
+          <div className="mt-6 p-4 rounded-xl bg-blue-500/5 border border-blue-500/15">
+            <div className="flex items-center gap-2 mb-2">
+              <ShieldCheck className="w-4 h-4 text-blue-400" />
+              <span className="text-xs font-bold text-blue-300 uppercase tracking-wider">Akun Demo</span>
+            </div>
+            <div className="space-y-1.5 text-xs text-slate-400">
+              <p>
+                <span className="text-slate-300 font-semibold">Admin:</span>{' '}
+                admin@gls.id / admin123
+              </p>
+              <p>
+                <span className="text-slate-300 font-semibold">User:</span>{' '}
+                alisha@gls.id / user123
+              </p>
+            </div>
           </div>
-        </div>
-
-        {/* Bottom copyright */}
-        <div className="text-xs text-slate-400 text-center sm:text-left pt-4">
-          © {new Date().getFullYear()} Gymnastics Learning System (GLS 2.0).
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0a0a0a]" />}>
+      <LoginForm />
+    </Suspense>
   );
 }
