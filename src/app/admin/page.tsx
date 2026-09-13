@@ -6,10 +6,16 @@ import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/lib/auth';
 import { getCategories, getVideos, getUsers } from '@/lib/data';
-import { Layers, Video, Users, ArrowRight, ShieldCheck } from 'lucide-react';
+import {
+  Video,
+  Users,
+  ArrowRight,
+  PlusCircle,
+  HelpCircle,
+} from 'lucide-react';
 
 export default function AdminDashboard() {
-  const { isAdmin, isReady, isLoggedIn } = useAuth();
+  const { isAdmin, isReady, isLoggedIn, user } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState({ categories: 0, videos: 0, users: 0 });
 
@@ -27,88 +33,135 @@ export default function AdminDashboard() {
 
   if (!isReady || !isAdmin) return null;
 
-  const cards = [
-    {
-      title: 'Kategori Pembelajaran',
-      count: stats.categories,
-      desc: 'Kelola nomor alat senam',
-      icon: Layers,
-      href: '/admin/categories',
-      color: 'from-blue-600 to-indigo-600',
-      shadow: 'shadow-blue-600/20',
-    },
-    {
-      title: 'Video Materi',
-      count: stats.videos,
-      desc: 'CRUD video Google Drive',
-      icon: Video,
-      href: '/admin/videos',
-      color: 'from-emerald-600 to-teal-600',
-      shadow: 'shadow-emerald-600/20',
-    },
-    {
-      title: 'Pengguna Terdaftar',
-      count: stats.users,
-      desc: 'Manajemen user & role',
-      icon: Users,
-      href: '/admin/users',
-      color: 'from-amber-600 to-orange-600',
-      shadow: 'shadow-amber-600/20',
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-[#0f172a] text-white">
       <Navbar />
+
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-extrabold text-white">Admin Panel</h1>
-            <p className="text-xs text-slate-500">Kelola konten dan pengguna GLS</p>
+        {/* Header Ramah & Jelas */}
+        <div className="bg-[#1e293b] border border-[#334155] rounded-2xl p-6 sm:p-8 mb-8 shadow-md">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <span className="inline-block px-3 py-1 rounded-md bg-blue-600/30 text-blue-300 border border-blue-500/40 text-xs font-bold uppercase tracking-wider mb-2">
+                Panel Pengelola GLS
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                Selamat Datang, {user?.name || 'Bapak Pengelola'}
+              </h1>
+              <p className="text-sm sm:text-base text-slate-300 mt-1">
+                Silakan pilih menu di bawah untuk menambah video latihan atau mengelola akun pengguna.
+              </p>
+            </div>
+
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#334155] hover:bg-[#475569] text-white text-sm font-semibold transition-colors shrink-0 self-start sm:self-auto border border-[#475569]"
+            >
+              <span>Lihat Tampilan Depan Web</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
-          {cards.map((card) => {
-            const Icon = card.icon;
-            return (
-              <Link
-                key={card.href}
-                href={card.href}
-                className={`p-6 rounded-2xl bg-[#141414] border border-white/5 hover:border-white/20 transition-all group`}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`w-11 h-11 rounded-xl bg-gradient-to-tr ${card.color} flex items-center justify-center text-white shadow-lg ${card.shadow}`}>
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-white group-hover:translate-x-1 transition-all" />
+        {/* ── HANYA DUA MENU UTAMA (Video & Pengguna) ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* KARTU 1: KELOLA VIDEO (Termasuk Kategori di dalamnya) */}
+          <div className="bg-[#1e293b] border border-[#334155] hover:border-blue-500/70 rounded-2xl p-6 sm:p-7 flex flex-col justify-between transition-all shadow-md">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-md">
+                  <Video className="w-7 h-7" />
                 </div>
-                <p className="text-3xl font-black text-white">{card.count}</p>
-                <p className="text-sm font-bold text-slate-300 mt-1">{card.title}</p>
-                <p className="text-xs text-slate-500 mt-0.5">{card.desc}</p>
+                <div className="text-right">
+                  <span className="text-4xl font-black text-white block">{stats.videos}</span>
+                  <span className="text-xs text-slate-400 font-medium">Total Video Materi</span>
+                </div>
+              </div>
+
+              <h2 className="text-xl font-extrabold text-white mb-2">
+                1. Video Materi Latihan
+              </h2>
+              <p className="text-sm text-slate-300 leading-relaxed mb-4">
+                Upload video dari Google Drive, atur nomor alat senam (Lantai, Balok, dll), tentukan level latihan, dan atur video gratis atau terkunci.
+              </p>
+
+              <div className="p-3 rounded-xl bg-[#0f172a] border border-[#334155] text-xs text-slate-300 mb-6 space-y-1">
+                <p className="font-semibold text-blue-400">• Termasuk {stats.categories} Nomor Alat / Kategori</p>
+                <p className="text-slate-400">• Tambah nomor alat baru bisa langsung di formulir video</p>
+              </div>
+            </div>
+
+            <div className="space-y-2.5 pt-4 border-t border-[#334155]">
+              <Link
+                href="/admin/videos?action=new"
+                className="w-full inline-flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-base transition-colors shadow-md"
+              >
+                <PlusCircle className="w-5 h-5" />
+                <span>+ Tambah Video Baru</span>
               </Link>
-            );
-          })}
+              <Link
+                href="/admin/videos"
+                className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0f172a] hover:bg-[#162032] text-slate-200 hover:text-white font-semibold text-sm border border-[#334155] transition-colors"
+              >
+                <span>Lihat & Kelola Semua Video ({stats.videos})</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+
+          {/* KARTU 2: KELOLA PENGGUNA */}
+          <div className="bg-[#1e293b] border border-[#334155] hover:border-emerald-500/70 rounded-2xl p-6 sm:p-7 flex flex-col justify-between transition-all shadow-md">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-md">
+                  <Users className="w-7 h-7" />
+                </div>
+                <div className="text-right">
+                  <span className="text-4xl font-black text-white block">{stats.users}</span>
+                  <span className="text-xs text-slate-400 font-medium">Pengguna Terdaftar</span>
+                </div>
+              </div>
+
+              <h2 className="text-xl font-extrabold text-white mb-2">
+                2. Data Pengguna & Hak Akses
+              </h2>
+              <p className="text-sm text-slate-300 leading-relaxed mb-4">
+                Lihat daftar nama pelatih dan atlet yang terdaftar, buat akun baru, atau berikan hak akses pengelola (Admin).
+              </p>
+
+              <div className="p-3 rounded-xl bg-[#0f172a] border border-[#334155] text-xs text-slate-300 mb-6 space-y-1">
+                <p className="font-semibold text-emerald-400">• Hak Akses: User Biasa vs Admin</p>
+                <p className="text-slate-400">• Pengguna biasa hanya bisa nonton setelah login</p>
+              </div>
+            </div>
+
+            <div className="space-y-2.5 pt-4 border-t border-[#334155]">
+              <Link
+                href="/admin/users?action=new"
+                className="w-full inline-flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold text-base transition-colors shadow-md"
+              >
+                <PlusCircle className="w-5 h-5" />
+                <span>+ Tambah Pengguna Baru</span>
+              </Link>
+              <Link
+                href="/admin/users"
+                className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0f172a] hover:bg-[#162032] text-slate-200 hover:text-white font-semibold text-sm border border-[#334155] transition-colors"
+              >
+                <span>Lihat Daftar Pengguna ({stats.users})</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
         </div>
 
-        {/* Quick links */}
-        <div className="p-5 rounded-2xl bg-[#141414] border border-white/5">
-          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Aksi Cepat</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <Link href="/admin/categories" className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition-colors text-center">
-              + Tambah Kategori
-            </Link>
-            <Link href="/admin/videos" className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition-colors text-center">
-              + Tambah Video
-            </Link>
-            <Link href="/admin/users" className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition-colors text-center">
-              + Tambah User
-            </Link>
+        {/* Bantuan Praktis untuk Bapak-bapak */}
+        <div className="bg-[#1e293b]/70 border border-[#334155] rounded-xl p-5 flex items-start gap-4 text-slate-300">
+          <HelpCircle className="w-6 h-6 text-blue-400 shrink-0 mt-0.5" />
+          <div className="text-xs sm:text-sm space-y-1">
+            <p className="font-bold text-white">Panduan Singkat Menambah Video:</p>
+            <p className="text-slate-300">
+              Cukup salin link video dari Google Drive (tombol Bagikan &rarr; Salin Link), lalu tempelkan langsung di formulir Tambah Video. Sistem otomatis membaca video tanpa perlu utak-atik teknis.
+            </p>
           </div>
         </div>
       </main>
