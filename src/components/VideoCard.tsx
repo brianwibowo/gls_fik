@@ -10,9 +10,10 @@ import { useAuth } from '@/lib/auth';
 interface VideoCardProps {
   video: Video;
   categoryName?: string;
+  className?: string;
 }
 
-export function VideoCard({ video, categoryName }: VideoCardProps) {
+export function VideoCard({ video, categoryName, className = '' }: VideoCardProps) {
   const { isLoggedIn } = useAuth();
   const canWatch = video.isFree || isLoggedIn;
 
@@ -21,7 +22,7 @@ export function VideoCard({ video, categoryName }: VideoCardProps) {
   return (
     <Link
       href={href}
-      className="group relative bg-[#181818] rounded-xl overflow-hidden border border-white/5 hover:border-white/20 hover:ring-1 hover:ring-blue-500/30 transition-all duration-300 flex flex-col h-full"
+      className={`group relative bg-[#181818] rounded-xl overflow-hidden border border-white/5 hover:border-white/20 hover:ring-1 hover:ring-blue-500/30 transition-all duration-300 flex flex-col h-full ${className}`}
     >
       {/* Thumbnail */}
       <div className="relative aspect-video w-full bg-[#111] overflow-hidden">

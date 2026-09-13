@@ -37,7 +37,7 @@ const SEED_CATEGORIES: Category[] = [
   {
     id: 'cat-fx',
     name: 'Floor Exercise (Senam Lantai)',
-    description: 'Rangkaian gerakan akrobatik dan keseimbangan di atas matras lantai berukuran 12x12 meter.',
+    description: 'Rangkaian gerakan akrobatik, putaran, dan kelenturan di atas matras pegas berukuran 12x12 meter.',
     thumbnail: '/images/apparatus-floor.webp',
     order: 1,
     createdAt: new Date().toISOString(),
@@ -45,7 +45,7 @@ const SEED_CATEGORIES: Category[] = [
   {
     id: 'cat-beam',
     name: 'Balance Beam (Balok Keseimbangan)',
-    description: 'Gerakan artistik dan akrobatik di atas balok setinggi 125 cm dengan lebar hanya 10 cm.',
+    description: 'Gerakan artistik dan akrobatik presisi di atas balok setinggi 125 cm dengan lebar hanya 10 cm.',
     thumbnail: '/images/apparatus-beam.webp',
     order: 2,
     createdAt: new Date().toISOString(),
@@ -53,9 +53,33 @@ const SEED_CATEGORIES: Category[] = [
   {
     id: 'cat-vault',
     name: 'Vault (Meja Lompat)',
-    description: 'Lompatan eksplosif melewati meja lompat dengan fase lari, tolakan, melayang, dan pendaratan.',
+    description: 'Lompatan eksplosif melintasi meja lompat dengan fase lari cepat, tolakan pegas, dan pendaratan stabil.',
     thumbnail: '/images/apparatus-vault.webp',
     order: 3,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'cat-bars',
+    name: 'Uneven Bars (Palang Bertingkat)',
+    description: 'Transisi dinamis antara dua palang berketinggian beda, perpindahan pegangan, dan salto pendaratan.',
+    thumbnail: '/images/apparatus-bars.webp',
+    order: 4,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'cat-rings',
+    name: 'Still Rings (Gelang-Gelang)',
+    description: 'Ujian kekuatan statis dan ayunan dinamis pada dua gelang kabel tanpa getaran tali.',
+    thumbnail: '/images/apparatus-rings.webp',
+    order: 5,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'cat-pommel',
+    name: 'Pommel Horse (Kuda-Kuda Pelana)',
+    description: 'Rangkaian putaran melingkar satu dan dua kaki secara kontinyu di atas bodi kuda berpelana.',
+    thumbnail: '/images/apparatus-pommel.webp',
+    order: 6,
     createdAt: new Date().toISOString(),
   },
 ];
@@ -132,12 +156,23 @@ function generateId(): string {
 // ── Initialization (seed on first visit) ──────────────────────
 export function initializeData(): void {
   if (typeof window === 'undefined') return;
-  if (localStorage.getItem(KEYS.initialized)) return;
+  if (!localStorage.getItem(KEYS.initialized)) {
+    setStore(KEYS.users, SEED_USERS);
+    setStore(KEYS.categories, SEED_CATEGORIES);
+    setStore(KEYS.videos, SEED_VIDEOS);
+    localStorage.setItem(KEYS.initialized, 'v2');
+    return;
+  }
 
-  setStore(KEYS.users, SEED_USERS);
-  setStore(KEYS.categories, SEED_CATEGORIES);
-  setStore(KEYS.videos, SEED_VIDEOS);
-  localStorage.setItem(KEYS.initialized, 'true');
+  // Ensure all 6 apparatus categories are present even if seeded previously
+  const existingCats = getStore<Category>(KEYS.categories);
+  if (existingCats.length < SEED_CATEGORIES.length) {
+    const existingIds = new Set(existingCats.map((c) => c.id));
+    const missing = SEED_CATEGORIES.filter((c) => !existingIds.has(c.id));
+    if (missing.length > 0) {
+      setStore(KEYS.categories, [...existingCats, ...missing]);
+    }
+  }
 }
 
 // ── Users CRUD ────────────────────────────────────────────────
