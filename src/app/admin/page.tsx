@@ -14,6 +14,7 @@ import {
   createCategory,
   deleteCategory,
   extractDriveFileId,
+  resetToSeedData,
 } from '@/lib/data';
 import type { Video, Category } from '@/lib/types';
 import {
@@ -30,6 +31,7 @@ import {
   HelpCircle,
   Lock,
   Eye,
+  RotateCcw,
 } from 'lucide-react';
 
 function AdminVideoManagement() {
@@ -177,6 +179,21 @@ function AdminVideoManagement() {
     setVideos(getVideos());
   };
 
+  const handleResetSeed = () => {
+    const isConfirmed = window.confirm(
+      'Apakah Anda yakin ingin mengatur ulang data ke versi bawaan resmi (6 nomor alat & 18 video dari Google Drive)?\n\nSemua modifikasi yang sudah diubah akan kembali ke kondisi data seed.'
+    );
+    if (isConfirmed) {
+      resetToSeedData();
+      const freshCats = getCategories();
+      const freshVids = getVideos();
+      setCategories(freshCats);
+      setVideos(freshVids);
+      setSelectedFilterCat('all');
+      alert('Berhasil! Seluruh data telah dikembalikan ke 6 kategori alat & 18 video resmi.');
+    }
+  };
+
   const filteredVideos =
     selectedFilterCat === 'all'
       ? videos
@@ -195,17 +212,26 @@ function AdminVideoManagement() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={handleResetSeed}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1e293b] hover:bg-[#334155] border border-[#475569] text-slate-200 text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
+            title="Muat ulang 18 video seed resmi dari Google Drive"
+          >
+            <RotateCcw className="w-4 h-4 text-amber-400" />
+            <span>Muat Ulang Seed (18 Video)</span>
+          </button>
+
           {!showVideoForm && (
             <button
               onClick={() => {
                 resetVideoForm();
                 setShowVideoForm(true);
               }}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md transition-colors cursor-pointer"
             >
-              <Plus className="w-5 h-5 stroke-[2.5]" />
-              <span>+ Tambah Video Baru</span>
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <span>+ Tambah Video</span>
             </button>
           )}
         </div>

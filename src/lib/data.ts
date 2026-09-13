@@ -33,7 +33,7 @@ const SEED_USERS: User[] = [
   },
 ];
 
-const SEED_CATEGORIES: Category[] = [
+export const SEED_CATEGORIES: Category[] = [
   {
     id: 'cat-fx',
     name: 'Floor Exercise (Senam Lantai)',
@@ -43,54 +43,55 @@ const SEED_CATEGORIES: Category[] = [
     createdAt: new Date().toISOString(),
   },
   {
-    id: 'cat-beam',
-    name: 'Balance Beam (Balok Keseimbangan)',
-    description: 'Gerakan artistik dan akrobatik presisi di atas balok setinggi 125 cm dengan lebar hanya 10 cm.',
-    thumbnail: '/images/apparatus-beam.webp',
+    id: 'cat-ph',
+    name: 'Pommel Horse (Kuda-Kuda Pelana)',
+    description: 'Rangkaian putaran melingkar satu dan dua kaki secara kontinyu di atas bodi kuda berpelana.',
+    thumbnail: '/images/apparatus-pommel.webp',
     order: 2,
     createdAt: new Date().toISOString(),
   },
   {
-    id: 'cat-vault',
-    name: 'Vault (Meja Lompat)',
-    description: 'Lompatan eksplosif melintasi meja lompat dengan fase lari cepat, tolakan pegas, dan pendaratan stabil.',
-    thumbnail: '/images/apparatus-vault.webp',
+    id: 'cat-sr',
+    name: 'Still Rings (Gelang-Gelang)',
+    description: 'Ujian kekuatan statis dan ayunan dinamis pada dua gelang kabel tanpa getaran tali.',
+    thumbnail: '/images/apparatus-rings.webp',
     order: 3,
     createdAt: new Date().toISOString(),
   },
   {
-    id: 'cat-bars',
-    name: 'Uneven Bars (Palang Bertingkat)',
-    description: 'Transisi dinamis antara dua palang berketinggian beda, perpindahan pegangan, dan salto pendaratan.',
-    thumbnail: '/images/apparatus-bars.webp',
+    id: 'cat-vt',
+    name: 'Vault (Meja Lompat)',
+    description: 'Lompatan eksplosif melintasi meja lompat dengan fase lari cepat, tolakan pegas, dan pendaratan stabil.',
+    thumbnail: '/images/apparatus-vault.webp',
     order: 4,
     createdAt: new Date().toISOString(),
   },
   {
-    id: 'cat-rings',
-    name: 'Still Rings (Gelang-Gelang)',
-    description: 'Ujian kekuatan statis dan ayunan dinamis pada dua gelang kabel tanpa getaran tali.',
-    thumbnail: '/images/apparatus-rings.webp',
+    id: 'cat-pb',
+    name: 'Parallel Bars (Palang Sejajar)',
+    description: 'Kombinasi ayunan, posisi tumpuan tangan, manuver di bawah palang, dan dismount pendaratan.',
+    thumbnail: '/images/apparatus-bars.webp',
     order: 5,
     createdAt: new Date().toISOString(),
   },
   {
-    id: 'cat-pommel',
-    name: 'Pommel Horse (Kuda-Kuda Pelana)',
-    description: 'Rangkaian putaran melingkar satu dan dua kaki secara kontinyu di atas bodi kuda berpelana.',
-    thumbnail: '/images/apparatus-pommel.webp',
+    id: 'cat-hb',
+    name: 'Horizontal Bar (Palang Tunggal)',
+    description: 'Gerakan ayunan berkecepatan tinggi, giant swing terus-menerus, dan pelepasan pegangan salto spektakuler.',
+    thumbnail: '/images/apparatus-highbar.jpg',
     order: 6,
     createdAt: new Date().toISOString(),
   },
 ];
 
-const SEED_VIDEOS: Video[] = [
+export const SEED_VIDEOS: Video[] = [
+  // ── 1. FX (Floor Exercise - Lantai) ──────────────────────
   {
     id: 'vid-fx-1',
     categoryId: 'cat-fx',
-    title: 'Fondasi, Postur & Awalan Senam Lantai',
+    title: 'Postur, Tumpuan Kaki & Awalan Senam Lantai',
     description:
-      'Langkah pertama atlet dalam menguasai senam lantai. Mempelajari koreksi postur tubuh lurus, tumpuan ujung kaki (toe point), ayunan lengan ritmis, serta konsentrasi sebelum melakukan rangkaian lari.',
+      'Fondasi awal atlet senam artistik: koreksi postur tubuh lurus, tumpuan ujung kaki (toe point), serta ritme langkah akselerasi awalan.',
     driveFileId: '12JG_YaH6ADE4xVqgskKQY-rx79Dht7KM',
     driveLink: 'https://drive.google.com/file/d/12JG_YaH6ADE4xVqgskKQY-rx79Dht7KM/view?usp=share_link',
     thumbnail: '/images/apparatus-floor.webp',
@@ -103,12 +104,12 @@ const SEED_VIDEOS: Video[] = [
   {
     id: 'vid-fx-2',
     categoryId: 'cat-fx',
-    title: 'Rangkaian Eksekusi & Dinamika Gerak FX',
+    title: 'Rangkaian Eksekusi & Dinamika Rotasi FX',
     description:
-      'Memasuki inti gerakan akrobatik senam lantai. Pembahasan mendalam mengenai tolakan tangan ke matras, transisi rotasi poros tubuh di udara, serta menjaga ritme kecepatan.',
+      'Pembahasan teknik tolakan tangan ke matras pegas, perpindahan momentum linier menjadi rotasi sudut, serta menjaga sumbu putar di udara.',
     driveFileId: '10pPKxlH8e6GKSI79bTbiCQ7d_YQP3xkD',
     driveLink: 'https://drive.google.com/file/d/10pPKxlH8e6GKSI79bTbiCQ7d_YQP3xkD/view?usp=share_link',
-    thumbnail: '/images/hero-gymnast.webp',
+    thumbnail: '/images/apparatus-floor.webp',
     duration: '04:12',
     level: 'Menengah',
     episodeNum: 2,
@@ -118,19 +119,257 @@ const SEED_VIDEOS: Video[] = [
   {
     id: 'vid-fx-3',
     categoryId: 'cat-fx',
-    title: 'Koreksi Pendaratan (Stick Landing) & Evaluasi',
+    title: 'Koreksi Pendaratan (Stick Landing) Senam Lantai',
     description:
-      'Fase krusial penentu poin tertinggi senam. Teknik peredaman hentakan lutut saat mendarat di matras tanpa langkah tambahan, keseimbangan lengan V, dan salam penutup artistik.',
+      'Fase peredaman hentakan sendi lutut dan tumit saat menyentuh matras tanpa langkah ekstra, stabilitas inti tubuh, dan salam pendaratan.',
     driveFileId: '1saHh0xfJRT3tuIKyByGCbAzsMnoa2HXI',
     driveLink: 'https://drive.google.com/file/d/1saHh0xfJRT3tuIKyByGCbAzsMnoa2HXI/view?usp=share_link',
-    thumbnail: '/images/feature-progress.webp',
+    thumbnail: '/images/apparatus-floor.webp',
     duration: '05:08',
     level: 'Mahir',
     episodeNum: 3,
     isFree: false,
     createdAt: new Date().toISOString(),
   },
+
+  // ── 2. PH (Pommel Horse - Pelana) ─────────────────────────
+  {
+    id: 'vid-ph-1',
+    categoryId: 'cat-ph',
+    title: 'Pengenalan Tumpuan & Ayunan Pelana (PH)',
+    description:
+      'Dasar penguatan pergelangan tangan, posisi tumpuan telapak di atas bodi pelana, dan ayunan dasar satu kaki (single leg work).',
+    driveFileId: '1bWbwPWd0GQ_AiX9i4tQ-kFpBKX1mEiLv',
+    driveLink: 'https://drive.google.com/file/d/1bWbwPWd0GQ_AiX9i4tQ-kFpBKX1mEiLv/view?usp=share_link',
+    thumbnail: '/images/apparatus-pommel.webp',
+    duration: '03:30',
+    level: 'Dasar',
+    episodeNum: 1,
+    isFree: true,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'vid-ph-2',
+    categoryId: 'cat-ph',
+    title: 'Teknik Circle & Scissors Kuda-Kuda Pelana',
+    description:
+      'Drill putaran dua kaki melingkar (double leg circles) kontinu, perpindahan tumpuan tangan ritmis, dan elevasi pinggul pada gerakan scissors.',
+    driveFileId: '1V2mwHNlh2jbpzQz6XwFSvr_OOKb-Hsxk',
+    driveLink: 'https://drive.google.com/file/d/1V2mwHNlh2jbpzQz6XwFSvr_OOKb-Hsxk/view?usp=share_link',
+    thumbnail: '/images/apparatus-pommel.webp',
+    duration: '04:45',
+    level: 'Menengah',
+    episodeNum: 2,
+    isFree: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'vid-ph-3',
+    categoryId: 'cat-ph',
+    title: 'Dismount & Kombinasi Rangkaian Pelana',
+    description:
+      'Transisi rangkaian antar bagian pelana hingga gerakan pelepasan/pendaratan dismount handstand travel yang bersih.',
+    driveFileId: '1OSxlH3hgtuHZ4j25LihLlaKqZtZ5nBq4',
+    driveLink: 'https://drive.google.com/file/d/1OSxlH3hgtuHZ4j25LihLlaKqZtZ5nBq4/view?usp=share_link',
+    thumbnail: '/images/apparatus-pommel.webp',
+    duration: '04:15',
+    level: 'Mahir',
+    episodeNum: 3,
+    isFree: false,
+    createdAt: new Date().toISOString(),
+  },
+
+  // ── 3. SR (Still Rings - Gelang-Gelang) ────────────────────
+  {
+    id: 'vid-sr-1',
+    categoryId: 'cat-sr',
+    title: 'Grip, False Grip & Ayunan Dasar Gelang-Gelang',
+    description:
+      'Teknik false grip untuk memudahkan transisi tumpuan di atas ring, ayunan lurus ritmis tanpa getaran kabel gantungan.',
+    driveFileId: '1jQ5WvB3Xc0CNCBqv_remyZ70VFkB6qhJ',
+    driveLink: 'https://drive.google.com/file/d/1jQ5WvB3Xc0CNCBqv_remyZ70VFkB6qhJ/view?usp=share_link',
+    thumbnail: '/images/apparatus-rings.webp',
+    duration: '03:50',
+    level: 'Dasar',
+    episodeNum: 1,
+    isFree: true,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'vid-sr-2',
+    categoryId: 'cat-sr',
+    title: 'Kekuatan Statis (Hold: L-Sit, Planche & Cross)',
+    description:
+      'Penguncian bahu (turnout ring), aktivasi otot inti dan latissimus dorsi saat melakukan tahanan statis 2 detik sesuai standar FIG.',
+    driveFileId: '1ZEnFVQLnIVuIvNBIVC6H1KruGF-j5nfq',
+    driveLink: 'https://drive.google.com/file/d/1ZEnFVQLnIVuIvNBIVC6H1KruGF-j5nfq/view?usp=share_link',
+    thumbnail: '/images/apparatus-rings.webp',
+    duration: '05:10',
+    level: 'Menengah',
+    episodeNum: 2,
+    isFree: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'vid-sr-3',
+    categoryId: 'cat-sr',
+    title: 'Salto Dismount & Pendaratan Stabil Gelang-Gelang',
+    description:
+      'Pelepasan pegangan ring saat puncak ayunan belakang untuk eksekusi salto ganda dan penyerapan hentakan kaki di matras.',
+    driveFileId: '1SgYz3kwxfeKpJTHhCIBae9zVHbhmWl0D',
+    driveLink: 'https://drive.google.com/file/d/1SgYz3kwxfeKpJTHhCIBae9zVHbhmWl0D/view?usp=share_link',
+    thumbnail: '/images/apparatus-rings.webp',
+    duration: '04:30',
+    level: 'Mahir',
+    episodeNum: 3,
+    isFree: false,
+    createdAt: new Date().toISOString(),
+  },
+
+  // ── 4. VT (Vault - Meja Lompat) ───────────────────────────
+  {
+    id: 'vid-vt-1',
+    categoryId: 'cat-vt',
+    title: 'Akselerasi Sprint 25m & Entri Papan Pegas',
+    description:
+      'Membangun kecepatan lari maksimal yang stabil dan transisi hurdle loncatan ke papan pegas (springboard) dengan sudut kontak optimal.',
+    driveFileId: '1jBhnPPDZb_l21NPCsCZh_DBymNo8sy-x',
+    driveLink: 'https://drive.google.com/file/d/1jBhnPPDZb_l21NPCsCZh_DBymNo8sy-x/view?usp=share_link',
+    thumbnail: '/images/apparatus-vault.webp',
+    duration: '03:25',
+    level: 'Dasar',
+    episodeNum: 1,
+    isFree: true,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'vid-vt-2',
+    categoryId: 'cat-vt',
+    title: 'Fase Tolakan Bahu (Blocking) di Atas Meja Lompat',
+    description:
+      'Koreksi kontak tangan secepat mungkin (<0.2 detik) pada permukaan meja lompat untuk menghasilkan daya tolak vertikal maksimal.',
+    driveFileId: '1AQSqHJtOuUbcGDtsESAolbdJJggOwQog',
+    driveLink: 'https://drive.google.com/file/d/1AQSqHJtOuUbcGDtsESAolbdJJggOwQog/view?usp=share_link',
+    thumbnail: '/images/apparatus-vault.webp',
+    duration: '04:05',
+    level: 'Menengah',
+    episodeNum: 2,
+    isFree: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'vid-vt-3',
+    categoryId: 'cat-vt',
+    title: 'Fase Layang Kedua (Post-Flight) & Stick Landing VT',
+    description:
+      'Kontrol rotasi tubuh saat melayang di udara, spotting visual matras pendaratan, dan penguncian pendaratan tanpa langkah geser.',
+    driveFileId: '1OXqNUWjXE9UTn9kJ6qiaO92GqID00Q88',
+    driveLink: 'https://drive.google.com/file/d/1OXqNUWjXE9UTn9kJ6qiaO92GqID00Q88/view?usp=share_link',
+    thumbnail: '/images/apparatus-vault.webp',
+    duration: '04:55',
+    level: 'Mahir',
+    episodeNum: 3,
+    isFree: false,
+    createdAt: new Date().toISOString(),
+  },
+
+  // ── 5. PB (Parallel Bars - Palang Sejajar) ────────────────
+  {
+    id: 'vid-pb-1',
+    categoryId: 'cat-pb',
+    title: 'Tumpuan Lengan, Ayunan Bahu & Cast Palang Sejajar',
+    description:
+      'Fondasi posisi tumpu lurus di antara dua palang, ayunan gantung dari bahu tanpa tekukan siku, serta gerakan cast awal.',
+    driveFileId: '1FvXTZ4MqmqljRd4755-ypHuelNVELBg_',
+    driveLink: 'https://drive.google.com/file/d/1FvXTZ4MqmqljRd4755-ypHuelNVELBg_/view?usp=share_link',
+    thumbnail: '/images/apparatus-bars.webp',
+    duration: '03:40',
+    level: 'Dasar',
+    episodeNum: 1,
+    isFree: true,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'vid-pb-2',
+    categoryId: 'cat-pb',
+    title: 'Handstand, Pirouette & Transisi Atas Palang Sejajar',
+    description:
+      'Penguasaan handstand tegak di atas palang kayu, penguncian bahu, dan perpindahan ayunan melewati palang dengan aman.',
+    driveFileId: '1YNXqIPZmhA_AQzV-ALGDyZK0K4oBXPR2',
+    driveLink: 'https://drive.google.com/file/d/1YNXqIPZmhA_AQzV-ALGDyZK0K4oBXPR2/view?usp=share_link',
+    thumbnail: '/images/apparatus-bars.webp',
+    duration: '04:35',
+    level: 'Menengah',
+    episodeNum: 2,
+    isFree: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'vid-pb-3',
+    categoryId: 'cat-pb',
+    title: 'Variasi Dismount Salto & Evaluasi Palang Sejajar',
+    description:
+      'Teknik ayunan kuat dari bawah palang menuju salto pendaratan di samping matras dengan kontrol postur sempurna.',
+    driveFileId: '1QMNvrTb2fqRn8vOZ5vTebeCNQUrL0x0v',
+    driveLink: 'https://drive.google.com/file/d/1QMNvrTb2fqRn8vOZ5vTebeCNQUrL0x0v/view?usp=share_link',
+    thumbnail: '/images/apparatus-bars.webp',
+    duration: '04:50',
+    level: 'Mahir',
+    episodeNum: 3,
+    isFree: false,
+    createdAt: new Date().toISOString(),
+  },
+
+  // ── 6. HB (Horizontal Bar - Palang Tunggal) ───────────────
+  {
+    id: 'vid-hb-1',
+    categoryId: 'cat-hb',
+    title: 'Grip, Tap Swing & Ayunan Irama Palang Tunggal (HB)',
+    description:
+      'Penggunaan handgrip pelindung telapak tangan, pembentukan lengkungan arch-to-hollow saat ayunan tap swing di palang baja elastis.',
+    driveFileId: '18pOQa_V3FKDNSSkiWMNzfdxxvgry9izS',
+    driveLink: 'https://drive.google.com/file/d/18pOQa_V3FKDNSSkiWMNzfdxxvgry9izS/view?usp=share_link',
+    thumbnail: '/images/apparatus-highbar.jpg',
+    duration: '03:55',
+    level: 'Dasar',
+    episodeNum: 1,
+    isFree: true,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'vid-hb-2',
+    categoryId: 'cat-hb',
+    title: 'Putaran Raksasa (Giant Swing) & Transisi Pegangan',
+    description:
+      'Pemanfaatan percepatan gravitasi pada rotasi penuh 360 derajat di sekitar palang, cast to handstand, dan perubahan posisi grip.',
+    driveFileId: '1BANvdbvr-0UVVoVoLqJN0Hy3MqEW69fQ',
+    driveLink: 'https://drive.google.com/file/d/1BANvdbvr-0UVVoVoLqJN0Hy3MqEW69fQ/view?usp=share_link',
+    thumbnail: '/images/apparatus-highbar.jpg',
+    duration: '05:05',
+    level: 'Menengah',
+    episodeNum: 2,
+    isFree: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'vid-hb-3',
+    categoryId: 'cat-hb',
+    title: 'Release Move & Flyaway Salto Dismount HB',
+    description:
+      'Momen krusial pelepasan pegangan tangan di puncak putaran untuk manuver layang dan pendaratan terfiksasi di matras tebal.',
+    driveFileId: '1SXsHg1lSSP184HLB5BcrI9ux34VMhgVb',
+    driveLink: 'https://drive.google.com/file/d/1SXsHg1lSSP184HLB5BcrI9ux34VMhgVb/view?usp=share_link',
+    thumbnail: '/images/apparatus-highbar.jpg',
+    duration: '04:40',
+    level: 'Mahir',
+    episodeNum: 3,
+    isFree: false,
+    createdAt: new Date().toISOString(),
+  },
 ];
+
+// ── Seed Version Flag ─────────────────────────────────────────
+export const SEED_VERSION = 'v3_mag_6apparatus_18videos';
 
 // ── Helpers ───────────────────────────────────────────────────
 function getStore<T>(key: string): T[] {
@@ -153,26 +392,22 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-// ── Initialization (seed on first visit) ──────────────────────
-export function initializeData(): void {
+// ── Initialization (seed on first visit or version change) ────
+export function initializeData(forceReset = false): void {
   if (typeof window === 'undefined') return;
-  if (!localStorage.getItem(KEYS.initialized)) {
+  const currentVer = localStorage.getItem(KEYS.initialized);
+  if (!currentVer || currentVer !== SEED_VERSION || forceReset) {
     setStore(KEYS.users, SEED_USERS);
     setStore(KEYS.categories, SEED_CATEGORIES);
     setStore(KEYS.videos, SEED_VIDEOS);
-    localStorage.setItem(KEYS.initialized, 'v2');
+    localStorage.setItem(KEYS.initialized, SEED_VERSION);
     return;
   }
+}
 
-  // Ensure all 6 apparatus categories are present even if seeded previously
-  const existingCats = getStore<Category>(KEYS.categories);
-  if (existingCats.length < SEED_CATEGORIES.length) {
-    const existingIds = new Set(existingCats.map((c) => c.id));
-    const missing = SEED_CATEGORIES.filter((c) => !existingIds.has(c.id));
-    if (missing.length > 0) {
-      setStore(KEYS.categories, [...existingCats, ...missing]);
-    }
-  }
+// ── Reset to Seed Data (accessible via admin UI) ──────────────
+export function resetToSeedData(): void {
+  initializeData(true);
 }
 
 // ── Users CRUD ────────────────────────────────────────────────
