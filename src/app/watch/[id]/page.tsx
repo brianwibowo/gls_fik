@@ -44,14 +44,16 @@ export default function WatchPage() {
     setSiblingVideos(siblings);
   }, [videoId]);
 
-  // Wait for hydration
-  if (!isReady) return null;
-
   // Auth gate: if not free and not logged in, redirect to login
-  if (video && !video.isFree && !isLoggedIn) {
-    router.push(`/login?redirect=/watch/${video.id}`);
-    return null;
-  }
+  useEffect(() => {
+    if (isReady && video && !video.isFree && !isLoggedIn) {
+      router.push(`/login?redirect=/watch/${video.id}`);
+    }
+  }, [isReady, video, isLoggedIn, router]);
+
+  // Wait for hydration or pending redirect
+  if (!isReady) return null;
+  if (video && !video.isFree && !isLoggedIn) return null;
 
   if (notFound) {
     return (

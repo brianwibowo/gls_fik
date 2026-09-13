@@ -24,9 +24,14 @@ function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   // If already logged in, redirect
+  React.useEffect(() => {
+    if (isLoggedIn) {
+      const redirect = searchParams.get('redirect') || '/';
+      router.push(redirect);
+    }
+  }, [isLoggedIn, router, searchParams]);
+
   if (isLoggedIn) {
-    const redirect = searchParams.get('redirect') || '/';
-    router.push(redirect);
     return null;
   }
 

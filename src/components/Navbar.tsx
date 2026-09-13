@@ -9,7 +9,6 @@ import {
   LogOut,
   ChevronDown,
   Settings,
-  User,
   Menu,
   X,
 } from 'lucide-react';
@@ -20,20 +19,20 @@ export function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-white/10">
+    <header className="sticky top-0 z-50 bg-[#0e0e0e] border-b border-[#262626]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Brand */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/20 group-hover:shadow-blue-600/30 transition-shadow">
-              <Activity className="w-5 h-5 stroke-[2.5]" />
+          <Link href="/" className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-black text-sm">
+              <Activity className="w-4 h-4 stroke-[2.5]" />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-extrabold tracking-tight text-white leading-none">
-                GLS<span className="text-blue-500">.</span>
+              <span className="text-base font-black tracking-tight text-white leading-tight">
+                GLS FIK
               </span>
-              <span className="text-[9px] font-semibold text-slate-500 tracking-widest uppercase">
-                Learning System
+              <span className="text-[10px] text-slate-400 font-medium">
+                Gymnastics Learning System
               </span>
             </div>
           </Link>
@@ -42,7 +41,7 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-6">
             <Link
               href="/"
-              className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
+              className="text-sm font-medium text-slate-200 hover:text-white transition-colors"
             >
               Katalog Video
             </Link>
@@ -50,9 +49,9 @@ export function Navbar() {
             {isLoggedIn && isAdmin && (
               <Link
                 href="/admin"
-                className="text-sm font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-1.5"
+                className="text-sm font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1a1a1a] border border-[#333]"
               >
-                <Settings className="w-3.5 h-3.5" />
+                <Settings className="w-3.5 h-3.5 text-blue-400" />
                 <span>Admin Panel</span>
               </Link>
             )}
@@ -64,23 +63,23 @@ export function Navbar() {
                   <div className="relative">
                     <button
                       onClick={() => setProfileOpen(!profileOpen)}
-                      className="flex items-center gap-2 cursor-pointer"
+                      className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-[#1a1a1a] text-slate-200 hover:text-white transition-colors cursor-pointer border border-transparent hover:border-[#333]"
                     >
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-700 to-indigo-500 flex items-center justify-center font-bold text-xs text-white border border-white/20">
+                      <div className="w-7 h-7 rounded-md bg-blue-700 flex items-center justify-center font-bold text-xs text-white">
                         {user?.name.charAt(0).toUpperCase()}
                       </div>
-                      <span className="text-sm font-semibold text-white hidden lg:inline">
+                      <span className="text-sm font-semibold hidden lg:inline">
                         {user?.name}
                       </span>
                       <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
                     </button>
 
                     {profileOpen && (
-                      <div className="absolute right-0 mt-2 w-52 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
-                        <div className="px-4 py-3 border-b border-white/10">
+                      <div className="absolute right-0 mt-2 w-52 bg-[#181818] border border-[#333] rounded-xl shadow-2xl overflow-hidden z-50">
+                        <div className="px-4 py-3 border-b border-[#2a2a2a]">
                           <p className="text-sm font-bold text-white">{user?.name}</p>
-                          <p className="text-xs text-slate-400">{user?.email}</p>
-                          <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                          <p className="text-xs text-slate-400 truncate">{user?.email}</p>
+                          <span className="inline-block mt-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-900/60 text-blue-200 border border-blue-700/50">
                             {user?.role}
                           </span>
                         </div>
@@ -89,7 +88,7 @@ export function Navbar() {
                             logout();
                             setProfileOpen(false);
                           }}
-                          className="w-full px-4 py-3 text-left text-sm text-slate-300 hover:bg-white/5 hover:text-red-400 transition-colors flex items-center gap-2 cursor-pointer"
+                          className="w-full px-4 py-2.5 text-left text-sm text-slate-300 hover:bg-[#222] hover:text-red-400 transition-colors flex items-center gap-2 cursor-pointer"
                         >
                           <LogOut className="w-4 h-4" />
                           <span>Keluar</span>
@@ -100,7 +99,7 @@ export function Navbar() {
                 ) : (
                   <Link
                     href="/login"
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors shadow-md shadow-blue-600/20"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
                   >
                     <LogIn className="w-4 h-4" />
                     <span>Masuk</span>
@@ -111,7 +110,7 @@ export function Navbar() {
           </div>
 
           {/* Mobile hamburger */}
-          <div className="flex md:hidden items-center gap-3">
+          <div className="flex md:hidden items-center gap-2">
             {isReady && !isLoggedIn && (
               <Link
                 href="/login"
@@ -122,7 +121,8 @@ export function Navbar() {
             )}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+              className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-[#1a1a1a] transition-colors"
+              aria-label="Menu"
             >
               {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -132,11 +132,11 @@ export function Navbar() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden bg-[#111] border-t border-white/10 px-4 py-4 space-y-2">
+        <div className="md:hidden bg-[#141414] border-t border-[#262626] px-4 py-4 space-y-2">
           <Link
             href="/"
             onClick={() => setMenuOpen(false)}
-            className="block py-2 text-sm font-semibold text-slate-300 hover:text-white"
+            className="block py-2 text-sm font-semibold text-slate-200 hover:text-white"
           >
             Katalog Video
           </Link>
@@ -144,15 +144,15 @@ export function Navbar() {
             <Link
               href="/admin"
               onClick={() => setMenuOpen(false)}
-              className="block py-2 text-sm font-semibold text-slate-300 hover:text-white"
+              className="block py-2 text-sm font-semibold text-slate-200 hover:text-white"
             >
               Admin Panel
             </Link>
           )}
           {isLoggedIn && (
-            <>
-              <div className="py-2 border-t border-white/10 text-xs text-slate-500">
-                Masuk sebagai <span className="text-white font-semibold">{user?.name}</span>
+            <div className="pt-2 border-t border-[#262626]">
+              <div className="py-1 text-xs text-slate-400">
+                Masuk sebagai <span className="text-white font-semibold">{user?.name}</span> ({user?.role})
               </div>
               <button
                 onClick={() => {
@@ -163,7 +163,7 @@ export function Navbar() {
               >
                 Keluar
               </button>
-            </>
+            </div>
           )}
         </div>
       )}

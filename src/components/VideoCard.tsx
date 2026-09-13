@@ -22,7 +22,7 @@ export function VideoCard({ video, categoryName, className = '' }: VideoCardProp
   return (
     <Link
       href={href}
-      className={`group relative bg-[#181818] rounded-xl overflow-hidden border border-white/5 hover:border-white/20 hover:ring-1 hover:ring-blue-500/30 transition-all duration-300 flex flex-col h-full ${className}`}
+      className={`group relative bg-[#141414] rounded-xl overflow-hidden border border-[#262626] hover:border-slate-500 transition-colors duration-200 flex flex-col h-full ${className}`}
     >
       {/* Thumbnail */}
       <div className="relative aspect-video w-full bg-[#111] overflow-hidden">
@@ -30,70 +30,65 @@ export function VideoCard({ video, categoryName, className = '' }: VideoCardProp
           src={video.thumbnail}
           alt={video.title}
           fill
-          className="object-cover object-center group-hover:scale-105 transition-transform duration-500 opacity-85 group-hover:opacity-100"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover object-center group-hover:scale-102 transition-transform duration-300 opacity-90 group-hover:opacity-100"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 320px"
         />
 
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
-
-        {/* Play / Lock icon center */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        {/* Play / Lock center indicator */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/40">
           {canWatch ? (
-            <div className="w-14 h-14 rounded-full bg-blue-600/90 backdrop-blur-sm flex items-center justify-center shadow-xl shadow-blue-600/40 border border-white/20">
-              <Play className="w-6 h-6 text-white fill-white ml-0.5" />
+            <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg">
+              <Play className="w-5 h-5 fill-white ml-0.5" />
             </div>
           ) : (
-            <div className="w-14 h-14 rounded-full bg-slate-800/90 backdrop-blur-sm flex items-center justify-center shadow-xl border border-white/20">
-              <Lock className="w-5 h-5 text-slate-300" />
+            <div className="w-12 h-12 rounded-full bg-[#222] border border-white/20 flex items-center justify-center text-slate-300 shadow-lg">
+              <Lock className="w-5 h-5" />
             </div>
           )}
         </div>
 
-        {/* Badges on thumbnail */}
-        <div className="absolute top-2.5 left-2.5 flex items-center gap-2">
-          {video.isFree && (
-            <span className="px-2.5 py-1 rounded-md bg-emerald-600/90 backdrop-blur-sm text-[11px] font-bold text-white tracking-wider uppercase">
+        {/* Top Badges */}
+        <div className="absolute top-2 left-2 flex items-center gap-1.5">
+          {video.isFree ? (
+            <span className="px-2 py-0.5 rounded bg-emerald-600 text-[11px] font-bold text-white uppercase tracking-wider">
               Gratis
             </span>
-          )}
-          {!video.isFree && !isLoggedIn && (
-            <span className="px-2.5 py-1 rounded-md bg-slate-700/80 backdrop-blur-sm text-[11px] font-bold text-slate-200 flex items-center gap-1">
-              <Lock className="w-3 h-3" />
+          ) : !isLoggedIn ? (
+            <span className="px-2 py-0.5 rounded bg-[#1f2937] text-[11px] font-semibold text-slate-200 border border-slate-700 flex items-center gap-1">
+              <Lock className="w-3 h-3 text-slate-400" />
               <span>Login</span>
             </span>
-          )}
+          ) : null}
         </div>
 
-        {/* Duration badge */}
-        <div className="absolute bottom-2.5 right-2.5">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-black/70 backdrop-blur-sm text-[11px] font-semibold text-slate-200">
+        {/* Bottom meta */}
+        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none">
+          <span className="px-1.5 py-0.5 rounded bg-black/80 text-[10px] font-bold text-slate-300">
+            EP {video.episodeNum}
+          </span>
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/80 text-[10px] font-medium text-slate-300">
             <Clock className="w-3 h-3 text-slate-400" />
             {video.duration}
-          </span>
-        </div>
-
-        {/* Episode number */}
-        <div className="absolute bottom-2.5 left-2.5">
-          <span className="text-[11px] font-bold text-slate-300">
-            EP {video.episodeNum}
           </span>
         </div>
       </div>
 
       {/* Card body */}
-      <div className="p-4 flex-1 flex flex-col justify-between">
+      <div className="p-3.5 flex-1 flex flex-col justify-between">
         <div>
           <h3 className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors leading-snug line-clamp-2">
             {video.title}
           </h3>
           {categoryName && (
-            <p className="text-[11px] text-slate-500 font-medium mt-1">{categoryName}</p>
+            <p className="text-[11px] text-slate-400 font-medium mt-1">{categoryName}</p>
           )}
         </div>
-        <div className="mt-3 flex items-center justify-between">
-          <span className="px-2 py-0.5 rounded bg-white/8 text-[10px] font-semibold text-slate-400 border border-white/5">
-            {video.level}
+        <div className="mt-3 flex items-center justify-between pt-2 border-t border-[#222]">
+          <span className="px-2 py-0.5 rounded bg-[#1e293b] text-[10px] font-medium text-slate-300">
+            Level {video.level}
+          </span>
+          <span className="text-[11px] font-semibold text-blue-400 group-hover:underline">
+            {canWatch ? 'Tonton' : 'Masuk Akun'} &rarr;
           </span>
         </div>
       </div>
