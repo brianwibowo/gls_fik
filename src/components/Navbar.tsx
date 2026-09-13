@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import {
   Activity,
@@ -14,12 +15,33 @@ import {
 } from 'lucide-react';
 
 export function Navbar() {
+  const pathname = usePathname();
+  const isHome = pathname === '/';
   const { user, isLoggedIn, isAdmin, logout, isReady } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    if (!isHome) return;
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 30);
+    };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isHome]);
+
+  const headerClass = isHome
+    ? `fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'bg-[#0a0a0a]/90 backdrop-blur-md border-b border-[#262626] shadow-xl py-0'
+          : 'bg-gradient-to-b from-black/80 via-black/40 to-transparent border-b border-transparent py-1'
+      }`
+    : 'sticky top-0 z-50 bg-[#0e0e0e] border-b border-[#262626]';
 
   return (
-    <header className="sticky top-0 z-50 bg-[#0e0e0e] border-b border-[#262626]">
+    <header className={headerClass}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Brand */}

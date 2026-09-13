@@ -138,7 +138,7 @@ export function ApparatusSection({ activeId, onSelectApparatus }: ApparatusSecti
     APPARATUS_DATA.find((item) => item.id === activeId) || APPARATUS_DATA[0];
 
   return (
-    <section className="py-12 border-b border-[#262626] bg-[#0c0c0c]">
+    <section id="nomor-alat" className="py-12 border-b border-[#262626] bg-[#0c0c0c] scroll-mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-4">

@@ -15,6 +15,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowRight,
+  ArrowUpRight,
+  ArrowDown,
   Film,
 } from 'lucide-react';
 
@@ -134,90 +136,97 @@ export default function HomePage() {
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       <Navbar />
 
-      {/* ── Direct, Functional Hero Section (No AI slop glows or buzzwords) ── */}
-      <section className="border-b border-[#262626] bg-[#0e0e0e] py-10 sm:py-14">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            {/* Left: Real Project Mission */}
-            <div className="lg:col-span-7 space-y-4">
-              <span className="text-xs font-bold text-blue-400 tracking-wider uppercase">
-                Platform Video Senam Artistik FIK
-              </span>
+      {/* ── Fullscreen Cinematic Video Hero (Studiova Style) ── */}
+      <section className="relative w-full h-screen min-h-[640px] flex flex-col justify-between overflow-hidden bg-black">
+        {/* Background Video */}
+        <video
+          src="/images/gymnastic.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        />
 
-              <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
-                Modul Pembelajaran & Video Drill Senam Artistik
-              </h1>
+        {/* Ambient Dark Overlays for Readability & Cinematic Mood */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/50 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-black/25 pointer-events-none" />
 
-              <p className="text-sm text-slate-300 leading-relaxed max-w-xl">
-                Kurikulum terstruktur untuk pelatih, atlet, dan mahasiswa Fakultas Ilmu Keolahragaan.
-                Tonton video peragaan teknik gerak nomor alat dari awalan, eksekusi, hingga pendaratan matras.
-              </p>
+        {/* Top spacer so header content is not overlapped */}
+        <div className="h-20" />
 
-              <div className="flex flex-wrap items-center gap-3 pt-2">
+        {/* Bottom Hero Editorial Typography (Studiova Style) */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pb-12 sm:pb-16 mt-auto">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+            {/* Left: Tagline + Giant Title with Pill Button */}
+            <div className="max-w-3xl space-y-4">
+              {/* Star Icon + Editorial Tagline */}
+              <div className="flex items-start gap-3">
+                <svg
+                  className="w-5 h-5 sm:w-6 sm:h-6 text-[#c1ff72] shrink-0 mt-0.5"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M12 2L13.8 8.2L20 6.5L16.2 12L20 17.5L13.8 15.8L12 22L10.2 15.8L4 17.5L7.8 12L4 6.5L10.2 8.2L12 2Z" />
+                </svg>
+                <p className="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed max-w-md">
+                  Sistem Pembelajaran Senam Artistik{' '}
+                  <span className="text-[#c1ff72] font-bold">Fakultas Ilmu Keolahragaan</span> untuk
+                  kurikulum peragaan gerak, teknik awalan, hingga stick landing.
+                </p>
+              </div>
+
+              {/* Giant Brand Typography + Accent Arrow Pill */}
+              <div className="flex flex-wrap items-baseline gap-3 sm:gap-5 pt-1">
+                <h1 className="text-6xl sm:text-8xl md:text-9xl font-black text-white tracking-tighter leading-none select-none">
+                  GLS FIK.
+                </h1>
+                <a
+                  href="#nomor-alat"
+                  aria-label="Jelajahi 6 nomor alat senam"
+                  className="inline-flex items-center justify-center w-14 sm:w-20 h-8 sm:h-11 rounded-full bg-[#c1ff72] hover:bg-[#b0f555] hover:scale-105 active:scale-95 transition-all text-[#1f2a2e] shadow-xl group cursor-pointer"
+                  title="Jelajahi Nomor Alat"
+                >
+                  <ArrowUpRight className="w-5 sm:w-6 h-5 sm:h-6 stroke-[2.5] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </a>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-3 pt-3">
                 {featuredVideo && (
                   <Link
                     href={`/watch/${featuredVideo.id}`}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-colors"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-bold text-xs sm:text-sm transition-all"
                   >
-                    <Play className="w-4 h-4 fill-white" />
-                    <span>Tonton Video Gratis</span>
+                    <Play className="w-3.5 h-3.5 fill-white" />
+                    <span>Tonton Video Gratis ({featuredVideo.title})</span>
                   </Link>
                 )}
                 <a
-                  href="#katalog-video"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#1a1a1a] hover:bg-[#252525] border border-[#333] text-slate-200 font-semibold text-sm transition-colors"
+                  href="#nomor-alat"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/15 text-slate-300 hover:text-white text-xs sm:text-sm font-medium transition-all"
                 >
-                  <span>Daftar Materi</span>
+                  <span>Daftar 6 Alat MAG</span>
                   <ArrowRight className="w-4 h-4" />
                 </a>
               </div>
             </div>
 
-            {/* Right: Featured Video Preview Card */}
-            {featuredVideo && (
-              <div className="lg:col-span-5">
-                <div className="bg-[#141414] rounded-xl border border-[#2a2a2a] p-3.5">
-                  <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-black mb-3">
-                    <Image
-                      src={featuredVideo.thumbnail}
-                      alt={featuredVideo.title}
-                      fill
-                      className="object-cover object-center"
-                      sizes="480px"
-                    />
-                    <div className="absolute top-2 left-2">
-                      <span className="px-2 py-0.5 rounded bg-emerald-600 text-[10px] font-bold text-white uppercase tracking-wider">
-                        Gratis Ditonton
-                      </span>
-                    </div>
-                    <Link
-                      href={`/watch/${featuredVideo.id}`}
-                      className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/15 transition-colors cursor-pointer group"
-                    >
-                      <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
-                        <Play className="w-5 h-5 fill-white ml-0.5" />
-                      </div>
-                    </Link>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center gap-2 text-[11px] text-slate-400 font-medium mb-1">
-                      <span>Episode {featuredVideo.episodeNum}</span>
-                      <span>•</span>
-                      <span>Level {featuredVideo.level}</span>
-                      <span>•</span>
-                      <span>{featuredVideo.duration}</span>
-                    </div>
-                    <h3 className="text-sm font-bold text-white line-clamp-1">
-                      {featuredVideo.title}
-                    </h3>
-                    <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
-                      {featuredVideo.description}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Right: Round Scroll Down Button */}
+            <div className="hidden lg:flex flex-col items-center gap-2">
+              <a
+                href="#nomor-alat"
+                className="w-14 h-14 rounded-full bg-[#c1ff72] hover:bg-[#b0f555] text-[#1f2a2e] flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all cursor-pointer group"
+                aria-label="Scroll ke Nomor Alat"
+              >
+                <ArrowDown className="w-6 h-6 stroke-[2.5] group-hover:translate-y-0.5 transition-transform" />
+              </a>
+              <span className="text-[11px] font-bold text-slate-400 tracking-wider uppercase">
+                Nomor Alat
+              </span>
+            </div>
           </div>
         </div>
       </section>
