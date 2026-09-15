@@ -1,13 +1,10 @@
-// ============================================================
-// GLS Types — Shared TypeScript interfaces
-// Designed for localStorage now, swappable to Go API later.
-// ============================================================
+// Shared TypeScript interfaces for GLS FIK data layer.
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  password: string; // plain text for localStorage mock — hashed in Go later
+  password: string; // Plain text mock in localStorage (hashed on Go backend in production)
   role: 'user' | 'admin';
   createdAt: string;
 }

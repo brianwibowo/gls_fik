@@ -1,11 +1,8 @@
-// ============================================================
-// GLS Data Layer — localStorage CRUD operations
-// Swap this file's implementation to fetch() when Go API ready.
-// ============================================================
+// GLS Data Layer: localStorage CRUD operations for local development.
 
 import type { User, Category, Video } from './types';
 
-// ── Storage Keys ──────────────────────────────────────────────
+// Storage keys
 const KEYS = {
   users: 'gls_users',
   categories: 'gls_categories',
@@ -13,7 +10,7 @@ const KEYS = {
   initialized: 'gls_data_initialized',
 } as const;
 
-// ── Seed Data ─────────────────────────────────────────────────
+// Seed data
 const SEED_USERS: User[] = [
   {
     id: 'admin-1',
@@ -85,7 +82,7 @@ export const SEED_CATEGORIES: Category[] = [
 ];
 
 export const SEED_VIDEOS: Video[] = [
-  // ── 1. FX (Floor Exercise - Lantai) ──────────────────────
+  // 1. Floor Exercise (Senam Lantai)
   {
     id: 'vid-fx-1',
     categoryId: 'cat-fx',
@@ -132,7 +129,7 @@ export const SEED_VIDEOS: Video[] = [
     createdAt: new Date().toISOString(),
   },
 
-  // ── 2. PH (Pommel Horse - Pelana) ─────────────────────────
+  // 2. Pommel Horse (Kuda-Kuda Pelana)
   {
     id: 'vid-ph-1',
     categoryId: 'cat-ph',
@@ -179,7 +176,7 @@ export const SEED_VIDEOS: Video[] = [
     createdAt: new Date().toISOString(),
   },
 
-  // ── 3. SR (Still Rings - Gelang-Gelang) ────────────────────
+  // 3. Still Rings (Gelang-Gelang)
   {
     id: 'vid-sr-1',
     categoryId: 'cat-sr',
@@ -226,7 +223,7 @@ export const SEED_VIDEOS: Video[] = [
     createdAt: new Date().toISOString(),
   },
 
-  // ── 4. VT (Vault - Meja Lompat) ───────────────────────────
+  // 4. Vault (Meja Lompat)
   {
     id: 'vid-vt-1',
     categoryId: 'cat-vt',
@@ -273,7 +270,7 @@ export const SEED_VIDEOS: Video[] = [
     createdAt: new Date().toISOString(),
   },
 
-  // ── 5. PB (Parallel Bars - Palang Sejajar) ────────────────
+  // 5. Parallel Bars (Palang Sejajar)
   {
     id: 'vid-pb-1',
     categoryId: 'cat-pb',
@@ -320,7 +317,7 @@ export const SEED_VIDEOS: Video[] = [
     createdAt: new Date().toISOString(),
   },
 
-  // ── 6. HB (Horizontal Bar - Palang Tunggal) ───────────────
+  // 6. Horizontal Bar (Palang Tunggal)
   {
     id: 'vid-hb-1',
     categoryId: 'cat-hb',
@@ -368,10 +365,10 @@ export const SEED_VIDEOS: Video[] = [
   },
 ];
 
-// ── Seed Version Flag ─────────────────────────────────────────
+// Seed version flag
 export const SEED_VERSION = 'v3_mag_6apparatus_18videos';
 
-// ── Helpers ───────────────────────────────────────────────────
+// Persistence helpers
 function getStore<T>(key: string): T[] {
   if (typeof window === 'undefined') return [];
   const raw = localStorage.getItem(key);
@@ -392,7 +389,7 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-// ── Initialization (seed on first visit or version change) ────
+// Initialization
 export function initializeData(forceReset = false): void {
   if (typeof window === 'undefined') return;
   const currentVer = localStorage.getItem(KEYS.initialized);
@@ -405,14 +402,21 @@ export function initializeData(forceReset = false): void {
   }
 }
 
-// ── Reset to Seed Data (accessible via admin UI) ──────────────
+// Reset to seed data
 export function resetToSeedData(): void {
   initializeData(true);
 }
 
-// ── Users CRUD ────────────────────────────────────────────────
+// User operations
 export function getUsers(): User[] {
-  return getStore<User>(KEYS.users);
+  if (typeof window !== 'undefined') {
+    initializeData();
+    const stored = getStore<User>(KEYS.users);
+    if (stored && stored.length > 0) {
+      return stored;
+    }
+  }
+  return [...SEED_USERS];
 }
 
 export function getUserById(id: string): User | undefined {
@@ -448,7 +452,7 @@ export function deleteUser(id: string): boolean {
   return true;
 }
 
-// ── Drive link extractor (friendly for non-tech users) ───────
+// Drive link extractor
 export function extractDriveFileId(input: string): string {
   if (!input) return '';
   const trimmed = input.trim();
@@ -464,9 +468,16 @@ export function extractDriveFileId(input: string): string {
   return trimmed;
 }
 
-// ── Categories CRUD ───────────────────────────────────────────
+// Category operations
 export function getCategories(): Category[] {
-  return getStore<Category>(KEYS.categories).sort((a, b) => a.order - b.order);
+  if (typeof window !== 'undefined') {
+    initializeData();
+    const stored = getStore<Category>(KEYS.categories);
+    if (stored && stored.length > 0) {
+      return stored.sort((a, b) => a.order - b.order);
+    }
+  }
+  return [...SEED_CATEGORIES].sort((a, b) => a.order - b.order);
 }
 
 export function getCategoryById(id: string): Category | undefined {
@@ -501,17 +512,30 @@ export function deleteCategory(id: string): boolean {
   return true;
 }
 
-// ── Videos CRUD ───────────────────────────────────────────────
+// Video operations
 export function getVideos(): Video[] {
-  return getStore<Video>(KEYS.videos).sort((a, b) => a.episodeNum - b.episodeNum);
+  if (typeof window !== 'undefined') {
+    initializeData();
+    const stored = getStore<Video>(KEYS.videos);
+    if (stored && stored.length > 0) {
+      return stored.sort((a, b) => a.episodeNum - b.episodeNum);
+    }
+  }
+  return [...SEED_VIDEOS].sort((a, b) => a.episodeNum - b.episodeNum);
 }
 
 export function getVideoById(id: string): Video | undefined {
-  return getVideos().find((v) => v.id === id);
+  return getVideos().find((v) => v.id === id) || SEED_VIDEOS.find((v) => v.id === id);
 }
 
 export function getVideosByCategory(categoryId: string): Video[] {
   return getVideos().filter((v) => v.categoryId === categoryId);
+}
+
+export function getFirstVideoByCategory(categoryId: string): Video | undefined {
+  const vids = getVideosByCategory(categoryId);
+  if (vids.length > 0) return vids[0];
+  return SEED_VIDEOS.find((v) => v.categoryId === categoryId);
 }
 
 export function createVideo(data: Omit<Video, 'id' | 'createdAt'>): Video {
@@ -539,7 +563,7 @@ export function deleteVideo(id: string): boolean {
   return true;
 }
 
-// ── Auth helpers ──────────────────────────────────────────────
+// Authentication helpers
 export function authenticateUser(email: string, password: string): User | null {
   const user = getUserByEmail(email);
   if (!user) return null;

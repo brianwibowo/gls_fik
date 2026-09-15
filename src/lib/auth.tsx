@@ -1,10 +1,10 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { AuthSession, User } from './types';
+import type { AuthSession } from './types';
 import { authenticateUser, initializeData } from './data';
 
-// ── Context ───────────────────────────────────────────────────
+// Auth context definition
 interface AuthContextValue {
   user: AuthSession['user'] | null;
   isLoggedIn: boolean;
@@ -25,7 +25,7 @@ const AuthContext = createContext<AuthContextValue>({
 
 const SESSION_KEY = 'gls_session';
 
-// ── Provider ──────────────────────────────────────────────────
+// Auth context provider component
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthSession['user'] | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -50,7 +50,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!matched) {
       return { success: false, error: 'Email atau kata sandi salah.' };
     }
-    const { password: _pw, ...safeUser } = matched;
+    const safeUser = {
+      id: matched.id,
+      email: matched.email,
+      name: matched.name,
+      role: matched.role,
+      createdAt: matched.createdAt,
+    };
     const session: AuthSession = { user: safeUser, loginAt: new Date().toISOString() };
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
     setUser(safeUser);
@@ -78,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ── Hook ──────────────────────────────────────────────────────
+// Custom hook to consume auth context
 export function useAuth(): AuthContextValue {
   return useContext(AuthContext);
 }

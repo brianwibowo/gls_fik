@@ -11,7 +11,6 @@ import {
   Trash2,
   X,
   Save,
-  Users,
 } from 'lucide-react';
 
 function AdminUsersContent() {
@@ -95,14 +94,14 @@ function AdminUsersContent() {
   };
 
   return (
-    <div className="p-6 sm:p-8 max-w-5xl mx-auto w-full">
-      {/* ── TOP HEADER ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-6 border-b border-[#1f2937] gap-4">
+    <div className="p-3.5 sm:p-6 lg:p-8 max-w-5xl mx-auto w-full text-slate-900">
+      {/* Top header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 sm:pb-6 mb-5 sm:mb-6 border-b border-slate-200 gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
             Data Pengguna & Hak Akses
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Kelola akun pelatih, atlet, dan pengelola yang memiliki akses ke platform GLS.
           </p>
         </div>
@@ -114,39 +113,40 @@ function AdminUsersContent() {
                 resetForm();
                 setShowForm(true);
               }}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md transition-colors cursor-pointer"
+              className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#c1ff72] hover:bg-[#b0f555] active:scale-95 text-[#1f2a2e] font-black text-sm shadow-sm transition-all cursor-pointer border border-[#a8ed4b]"
             >
               <Plus className="w-5 h-5 stroke-[2.5]" />
-              <span>+ Tambah Pengguna Baru</span>
+              <span>Tambah Pengguna Baru</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* ── FORM TAMBAH / EDIT USER ── */}
+      {/* User form */}
       {showForm && (
-        <div className="mb-8 bg-[#1e293b] border-2 border-blue-500/80 rounded-2xl p-6 sm:p-8 shadow-xl">
-          <div className="flex items-center justify-between pb-4 mb-6 border-b border-[#334155]">
+        <div className="mb-6 sm:mb-8 bg-white border border-slate-200 rounded-2xl p-4 sm:p-7 shadow-sm animate-in fade-in duration-150">
+          <div className="flex items-center justify-between pb-3 sm:pb-4 mb-5 border-b border-slate-200">
             <div>
-              <h2 className="text-xl font-black text-white">
-                {editingId ? '✏️ Ubah Data Pengguna' : '👤 Tambah Pengguna Baru'}
+              <h2 className="text-lg sm:text-xl font-black text-slate-900">
+                {editingId ? 'Ubah Data Pengguna' : 'Tambah Pengguna Baru'}
               </h2>
-              <p className="text-xs sm:text-sm text-slate-300 mt-0.5">
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
                 Lengkapi nama, email, dan kata sandi untuk akun pengguna.
               </p>
             </div>
             <button
               onClick={resetForm}
-              className="p-2 rounded-xl bg-[#0f172a] border border-[#334155] text-slate-300 hover:text-white cursor-pointer"
+              className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center cursor-pointer active:scale-95 transition-all"
+              aria-label="Tutup form"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
               <div>
-                <label className="block text-sm font-bold text-white mb-1.5">
+                <label className="block text-xs sm:text-sm font-bold text-slate-900 mb-1.5">
                   Nama Lengkap *
                 </label>
                 <input
@@ -155,12 +155,12 @@ function AdminUsersContent() {
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   placeholder="Contoh: Budi Santoso"
-                  className="w-full px-4 py-3 rounded-xl bg-[#0f172a] border border-[#475569] text-white text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full min-h-[42px] px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-base sm:text-sm focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800 transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-white mb-1.5">
+                <label className="block text-xs sm:text-sm font-bold text-slate-900 mb-1.5">
                   Alamat Email *
                 </label>
                 <input
@@ -169,14 +169,14 @@ function AdminUsersContent() {
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   placeholder="Contoh: pelatih@gls.id"
-                  className="w-full px-4 py-3 rounded-xl bg-[#0f172a] border border-[#475569] text-white text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full min-h-[42px] px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-base sm:text-sm focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800 transition-colors"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
               <div>
-                <label className="block text-sm font-bold text-white mb-1.5">
+                <label className="block text-xs sm:text-sm font-bold text-slate-900 mb-1.5">
                   Kata Sandi {editingId ? '(Kosongkan bila tidak diubah)' : '*'}
                 </label>
                 <input
@@ -185,18 +185,18 @@ function AdminUsersContent() {
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   placeholder={editingId ? '••••••••' : 'Minimal 6 karakter'}
-                  className="w-full px-4 py-3 rounded-xl bg-[#0f172a] border border-[#475569] text-white text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full min-h-[42px] px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-base sm:text-sm focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800 transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-white mb-1.5">
+                <label className="block text-xs sm:text-sm font-bold text-slate-900 mb-1.5">
                   Peran / Hak Akses
                 </label>
                 <select
                   value={form.role}
                   onChange={(e) => setForm({ ...form, role: e.target.value as 'user' | 'admin' })}
-                  className="w-full px-4 py-3 rounded-xl bg-[#0f172a] border border-[#475569] text-white text-sm font-medium focus:outline-none focus:border-blue-500"
+                  className="w-full min-h-[42px] px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-base sm:text-sm font-medium focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800 transition-colors cursor-pointer"
                 >
                   <option value="user">User Biasa (Hanya Menonton Video)</option>
                   <option value="admin">Admin Pengelola (Bisa Tambah & Hapus Video)</option>
@@ -204,17 +204,17 @@ function AdminUsersContent() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#334155]">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-200">
               <button
                 type="button"
                 onClick={resetForm}
-                className="px-5 py-3 rounded-xl bg-[#334155] hover:bg-[#475569] text-slate-200 font-semibold text-sm cursor-pointer"
+                className="min-h-[44px] px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm cursor-pointer border border-slate-200 flex items-center justify-center active:scale-95 transition-all"
               >
                 Batal
               </button>
               <button
                 type="submit"
-                className="inline-flex items-center gap-2 px-7 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base shadow-lg cursor-pointer"
+                className="min-h-[44px] inline-flex items-center justify-center gap-2 px-7 py-2.5 rounded-xl bg-[#c1ff72] hover:bg-[#b0f555] active:scale-95 text-[#1f2a2e] font-black text-sm sm:text-base shadow-sm cursor-pointer border border-[#a8ed4b] transition-all"
               >
                 <Save className="w-5 h-5" />
                 <span>Simpan Pengguna</span>
@@ -224,18 +224,18 @@ function AdminUsersContent() {
         </div>
       )}
 
-      {/* ── DAFTAR TABEL PENGGUNA ── */}
-      <div className="bg-[#111827] border border-[#1f2937] rounded-xl overflow-hidden shadow-sm">
-        <div className="p-4 sm:p-5 border-b border-[#1f2937] flex items-center justify-between">
-          <h3 className="text-base font-bold text-white">
+      {/* User table list */}
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+        <div className="p-3.5 sm:p-5 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 sm:gap-4">
+          <h3 className="text-sm sm:text-base font-bold text-slate-900">
             Semua Pengguna Terdaftar ({users.length})
           </h3>
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-slate-500 font-medium">
             Admin: {users.filter((u) => u.role === 'admin').length} &bull; User: {users.filter((u) => u.role === 'user').length}
           </span>
         </div>
 
-        <div className="divide-y divide-[#1f2937]">
+        <div className="divide-y divide-slate-100">
           {users.map((u) => {
             const isMe = u.id === currentUser?.id;
             const isAdminRole = u.role === 'admin';
@@ -243,60 +243,66 @@ function AdminUsersContent() {
             return (
               <div
                 key={u.id}
-                className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#162032] transition-colors"
+                className="p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:bg-slate-50/80 transition-colors"
               >
-                <div className="flex items-center gap-3.5">
+                <div className="flex items-center gap-3.5 min-w-0">
                   <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm text-white shrink-0 ${
-                      isAdminRole ? 'bg-blue-600' : 'bg-slate-700'
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 ${
+                      isAdminRole
+                        ? 'bg-[#c1ff72] text-[#1f2a2e] border border-[#a8ed4b]'
+                        : 'bg-slate-100 text-slate-700 border border-slate-200'
                     }`}
                   >
                     {u.name.charAt(0).toUpperCase()}
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-white text-base">{u.name}</span>
+                      <span className="font-bold text-slate-900 text-sm sm:text-base truncate">{u.name}</span>
                       {isMe && (
-                        <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[10px] font-bold border border-blue-500/30">
+                        <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-200 shrink-0">
                           Akun Anda
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">{u.email}</p>
+                    <p className="text-xs text-slate-500 mt-0.5 truncate">{u.email}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2.5 self-end sm:self-center">
+                <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                   <button
                     onClick={() => handleToggleRole(u)}
                     disabled={isMe}
                     title={isMe ? 'Tidak bisa mengubah akun sendiri' : 'Klik untuk ganti peran'}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer disabled:cursor-not-allowed ${
+                    className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer disabled:cursor-not-allowed active:scale-95 ${
                       isAdminRole
-                        ? 'bg-blue-900/60 text-blue-200 border-blue-700 hover:bg-blue-800'
-                        : 'bg-[#1f2937] text-slate-300 border-[#374151] hover:bg-[#374151]'
+                        ? 'bg-[#c1ff72]/25 text-[#213506] border-[#a8ed4b] hover:bg-[#c1ff72]/40'
+                        : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                     }`}
                   >
                     {isAdminRole ? '🛡️ Admin Pengelola' : '👤 User Biasa'}
                   </button>
 
-                  <button
-                    onClick={() => handleEdit(u)}
-                    className="p-2 rounded-lg bg-[#1f2937] hover:bg-[#374151] text-slate-200 hover:text-white border border-[#374151] transition-colors cursor-pointer"
-                    title="Ubah Data"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
-
-                  {!isMe && (
+                  <div className="flex items-center gap-1.5">
                     <button
-                      onClick={() => handleDelete(u.id, u.name)}
-                      className="p-2 rounded-lg bg-red-950/40 hover:bg-red-600 text-red-400 hover:text-white border border-red-800/50 transition-colors cursor-pointer"
-                      title="Hapus Akun"
+                      onClick={() => handleEdit(u)}
+                      className="w-10 h-10 min-w-[38px] min-h-[38px] rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors cursor-pointer flex items-center justify-center active:scale-95"
+                      title="Ubah Data"
+                      aria-label={`Ubah data ${u.name}`}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Pencil className="w-4 h-4" />
                     </button>
-                  )}
+
+                    {!isMe && (
+                      <button
+                        onClick={() => handleDelete(u.id, u.name)}
+                        className="w-10 h-10 min-w-[38px] min-h-[38px] rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-colors cursor-pointer flex items-center justify-center active:scale-95"
+                        title="Hapus Akun"
+                        aria-label={`Hapus akun ${u.name}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -309,7 +315,7 @@ function AdminUsersContent() {
 
 export default function AdminUsersPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-white">Memuat...</div>}>
+    <Suspense fallback={<div className="p-8 text-slate-800">Memuat data pengguna...</div>}>
       <AdminUsersContent />
     </Suspense>
   );

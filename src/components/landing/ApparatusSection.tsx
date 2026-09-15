@@ -1,26 +1,29 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { getFirstVideoByCategory } from '@/lib/data';
 import {
   ChevronLeft,
   ChevronRight,
-  Compass,
-  ArrowDown,
   ShieldCheck,
   Target,
+  Layers,
+  ArrowUpRight,
 } from 'lucide-react';
 
 export interface ApparatusInfo {
   id: string;
   code: string;
   name: string;
-  categoryTag: 'Putra & Putri' | 'Khusus Putri (WAG)' | 'Khusus Putra (MAG)';
+  categoryTag: 'Khusus Putra (MAG)' | 'Khusus Putri (WAG)' | 'Putra & Putri';
   dimensions: string;
   image: string;
   drillSummary: string;
   keyDrills: string[];
   safetyTip: string;
+  isPrimary?: boolean;
 }
 
 export const APPARATUS_DATA: ApparatusInfo[] = [
@@ -38,6 +41,7 @@ export const APPARATUS_DATA: ApparatusInfo[] = [
       'Teknik stick landing tanpa langkah tambahan (fleksi lutut peredam)',
     ],
     safetyTip: 'Gunakan matras bantu pendaratan busa tambahan untuk latihan salto rotasi baru.',
+    isPrimary: true,
   },
   {
     id: 'cat-ph',
@@ -53,21 +57,7 @@ export const APPARATUS_DATA: ApparatusInfo[] = [
       'Perpindahan titik berat lateral untuk membebaskan tumpuan tangan',
     ],
     safetyTip: 'Lakukan penguatan pergelangan tangan (wrist conditioning) secara teratur untuk mencegah cedera.',
-  },
-  {
-    id: 'cat-sr',
-    code: 'SR',
-    name: 'Still Rings (Gelang-Gelang)',
-    categoryTag: 'Khusus Putra (MAG)',
-    dimensions: 'Tinggi 2.8 m dari matras',
-    image: '/images/apparatus-rings.webp',
-    drillSummary: 'Ujian kekuatan statis bahu (hold position) diselingi ayunan tanpa goyangan kabel.',
-    keyDrills: [
-      'Hold statis (Cross, L-sit, Planche) tahan minimal 2 detik',
-      'Kip to handstand dengan ring turn-out',
-      'Ayunan dinamis tanpa membiarkan tali kabel bergetar',
-    ],
-    safetyTip: 'Lakukan pemanasan sendi rotator cuff bahu secara menyeluruh sebelum melatih hold statis.',
+    isPrimary: true,
   },
   {
     id: 'cat-vt',
@@ -83,6 +73,23 @@ export const APPARATUS_DATA: ApparatusInfo[] = [
       'Blocking tolakan tangan cepat pada meja lompat (< 0.2 detik)',
     ],
     safetyTip: 'Sesuaikan jarak papan pegas dan jumlah per pegas dengan berat serta power atlet.',
+    isPrimary: true,
+  },
+  {
+    id: 'cat-sr',
+    code: 'SR',
+    name: 'Still Rings (Gelang-Gelang)',
+    categoryTag: 'Khusus Putra (MAG)',
+    dimensions: 'Tinggi 2.8 m dari matras',
+    image: '/images/apparatus-rings.webp',
+    drillSummary: 'Ujian kekuatan statis bahu (hold position) diselingi ayunan tanpa goyangan kabel.',
+    keyDrills: [
+      'Hold statis (Cross, L-sit, Planche) tahan minimal 2 detik',
+      'Kip to handstand dengan ring turn-out',
+      'Ayunan dinamis tanpa membiarkan tali kabel bergetar',
+    ],
+    safetyTip: 'Lakukan pemanasan sendi rotator cuff bahu secara menyeluruh sebelum melatih hold statis.',
+    isPrimary: false,
   },
   {
     id: 'cat-pb',
@@ -98,6 +105,7 @@ export const APPARATUS_DATA: ApparatusInfo[] = [
       'Salto dismount samping dengan posisi stick landing kokoh',
     ],
     safetyTip: 'Pastikan lebar jarak kedua palang diatur tepat sesuai lebar bahu atlet.',
+    isPrimary: false,
   },
   {
     id: 'cat-hb',
@@ -113,6 +121,7 @@ export const APPARATUS_DATA: ApparatusInfo[] = [
       'Flyaway release move dan pendaratan terfiksasi di matras tebal',
     ],
     safetyTip: 'Wajib gunakan handgrip pelindung kulit telapak tangan dan chalk sebelum naik palang.',
+    isPrimary: false,
   },
 ];
 
@@ -123,6 +132,11 @@ interface ApparatusSectionProps {
 
 export function ApparatusSection({ activeId, onSelectApparatus }: ApparatusSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [showAllApparatus, setShowAllApparatus] = useState(false);
+
+  const displayedApparatus = showAllApparatus
+    ? APPARATUS_DATA
+    : APPARATUS_DATA.filter((item) => item.isPrimary);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -138,84 +152,111 @@ export function ApparatusSection({ activeId, onSelectApparatus }: ApparatusSecti
     APPARATUS_DATA.find((item) => item.id === activeId) || APPARATUS_DATA[0];
 
   return (
-    <section id="nomor-alat" className="py-12 border-b border-[#262626] bg-[#0c0c0c] scroll-mt-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-4">
+    <section id="nomor-alat" className="py-16 border-b border-slate-200 bg-white scroll-mt-16 text-[#1F2A2E] relative overflow-hidden">
+      {/* Scroll anchor compatibility */}
+      <div id="kategori-senam" className="sr-only" />
+      {/* Subtle ambient lighting blend */}
+      <div className="absolute top-0 right-1/4 w-[500px] h-[350px] bg-[radial-gradient(circle,rgba(193,255,114,0.12)_0%,transparent_70%)] pointer-events-none blur-3xl -z-0" />
+      <div className="absolute bottom-0 left-10 w-[400px] h-[300px] bg-[radial-gradient(circle,rgba(193,255,114,0.06)_0%,transparent_70%)] pointer-events-none blur-3xl -z-0" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* Section Header with Reference Motif */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 sm:mb-8 gap-4">
           <div>
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-              <Compass className="w-3.5 h-3.5 text-blue-500" />
-              <span>Disiplin Senam Artistik</span>
+            {/* Signature Motif: [02] --- [Kategori Senam] */}
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-full bg-[#C1FF72] flex items-center justify-center text-[#1F2A2E] font-black text-xs shadow-sm">
+                02
+              </div>
+              <div className="w-8 h-[1px] bg-slate-300" />
+              <div className="px-3.5 py-1 rounded-full bg-[#1F2A2E] text-white text-xs font-bold shadow-sm">
+                Kategori Senam
+              </div>
             </div>
-            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-              6 Nomor Alat Resmi FIG
+
+            <h2 className="text-2xl sm:text-4xl font-black text-[#1F2A2E] tracking-tight">
+              Kategori Senam Terpilih
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Pilih nomor alat untuk melihat fokus drill latihan dan daftar materi videonya.
+            <p className="text-xs sm:text-sm text-[#52636A] mt-1.5 max-w-xl">
+              Menampilkan 3 kategori materi inti perkuliahan: Senam Lantai, Kuda-Kuda Pelana, dan Meja Lompat.
             </p>
           </div>
 
-          {/* Scroll Buttons */}
-          <div className="flex items-center gap-2">
+          {/* Toggle & Scroll Buttons: Mobile wrap cleanly with 40px+ touch targets */}
+          <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
             <button
-              onClick={() => scroll('left')}
-              aria-label="Geser kiri"
-              className="w-8 h-8 rounded-lg bg-[#1a1a1a] border border-[#333] hover:border-slate-400 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              type="button"
+              onClick={() => setShowAllApparatus(!showAllApparatus)}
+              className="min-h-[40px] inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-[#1F2A2E] transition-all cursor-pointer shadow-sm active:scale-95"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <Layers className="w-4 h-4 text-emerald-700" />
+              <span>{showAllApparatus ? 'Tampilkan 3 Alat Inti' : 'Tampilkan Semua 6 Alat (+3)'}</span>
             </button>
-            <button
-              onClick={() => scroll('right')}
-              aria-label="Geser kanan"
-              className="w-8 h-8 rounded-lg bg-[#1a1a1a] border border-[#333] hover:border-slate-400 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => scroll('left')}
+                aria-label="Geser kiri"
+                className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-[#1F2A2E] flex items-center justify-center transition-colors cursor-pointer shadow-sm active:scale-95"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scroll('right')}
+                aria-label="Geser kanan"
+                className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-[#1F2A2E] flex items-center justify-center transition-colors cursor-pointer shadow-sm active:scale-95"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* ── Horizontal Scrollable Apparatus Cards ── */}
+        {/* Horizontal scrollable apparatus cards - Edge-to-edge swipe on phones */}
         <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto pb-4 pt-1 snap-x snap-mandatory scroll-smooth no-scrollbar"
+          className="-mx-4 px-4 sm:mx-0 sm:px-0 flex gap-3.5 sm:gap-5 overflow-x-auto pb-4 pt-1 snap-x snap-mandatory scroll-smooth no-scrollbar"
         >
-          {APPARATUS_DATA.map((item) => {
+          {displayedApparatus.map((item) => {
             const isSelected = item.id === activeId;
             return (
               <button
+                type="button"
                 key={item.id}
                 onClick={() => onSelectApparatus(item.id)}
-                className={`w-[240px] sm:w-[270px] shrink-0 snap-start text-left rounded-xl border p-3 transition-colors cursor-pointer flex flex-col justify-between ${
+                className={`w-[260px] xs:w-[285px] sm:w-[310px] shrink-0 snap-start text-left rounded-2xl border p-4 transition-all cursor-pointer flex flex-col justify-between active:scale-[0.99] ${
                   isSelected
-                    ? 'bg-[#1a202c] border-blue-500 ring-1 ring-blue-500'
-                    : 'bg-[#141414] border-[#262626] hover:border-[#444]'
+                    ? 'bg-white border-2 border-[#1F2A2E] ring-4 ring-[#C1FF72]/50 shadow-md'
+                    : 'bg-white border-slate-200 hover:border-slate-400 shadow-sm'
                 }`}
               >
                 <div>
-                  <div className="relative h-28 sm:h-32 w-full rounded-lg overflow-hidden bg-[#1f1f1f] mb-3">
+                  <div className="relative h-36 sm:h-40 w-full rounded-xl overflow-hidden bg-slate-100 mb-3.5 shadow-inner">
                     <Image
                       src={item.image}
                       alt={item.name}
                       fill
                       className="object-cover object-center"
-                      sizes="270px"
+                      sizes="310px"
                     />
-                    <div className="absolute top-2 left-2 flex items-center gap-1.5">
-                      <span className="px-2 py-0.5 rounded bg-blue-600 font-bold text-xs text-white">
+                    <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                      <span className="px-2.5 py-0.5 rounded-full bg-[#C1FF72] font-black text-xs text-[#1F2A2E] shadow-sm border border-[#a8ed4b]">
                         {item.code}
                       </span>
                     </div>
                   </div>
 
-                  <h3 className={`text-sm font-bold leading-tight ${isSelected ? 'text-blue-300' : 'text-white'}`}>
+                  <h3 className="text-base font-black leading-snug text-[#1F2A2E]">
                     {item.name}
                   </h3>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
+                  <p className="text-[11px] font-bold text-[#52636A] mt-0.5">
                     {item.categoryTag}
                   </p>
                 </div>
 
-                <p className="text-[11px] text-slate-400 mt-2 line-clamp-2 leading-relaxed">
+                <p className="text-xs text-[#52636A] mt-3 line-clamp-2 leading-relaxed">
                   {item.drillSummary}
                 </p>
               </button>
@@ -223,33 +264,33 @@ export function ApparatusSection({ activeId, onSelectApparatus }: ApparatusSecti
           })}
         </div>
 
-        {/* ── Active Apparatus Practical Coaching Card (No modal popup slop) ── */}
-        <div className="mt-6 p-5 sm:p-6 rounded-xl bg-[#141414] border border-[#2a2a2a]">
-          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+        {/* Active apparatus coaching card */}
+        <div className="mt-8 p-4 sm:p-6 lg:p-8 rounded-3xl bg-[#F4F8FA] border border-slate-200/90 shadow-sm">
+          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5 sm:gap-6">
             {/* Left: Specs & Drills */}
-            <div className="flex-1 space-y-4">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="px-2.5 py-1 rounded bg-blue-600 font-black text-xs text-white">
+            <div className="flex-1 space-y-3.5 sm:space-y-4">
+              <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                <span className="px-3 py-1 rounded-full bg-[#C1FF72] font-black text-xs text-[#1F2A2E] shadow-sm border border-[#a8ed4b]">
                   {selectedApparatus.code}
                 </span>
-                <h3 className="text-lg font-bold text-white">
+                <h3 className="text-lg sm:text-xl font-black text-[#1F2A2E]">
                   Panduan Latihan: {selectedApparatus.name}
                 </h3>
-                <span className="text-xs text-slate-400 font-mono bg-[#222] px-2 py-0.5 rounded">
+                <span className="text-xs text-[#1F2A2E] font-bold bg-white border border-slate-200 px-3 py-1 rounded-lg">
                   {selectedApparatus.dimensions}
                 </span>
               </div>
 
               {/* Key drills */}
-              <div className="space-y-1.5">
-                <p className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <Target className="w-3.5 h-3.5 text-blue-400" />
+              <div className="space-y-2 pt-1">
+                <p className="text-xs font-black text-[#1F2A2E] uppercase tracking-wider flex items-center gap-2">
+                  <Target className="w-4 h-4 text-emerald-700" />
                   <span>Drill Teknik Utama:</span>
                 </p>
-                <ul className="space-y-1 text-xs text-slate-300">
+                <ul className="space-y-1.5 text-xs sm:text-sm text-[#1F2A2E]">
                   {selectedApparatus.keyDrills.map((drill, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <span className="text-blue-400 font-bold">•</span>
+                    <li key={idx} className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#C1FF72] mt-1.5 shrink-0 border border-slate-600" />
                       <span>{drill}</span>
                     </li>
                   ))}
@@ -257,24 +298,24 @@ export function ApparatusSection({ activeId, onSelectApparatus }: ApparatusSecti
               </div>
 
               {/* Safety note */}
-              <div className="flex items-start gap-2 p-3 rounded-lg bg-[#1a1811] border border-[#423115] text-xs text-amber-200/90">
-                <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <span>
-                  <strong className="text-amber-300">Keselamatan: </strong>
-                  {selectedApparatus.safetyTip}
-                </span>
+              <div className="flex items-start gap-3 p-3.5 sm:p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-950">
+                <ShieldCheck className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+                <div>
+                  <strong className="text-amber-900 block font-bold mb-0.5">Protokol Keselamatan:</strong>
+                  <span>{selectedApparatus.safetyTip}</span>
+                </div>
               </div>
             </div>
 
-            {/* Right: Scroll to Video button */}
-            <div className="lg:w-64 shrink-0 flex flex-col justify-center">
-              <a
-                href={`#section-${selectedApparatus.id}`}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-colors cursor-pointer shadow-sm"
+            {/* Right: Direct Watch Video button */}
+            <div className="w-full lg:w-64 shrink-0 flex flex-col justify-center pt-2 lg:pt-0">
+              <Link
+                href={getFirstVideoByCategory(selectedApparatus.id) ? `/watch/${getFirstVideoByCategory(selectedApparatus.id)?.id}` : `#section-${selectedApparatus.id}`}
+                className="w-full min-h-[48px] inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 rounded-full bg-[#C1FF72] hover:bg-[#b0f555] text-[#1F2A2E] font-black text-sm transition-all cursor-pointer shadow-md hover:scale-[1.02] active:scale-95 border border-[#a8ed4b]"
               >
-                <span>Lihat Video {selectedApparatus.code}</span>
-                <ArrowDown className="w-3.5 h-3.5" />
-              </a>
+                <span>Putar Video {selectedApparatus.code}</span>
+                <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
+              </Link>
             </div>
           </div>
         </div>

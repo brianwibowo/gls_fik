@@ -39,3 +39,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+docs/Buku_Panduan_GLS_FIK.pdf
+docs/panduan_gls_fik.html
