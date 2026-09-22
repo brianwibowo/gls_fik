@@ -163,10 +163,10 @@ export function ApparatusSection({ activeId, onSelectApparatus }: ApparatusSecti
         {/* Section Header with Reference Motif */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 sm:mb-8 gap-4">
           <div>
-            {/* Signature Motif: [02] --- [Kategori Senam] */}
+            {/* Signature Motif: [03] --- [Kategori Senam] */}
             <div className="flex items-center gap-3 mb-3">
               <div className="w-8 h-8 rounded-full bg-[#C1FF72] flex items-center justify-center text-[#1F2A2E] font-black text-xs shadow-sm">
-                02
+                03
               </div>
               <div className="w-8 h-[1px] bg-slate-300" />
               <div className="px-3.5 py-1 rounded-full bg-[#1F2A2E] text-white text-xs font-bold shadow-sm">

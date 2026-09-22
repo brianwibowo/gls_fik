@@ -6,6 +6,11 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Navbar } from '@/components/Navbar';
 import { VideoCard } from '@/components/VideoCard';
+import { ApparatusSection } from '@/components/landing/ApparatusSection';
+import { LevelProgression } from '@/components/landing/LevelProgression';
+import { TestimoniSection } from '@/components/landing/TestimoniSection';
+import { FAQSection } from '@/components/landing/FAQSection';
+import { CTABanner } from '@/components/landing/CTABanner';
 import { useAuth } from '@/lib/auth';
 import { getCategories, getVideos, initializeData } from '@/lib/data';
 import type { Category, Video } from '@/lib/types';
@@ -110,6 +115,7 @@ export default function HomePage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [videos, setVideos] = useState<Video[]>([]);
   const [activeFilter, setActiveFilter] = useState<string>('all');
+  const [activeApparatus, setActiveApparatus] = useState<string>('cat-fx');
 
   useEffect(() => {
     initializeData();
@@ -249,7 +255,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Section 02: Tentang Platform */}
+      {/* ── Section 02: Tentang Platform ── */}
       <section id="tentang-platform" className="py-20 bg-white border-b border-slate-200 relative overflow-hidden text-[#1F2A2E] scroll-mt-16">
         <div className="absolute top-10 right-1/4 w-[500px] h-[350px] bg-[radial-gradient(circle,rgba(193,255,114,0.12)_0%,transparent_70%)] pointer-events-none blur-3xl -z-0" />
 
@@ -358,7 +364,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Section 03: Cara Belajar di GLS FIK (Dark Slate Contrast Canvas) */}
+      {/* ── Section 03: Apparatus Gallery ── */}
+      <ApparatusSection
+        activeId={activeApparatus}
+        onSelectApparatus={setActiveApparatus}
+      />
+
+      {/* ── Section 04: Cara Belajar di GLS FIK ── */}
       <section id="cara-belajar" className="py-20 bg-[#1F2A2E] border-b border-[#2D3A3F] relative overflow-hidden text-white scroll-mt-16">
         <div className="absolute top-10 right-10 w-[500px] h-[350px] bg-[radial-gradient(circle,rgba(193,255,114,0.12)_0%,transparent_70%)] pointer-events-none blur-3xl -z-0" />
         <div className="absolute bottom-10 left-10 w-[400px] h-[300px] bg-[radial-gradient(circle,rgba(193,255,114,0.06)_0%,transparent_70%)] pointer-events-none blur-3xl -z-0" />
@@ -373,7 +385,7 @@ export default function HomePage() {
           >
             <div className="flex items-center gap-3 mb-3">
               <div className="w-8 h-8 rounded-full bg-[#C1FF72] flex items-center justify-center text-[#1F2A2E] font-black text-xs shadow-sm">
-                03
+                04
               </div>
               <div className="w-8 h-[1px] bg-white/20" />
               <div className="px-3.5 py-1 rounded-full bg-white/10 border border-white/15 text-[#C1FF72] text-xs font-bold shadow-sm">
@@ -441,7 +453,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Section 04: Katalog materi video (Light Gray Canvas) */}
+      {/* ── Section 05: Katalog materi video ── */}
       <section id="katalog-video" className="bg-[#F4F8FA] border-b border-slate-200/90 relative overflow-hidden scroll-mt-16">
         <div id="kategori-senam" className="scroll-mt-16" />
         {/* Soft ambient lighting blend */}
@@ -461,7 +473,7 @@ export default function HomePage() {
               {/* Signature Motif: [04] --- [Katalog Video] */}
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 rounded-full bg-[#C1FF72] flex items-center justify-center text-[#1F2A2E] font-black text-xs shadow-sm">
-                  04
+                  05
                 </div>
                 <div className="w-8 h-[1px] bg-slate-300" />
                 <div className="px-3.5 py-1 rounded-full bg-[#1F2A2E] text-white text-xs font-bold shadow-sm">
@@ -519,6 +531,18 @@ export default function HomePage() {
           </div>
         </main>
       </section>
+
+      {/* ── Section 06: Level Progression ── */}
+      <LevelProgression />
+
+      {/* ── Section 07: Testimoni ── */}
+      <TestimoniSection />
+
+      {/* ── Section 08: FAQ ── */}
+      <FAQSection />
+
+      {/* ── Section 09: CTA Banner ── */}
+      <CTABanner />
 
       {/* Footer (Dark Anchoring Footer) */}
       <footer className="border-t border-[#29363B] bg-[#172124] py-12 text-center text-xs text-slate-400">
