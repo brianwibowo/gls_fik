@@ -10,8 +10,6 @@ services:
       POSTGRES_DB: ${DB_NAME:-gls_fik_db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
       test:
         [
@@ -30,7 +28,7 @@ services:
     container_name: gls_backend
     restart: always
     ports:
-      - "8085:8085"
+      - "8085:8080"
     environment:
       DB_HOST: db
       DB_PORT: 5432
