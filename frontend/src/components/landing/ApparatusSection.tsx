@@ -3,7 +3,7 @@
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getFirstVideoByCategory } from '@/lib/data';
+import type { Video } from '@/lib/types';
 import {
   ChevronLeft,
   ChevronRight,
@@ -128,9 +128,10 @@ export const APPARATUS_DATA: ApparatusInfo[] = [
 interface ApparatusSectionProps {
   activeId: string;
   onSelectApparatus: (id: string) => void;
+  videos?: Video[];
 }
 
-export function ApparatusSection({ activeId, onSelectApparatus }: ApparatusSectionProps) {
+export function ApparatusSection({ activeId, onSelectApparatus, videos = [] }: ApparatusSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showAllApparatus, setShowAllApparatus] = useState(false);
 
@@ -309,13 +310,18 @@ export function ApparatusSection({ activeId, onSelectApparatus }: ApparatusSecti
 
             {/* Right: Direct Watch Video button */}
             <div className="w-full lg:w-64 shrink-0 flex flex-col justify-center pt-2 lg:pt-0">
-              <Link
-                href={getFirstVideoByCategory(selectedApparatus.id) ? `/watch/${getFirstVideoByCategory(selectedApparatus.id)?.id}` : `#section-${selectedApparatus.id}`}
-                className="w-full min-h-[48px] inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 rounded-full bg-[#C1FF72] hover:bg-[#b0f555] text-[#1F2A2E] font-black text-sm transition-all cursor-pointer shadow-md hover:scale-[1.02] active:scale-95 border border-[#a8ed4b]"
-              >
-                <span>Putar Video {selectedApparatus.code}</span>
-                <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
-              </Link>
+              {(() => {
+                const firstVid = videos.find((v) => v.categoryId === selectedApparatus.id);
+                return (
+                  <Link
+                    href={firstVid ? `/watch/${firstVid.id}` : `#section-${selectedApparatus.id}`}
+                    className="w-full min-h-[48px] inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 rounded-full bg-[#C1FF72] hover:bg-[#b0f555] text-[#1F2A2E] font-black text-sm transition-all cursor-pointer shadow-md hover:scale-[1.02] active:scale-95 border border-[#a8ed4b]"
+                  >
+                    <span>Putar Video {selectedApparatus.code}</span>
+                    <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
+                  </Link>
+                );
+              })()}
             </div>
           </div>
         </div>

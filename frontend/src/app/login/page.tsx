@@ -37,21 +37,19 @@ function LoginForm() {
     return null;
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    setTimeout(() => {
-      const result = login(email, password);
-      if (result.success) {
-        const redirect = searchParams.get('redirect') || '/';
-        router.push(redirect);
-      } else {
-        setError(result.error || 'Login gagal.');
-        setIsLoading(false);
-      }
-    }, 300);
+    const result = await login(email, password);
+    if (result.success) {
+      const redirect = searchParams.get('redirect') || '/';
+      router.push(redirect);
+    } else {
+      setError(result.error || 'Login gagal.');
+      setIsLoading(false);
+    }
   };
 
   const handleFillDemo = (demoEmail: string, demoPass: string) => {

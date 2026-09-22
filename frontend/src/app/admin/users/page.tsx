@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
-import { getUsers, createUser, updateUser, deleteUser } from '@/lib/data';
+import { apiGetUsers, apiCreateUser, apiUpdateUser, apiDeleteUser } from '@/lib/api';
 import type { User } from '@/lib/types';
 import {
   Plus,
@@ -27,8 +27,17 @@ function AdminUsersContent() {
     role: 'user' as 'user' | 'admin',
   });
 
+  const refreshUsers = async () => {
+    try {
+      const data = await apiGetUsers();
+      setUsers(data);
+    } catch (err) {
+      console.error('Gagal mengambil pengguna:', err);
+    }
+  };
+
   useEffect(() => {
-    setUsers(getUsers());
+    refreshUsers();
     if (searchParams.get('action') === 'new') {
       setShowForm(true);
     }
@@ -47,50 +56,65 @@ function AdminUsersContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingId) {
-      const updateData: Partial<Omit<User, 'id' | 'createdAt'>> = {
-        name: form.name.trim(),
-        email: form.email.trim(),
-        role: form.role,
-      };
-      if (form.password.trim()) updateData.password = form.password.trim();
-      updateUser(editingId, updateData);
-    } else {
-      if (!form.password.trim()) {
-        alert('Mohon masukkan kata sandi untuk akun baru.');
-        return;
+    try {
+      if (editingId) {
+        const updateData: Partial<User & { password?: string }> = {
+          name: form.name.trim(),
+          email: form.email.trim(),
+          role: form.role,
+        };
+        if (form.password.trim()) updateData.password = form.password.trim();
+        await apiUpdateUser(editingId, updateData);
+      } else {
+        if (!form.password.trim()) {
+          alert('Mohon masukkan kata sandi untuk akun baru.');
+          return;
+        }
+        await apiCreateUser({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          password: form.password.trim(),
+          role: form.role,
+        });
       }
-      createUser({
-        name: form.name.trim(),
-        email: form.email.trim(),
-        password: form.password.trim(),
-        role: form.role,
-      });
+      await refreshUsers();
+      resetForm();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Gagal menyimpan pengguna';
+      alert(msg);
     }
-    setUsers(getUsers());
-    resetForm();
   };
 
-  const handleDelete = (id: string, name: string) => {
+  const handleDelete = async (id: string, name: string) => {
     if (id === currentUser?.id) {
       alert('Anda tidak dapat menghapus akun Anda sendiri yang sedang aktif.');
       return;
     }
     if (!confirm(`Hapus akun pengguna "${name}"?`)) return;
-    deleteUser(id);
-    setUsers(getUsers());
+    try {
+      await apiDeleteUser(id);
+      await refreshUsers();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Gagal menghapus pengguna';
+      alert(msg);
+    }
   };
 
-  const handleToggleRole = (u: User) => {
+  const handleToggleRole = async (u: User) => {
     if (u.id === currentUser?.id) {
       alert('Anda tidak dapat mengubah hak akses akun Anda sendiri.');
       return;
     }
     const newRole = u.role === 'admin' ? 'user' : 'admin';
-    updateUser(u.id, { role: newRole });
-    setUsers(getUsers());
+    try {
+      await apiUpdateUser(u.id, { role: newRole });
+      await refreshUsers();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Gagal mengubah hak akses';
+      alert(msg);
+    }
   };
 
   return (

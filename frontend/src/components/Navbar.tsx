@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
-import { getCategories, getFirstVideoByCategory } from '@/lib/data';
+import { apiGetCategories, apiGetVideos } from '@/lib/api';
+import type { Category, Video } from '@/lib/types';
 import { APPARATUS_DATA } from '@/components/landing/ApparatusSection';
 import {
   Activity,
@@ -21,12 +22,33 @@ export function Navbar() {
   const pathname = usePathname();
   const isHome = pathname === '/';
   const { user, isLoggedIn, isAdmin, logout, isReady } = useAuth();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [videos, setVideos] = useState<Video[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadData() {
+      try {
+        const [cats, vids] = await Promise.all([apiGetCategories(), apiGetVideos()]);
+        if (isMounted) {
+          setCategories(cats);
+          setVideos(vids);
+        }
+      } catch (err) {
+        console.error('Navbar failed to load data:', err);
+      }
+    }
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isHome) return;
@@ -46,6 +68,14 @@ export function Navbar() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  // Helper untuk mencari episode pertama suatu kategori
+  const getFirstVideoForCategory = useCallback(
+    (categoryId: string) => {
+      return videos.find((v) => v.categoryId === categoryId);
+    },
+    [videos]
+  );
+
   // Build primary category links with first video URL
   const primaryLinks = useMemo(() => {
     const items = [
@@ -54,29 +84,28 @@ export function Navbar() {
       { id: 'cat-vt', label: 'Meja Lompat' },
     ];
     return items.map((item) => {
-      const firstVid = getFirstVideoByCategory(item.id);
+      const firstVid = getFirstVideoForCategory(item.id);
       return {
         ...item,
         href: firstVid ? `/watch/${firstVid.id}` : `/#katalog-video`,
       };
     });
-  }, []);
+  }, [getFirstVideoForCategory]);
 
   // Build dynamic "Lainnya" items from DB categories NOT in the 3 primary
   const extraCategories = useMemo(() => {
-    const dbCats = getCategories();
     const apparatusMap = new Map(APPARATUS_DATA.map((a) => [a.id, a]));
-    return dbCats
+    return categories
       .filter((c) => !PRIMARY_IDS.includes(c.id))
       .map((c) => {
-        const firstVid = getFirstVideoByCategory(c.id);
+        const firstVid = getFirstVideoForCategory(c.id);
         return {
           id: c.id,
           label: apparatusMap.get(c.id)?.name?.split('(')[0]?.trim() || c.name,
           href: firstVid ? `/watch/${firstVid.id}` : `/#katalog-video`,
         };
       });
-  }, []);
+  }, [categories, getFirstVideoForCategory]);
 
   const isSolid = !isHome || scrolled || menuOpen;
 

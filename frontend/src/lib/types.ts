@@ -4,7 +4,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  password: string; // Plain text mock in localStorage (hashed on Go backend in production)
+  password?: string;
   role: 'user' | 'admin';
   createdAt: string;
 }

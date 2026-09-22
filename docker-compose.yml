@@ -1,0 +1,48 @@
+services:
+  # Database PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: gls_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-gls_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-gls_password_secret}
+      POSTGRES_DB: ${DB_NAME:-gls_fik_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-gls_user} -d ${DB_NAME:-gls_fik_db}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Backend Go REST API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gls_backend
+    restart: always
+    ports:
+      - "8085:8085"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-gls_user}
+      DB_PASSWORD: ${DB_PASSWORD:-gls_password_secret}
+      DB_NAME: ${DB_NAME:-gls_fik_db}
+      JWT_SECRET: ${JWT_SECRET:-rahasia_jwt_super_aman_2026}
+      FRONTEND_URL: ${FRONTEND_URL:-https://gls-fik-unnes.vercel.app}
+      GIN_MODE: release
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

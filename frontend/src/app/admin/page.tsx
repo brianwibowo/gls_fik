@@ -5,16 +5,16 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
-  getVideos,
-  getCategories,
-  createVideo,
-  updateVideo,
-  deleteVideo,
-  createCategory,
-  updateCategory,
-  deleteCategory,
-  extractDriveFileId,
-} from '@/lib/data';
+  apiGetVideos,
+  apiGetCategories,
+  apiCreateVideo,
+  apiUpdateVideo,
+  apiDeleteVideo,
+  apiCreateCategory,
+  apiUpdateCategory,
+  apiDeleteCategory,
+} from '@/lib/api';
+import { extractDriveFileId } from '@/lib/utils';
 import type { Video, Category } from '@/lib/types';
 import {
   Plus,
@@ -89,11 +89,14 @@ function AdminVideoManagementContent() {
     }, 3200);
   };
 
-  const refreshData = useCallback(() => {
-    const cats = getCategories();
-    const vids = getVideos();
-    setCategories(cats);
-    setVideos(vids);
+  const refreshData = useCallback(async () => {
+    try {
+      const [cats, vids] = await Promise.all([apiGetCategories(), apiGetVideos()]);
+      setCategories(cats);
+      setVideos(vids);
+    } catch (err) {
+      console.error('Gagal mengambil data:', err);
+    }
   }, []);
 
   // Track if video form is dirty (modified from initial state)
@@ -114,13 +117,11 @@ function AdminVideoManagementContent() {
 
   // Open modal to add episode for a specific category
   const openAddEpisodeModal = useCallback((catId?: string) => {
-    const cats = getCategories();
-    const vids = getVideos();
-    const targetCatId = catId || cats[0]?.id || 'cat-fx';
-    const catVideos = vids.filter((v) => v.categoryId === targetCatId);
+    const targetCatId = catId || categories[0]?.id || 'cat-fx';
+    const catVideos = videos.filter((v) => v.categoryId === targetCatId);
     const nextEpisodeNum = catVideos.length + 1;
 
-    const matchedCat = cats.find((c) => c.id === targetCatId);
+    const matchedCat = categories.find((c) => c.id === targetCatId);
     const defaultThumbnail = matchedCat?.thumbnail || '/images/apparatus-floor.webp';
 
     const newForm = {
@@ -141,14 +142,17 @@ function AdminVideoManagementContent() {
     setShowVideoModal(true);
     setShowDirtyConfirm(false);
     setPreviewTab('card');
-  }, []);
+  }, [categories, videos]);
 
   useEffect(() => {
     refreshData();
-    if (searchParams.get('action') === 'new') {
+  }, [refreshData]);
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'new' && categories.length > 0) {
       openAddEpisodeModal();
     }
-  }, [searchParams, refreshData, openAddEpisodeModal]);
+  }, [searchParams, categories.length, openAddEpisodeModal]);
 
   // Safe close requests that protect unsaved changes
   const handleRequestCloseVideoModal = () => {
@@ -241,7 +245,7 @@ function AdminVideoManagementContent() {
     }));
   };
 
-  const handleSaveVideo = (e: React.FormEvent) => {
+  const handleSaveVideo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!detectedDriveId) {
       alert('Mohon masukkan Link atau File ID Google Drive yang valid.');
@@ -267,33 +271,47 @@ function AdminVideoManagementContent() {
       thumbnail: chosenThumbnail,
     };
 
-    if (editingVideoId) {
-      updateVideo(editingVideoId, payload);
-      showToast(`Episode "${payload.title}" berhasil diperbarui.`);
-    } else {
-      createVideo(payload);
-      showToast(`Episode "${payload.title}" berhasil ditambahkan.`);
+    try {
+      if (editingVideoId) {
+        await apiUpdateVideo(editingVideoId, payload);
+        showToast(`Episode "${payload.title}" berhasil diperbarui.`);
+      } else {
+        await apiCreateVideo(payload);
+        showToast(`Episode "${payload.title}" berhasil ditambahkan.`);
+      }
+      await refreshData();
+      setShowVideoModal(false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Gagal menyimpan video';
+      alert(msg);
     }
-
-    refreshData();
-    setShowVideoModal(false);
   };
 
-  const handleDeleteVideo = (id: string, title: string) => {
+  const handleDeleteVideo = async (id: string, title: string) => {
     if (!confirm(`Hapus episode "${title}"? Tindakan ini tidak dapat dibatalkan.`)) return;
-    deleteVideo(id);
-    refreshData();
-    showToast(`Episode "${title}" telah dihapus.`);
+    try {
+      await apiDeleteVideo(id);
+      await refreshData();
+      showToast(`Episode "${title}" telah dihapus.`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Gagal menghapus video';
+      alert(msg);
+    }
   };
 
   // Instant one-click toggle for Free vs Requires Login
-  const handleToggleFreeAccess = (video: Video) => {
+  const handleToggleFreeAccess = async (video: Video) => {
     const nextState = !video.isFree;
-    updateVideo(video.id, { isFree: nextState });
-    refreshData();
-    showToast(
-      `Akses video "${video.title}" diubah: ${nextState ? 'GRATIS (Semua Orang)' : 'BUTUH LOGIN (Khusus Akun)'}.`
-    );
+    try {
+      await apiUpdateVideo(video.id, { isFree: nextState });
+      await refreshData();
+      showToast(
+        `Akses video "${video.title}" diubah: ${nextState ? 'GRATIS (Semua Orang)' : 'BUTUH LOGIN (Khusus Akun)'}.`
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Gagal mengubah status akses';
+      alert(msg);
+    }
   };
 
   // Category Management
@@ -315,31 +333,35 @@ function AdminVideoManagementContent() {
     setShowCategoryModal(true);
   };
 
-  const handleSaveCategory = (e: React.FormEvent) => {
+  const handleSaveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!categoryForm.name.trim()) return;
 
-    if (editingCategoryId) {
-      updateCategory(editingCategoryId, {
-        name: categoryForm.name.trim(),
-        description: categoryForm.description.trim(),
-      });
-      showToast(`Kategori "${categoryForm.name}" berhasil diperbarui.`);
-    } else {
-      createCategory({
-        name: categoryForm.name.trim(),
-        description: categoryForm.description.trim() || `Materi dan drill teknik ${categoryForm.name.trim()}.`,
-        thumbnail: '/images/apparatus-floor.webp',
-        order: categories.length + 1,
-      });
-      showToast(`Kategori baru "${categoryForm.name}" berhasil ditambahkan.`);
+    try {
+      if (editingCategoryId) {
+        await apiUpdateCategory(editingCategoryId, {
+          name: categoryForm.name.trim(),
+          description: categoryForm.description.trim(),
+        });
+        showToast(`Kategori "${categoryForm.name}" berhasil diperbarui.`);
+      } else {
+        await apiCreateCategory({
+          name: categoryForm.name.trim(),
+          description: categoryForm.description.trim() || `Materi dan drill teknik ${categoryForm.name.trim()}.`,
+          thumbnail: '/images/apparatus-floor.webp',
+          order: categories.length + 1,
+        });
+        showToast(`Kategori baru "${categoryForm.name}" berhasil ditambahkan.`);
+      }
+      await refreshData();
+      setShowCategoryModal(false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Gagal menyimpan kategori';
+      alert(msg);
     }
-
-    refreshData();
-    setShowCategoryModal(false);
   };
 
-  const handleDeleteCategory = (cat: Category) => {
+  const handleDeleteCategory = async (cat: Category) => {
     const count = videos.filter((v) => v.categoryId === cat.id).length;
     const confirmMsg =
       count > 0
@@ -347,9 +369,14 @@ function AdminVideoManagementContent() {
         : `Hapus kategori "${cat.name}"?`;
 
     if (!confirm(confirmMsg)) return;
-    deleteCategory(cat.id);
-    refreshData();
-    showToast(`Kategori "${cat.name}" telah dihapus.`);
+    try {
+      await apiDeleteCategory(cat.id);
+      await refreshData();
+      showToast(`Kategori "${cat.name}" telah dihapus.`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Gagal menghapus kategori';
+      alert(msg);
+    }
   };
 
   // Collapse / Expand toggle

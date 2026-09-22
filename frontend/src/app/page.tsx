@@ -12,7 +12,7 @@ import { TestimoniSection } from '@/components/landing/TestimoniSection';
 import { FAQSection } from '@/components/landing/FAQSection';
 import { CTABanner } from '@/components/landing/CTABanner';
 import { useAuth } from '@/lib/auth';
-import { getCategories, getVideos, initializeData } from '@/lib/data';
+import { apiGetCategories, apiGetVideos } from '@/lib/api';
 import type { Category, Video } from '@/lib/types';
 import {
   Play,
@@ -118,9 +118,22 @@ export default function HomePage() {
   const [activeApparatus, setActiveApparatus] = useState<string>('cat-fx');
 
   useEffect(() => {
-    initializeData();
-    setCategories(getCategories());
-    setVideos(getVideos());
+    let isMounted = true;
+    async function loadData() {
+      try {
+        const [cats, vids] = await Promise.all([apiGetCategories(), apiGetVideos()]);
+        if (isMounted) {
+          setCategories(cats);
+          setVideos(vids);
+        }
+      } catch (err) {
+        console.error('Gagal memuat data:', err);
+      }
+    }
+    loadData();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const videosByCategory = useMemo(() => {
@@ -368,6 +381,7 @@ export default function HomePage() {
       <ApparatusSection
         activeId={activeApparatus}
         onSelectApparatus={setActiveApparatus}
+        videos={videos}
       />
 
       {/* ── Section 04: Cara Belajar di GLS FIK ── */}

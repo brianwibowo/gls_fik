@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/lib/auth';
-import { getVideoById, getVideosByCategory, getCategoryById, initializeData } from '@/lib/data';
+import { apiGetVideoById, apiGetVideos, apiGetCategories } from '@/lib/api';
 import type { Video, Category } from '@/lib/types';
 import { LoginModal } from '@/components/LoginModal';
 import {
@@ -30,18 +30,35 @@ export default function WatchPage() {
   const videoId = params.id as string;
 
   useEffect(() => {
-    initializeData();
-    const vid = getVideoById(videoId);
-    if (!vid) {
-      setNotFound(true);
-      return;
+    let isMounted = true;
+    async function fetchWatchData() {
+      try {
+        const vid = await apiGetVideoById(videoId);
+        if (!isMounted) return;
+        setVideo(vid);
+        setNotFound(false);
+
+        // Fetch category & siblings concurrently
+        const [cats, siblings] = await Promise.all([
+          apiGetCategories(),
+          apiGetVideos(vid.categoryId),
+        ]);
+        if (!isMounted) return;
+
+        const matchedCat = cats.find((c) => c.id === vid.categoryId);
+        setCategory(matchedCat || null);
+        setSiblingVideos(siblings);
+      } catch (err) {
+        console.error('Video fetch error:', err);
+        if (isMounted) {
+          setNotFound(true);
+        }
+      }
     }
-    setNotFound(false);
-    setVideo(vid);
-    const cat = getCategoryById(vid.categoryId);
-    setCategory(cat || null);
-    const siblings = getVideosByCategory(vid.categoryId);
-    setSiblingVideos(siblings);
+    fetchWatchData();
+    return () => {
+      isMounted = false;
+    };
   }, [videoId]);
 
   // Wait for hydration

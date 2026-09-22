@@ -44,22 +44,20 @@ export function LoginModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    setTimeout(() => {
-      const result = login(email, password);
-      if (result.success) {
-        setIsLoading(false);
-        if (onSuccess) onSuccess();
-        onClose();
-      } else {
-        setError(result.error || 'Login gagal. Periksa kembali email dan kata sandi Anda.');
-        setIsLoading(false);
-      }
-    }, 250);
+    const result = await login(email, password);
+    if (result.success) {
+      setIsLoading(false);
+      if (onSuccess) onSuccess();
+      onClose();
+    } else {
+      setError(result.error || 'Login gagal. Periksa kembali email dan kata sandi Anda.');
+      setIsLoading(false);
+    }
   };
 
   const handleFillDemo = (demoEmail: string, demoPass: string) => {
