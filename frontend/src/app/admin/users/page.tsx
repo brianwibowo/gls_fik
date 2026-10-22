@@ -20,16 +20,11 @@ function AdminUsersContent() {
   const [users, setUsers] = useState<User[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<{
-    name: string;
-    email: string;
-    password: string;
-    role: 'athlete' | 'coach' | 'admin' | 'user';
-  }>({
+  const [form, setForm] = useState({
     name: '',
     email: '',
     password: '',
-    role: 'athlete',
+    role: 'user' as 'user' | 'admin',
   });
 
   const refreshUsers = async () => {
@@ -37,7 +32,7 @@ function AdminUsersContent() {
       const data = await apiGetUsers();
       setUsers(data);
     } catch (err) {
-      console.error('Failed to fetch users:', err);
+      console.error('Gagal mengambil pengguna:', err);
     }
   };
 
@@ -49,7 +44,7 @@ function AdminUsersContent() {
   }, [searchParams]);
 
   const resetForm = () => {
-    setForm({ name: '', email: '', password: '', role: 'athlete' });
+    setForm({ name: '', email: '', password: '', role: 'user' });
     setEditingId(null);
     setShowForm(false);
   };
@@ -74,7 +69,7 @@ function AdminUsersContent() {
         await apiUpdateUser(editingId, updateData);
       } else {
         if (!form.password.trim()) {
-          alert('Please enter a password for the new user.');
+          alert('Mohon masukkan kata sandi untuk akun baru.');
           return;
         }
         await apiCreateUser({
@@ -87,22 +82,22 @@ function AdminUsersContent() {
       await refreshUsers();
       resetForm();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to save user account';
+      const msg = err instanceof Error ? err.message : 'Gagal menyimpan pengguna';
       alert(msg);
     }
   };
 
   const handleDelete = async (id: string, name: string) => {
     if (id === currentUser?.id) {
-      alert('You cannot delete your own currently active account.');
+      alert('Anda tidak dapat menghapus akun Anda sendiri yang sedang aktif.');
       return;
     }
-    if (!confirm(`Delete user account "${name}"?`)) return;
+    if (!confirm(`Hapus akun pengguna "${name}"?`)) return;
     try {
       await apiDeleteUser(id);
       await refreshUsers();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to delete user';
+      const msg = err instanceof Error ? err.message : 'Gagal menghapus pengguna';
       alert(msg);
     }
   };
@@ -220,16 +215,15 @@ function AdminUsersContent() {
 
               <div>
                 <label className="block text-xs sm:text-sm font-bold text-slate-900 mb-1.5">
-                  Role / Access Level
+                  Peran / Hak Akses
                 </label>
                 <select
                   value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value as any })}
+                  onChange={(e) => setForm({ ...form, role: e.target.value as 'user' | 'admin' })}
                   className="w-full min-h-[42px] px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-base sm:text-sm font-medium focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800 transition-colors cursor-pointer"
                 >
-                  <option value="athlete">Athlete (Routine Watch & Checklist Tracker)</option>
-                  <option value="coach">Coach (Technical Evaluations & Coaching Notes)</option>
-                  <option value="admin">Admin (Full System & Content Management)</option>
+                  <option value="user">User Biasa (Hanya Menonton Video)</option>
+                  <option value="admin">Admin Pengelola (Bisa Tambah & Hapus Video)</option>
                 </select>
               </div>
             </div>

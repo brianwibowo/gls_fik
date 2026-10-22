@@ -52,13 +52,13 @@ export default function AdminLayout({
 
   const navItems = [
     {
-      name: 'Curriculum Videos',
+      name: 'Video Materi',
       href: '/admin',
       icon: Video,
       isActive: pathname === '/admin' || pathname.startsWith('/admin/videos') || pathname.startsWith('/admin/categories'),
     },
     {
-      name: 'Users & Rosters',
+      name: 'Data Pengguna',
       href: '/admin/users',
       icon: Users,
       isActive: pathname.startsWith('/admin/users'),
@@ -79,7 +79,7 @@ export default function AdminLayout({
             <Link
               href="/admin"
               className={`flex items-center gap-3 overflow-hidden ${isCollapsed ? 'justify-center w-full' : ''}`}
-              title="GCL Admin"
+              title="GLS FIK Admin"
             >
               <div className="w-10 h-10 rounded-xl bg-[#c1ff72] flex items-center justify-center text-[#1f2a2e] font-black text-base shadow-sm shrink-0">
                 <Activity className="w-5 h-5 stroke-[2.5]" />
@@ -87,10 +87,10 @@ export default function AdminLayout({
               {!isCollapsed && (
                 <div className="min-w-0">
                   <span className="text-base font-black text-slate-900 tracking-tight block leading-tight">
-                    GCL
+                    GLS FIK
                   </span>
                   <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">
-                    Admin Console
+                    Admin Panel
                   </span>
                 </div>
               )}
@@ -101,8 +101,8 @@ export default function AdminLayout({
                 type="button"
                 onClick={() => setIsCollapsed(true)}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                title="Collapse Sidebar"
-                aria-label="Collapse Sidebar"
+                title="Kecilkan Sidebar (Collapse)"
+                aria-label="Kecilkan Sidebar"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -116,8 +116,8 @@ export default function AdminLayout({
                 type="button"
                 onClick={() => setIsCollapsed(false)}
                 className="p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
-                title="Expand Sidebar"
-                aria-label="Expand Sidebar"
+                title="Perlebar Sidebar (Expand)"
+                aria-label="Perlebar Sidebar"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -128,7 +128,7 @@ export default function AdminLayout({
           <div className="mt-6 space-y-1.5">
             {!isCollapsed && (
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">
-                Management
+                Menu Pengelola
               </p>
             )}
             {navItems.map((item) => {

@@ -1,15 +1,12 @@
-// Shared TypeScript interfaces for Gymnastics Competition Level (GCL)
+// Shared TypeScript interfaces for GLS FIK data layer.
 
 export interface User {
   id: string;
   name: string;
   email: string;
   password?: string;
-  role: 'athlete' | 'coach' | 'admin' | 'user';
-  avatar?: string;
-  bio?: string;
+  role: 'user' | 'admin';
   createdAt: string;
-  updatedAt?: string;
 }
 
 export interface Category {
@@ -19,8 +16,6 @@ export interface Category {
   thumbnail: string; // path to webp or URL
   order: number;
   createdAt: string;
-  updatedAt?: string;
-  videos?: Video[];
 }
 
 export interface Video {
@@ -32,59 +27,10 @@ export interface Video {
   driveLink: string;   // Full shareable link
   thumbnail: string;
   duration: string;
-  level: string;       // 'Level 1 (Foundation)', 'Level 2 (Intermediate)', 'Level 3 (Advanced)'
+  level: string;
   episodeNum: number;
   isFree: boolean;     // true = watchable without login
   createdAt: string;
-  updatedAt?: string;
-}
-
-export interface Technique {
-  id: string;
-  categoryId: string;
-  level: number;
-  name: string;
-  description?: string;
-  order: number;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface TechniqueEvaluation {
-  id: string;
-  athleteId: string;
-  techniqueId: string;
-  coachId: string;
-  coachName?: string;
-  notes: string;
-  score?: string; // 'Mastered' | 'Developing' | 'Needs Work'
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface ProgressItem {
-  technique: Technique;
-  isCompleted: boolean;
-  evaluation?: TechniqueEvaluation;
-}
-
-export interface ProgressTrackerResponse {
-  athleteId: string;
-  totalTechniques: number;
-  completedCount: number;
-  percentage: number;
-  items: ProgressItem[];
-}
-
-export interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  role: 'athlete' | 'coach' | 'admin' | 'user';
-  avatar?: string;
-  bio?: string;
-  completedCount?: number;
-  totalCount?: number;
 }
 
 export interface AuthSession {

@@ -11,34 +11,34 @@ interface FAQItem {
 
 const FAQ_ITEMS: FAQItem[] = [
   {
-    question: 'Do I need an account to watch curriculum videos?',
+    question: 'Apakah saya perlu login untuk menonton video?',
     answer:
-      'Videos labeled with the green FREE badge are accessible to any visitor without logging in. Full routines, advanced drill breakdowns, technique checklists, and evaluation logs require an authenticated athlete or coach account.',
+      'Tidak semua video memerlukan login. Video yang ditandai badge "GRATIS" bisa langsung ditonton tanpa akun. Untuk mengakses seluruh koleksi video termasuk materi lanjutan, Anda perlu login dengan akun yang sudah didaftarkan oleh admin.',
   },
   {
-    question: 'How do athlete accounts work on GCL?',
+    question: 'Bagaimana cara mendapatkan akun GLS FIK?',
     answer:
-      'Each athlete has an individual account with their personal profile, assigned apparatus level, interactive technique checklist, and permanent record of coach evaluations.',
+      'Akun dibuat oleh admin atau dosen pengampu mata kuliah senam. Hubungi dosen pembimbing Anda untuk didaftarkan ke dalam sistem. Setelah akun dibuat, Anda bisa login menggunakan email dan password yang diberikan.',
   },
   {
-    question: 'What are the 6 apparatus covered in the MAG curriculum?',
+    question: 'Apakah video bisa diunduh untuk ditonton offline?',
     answer:
-      'All 6 official Men&apos;s Artistic Gymnastics apparatus are covered: Floor Exercise (FX), Pommel Horse (PH), Still Rings (SR), Vault (VT), Parallel Bars (PB), and Horizontal Bar (HB).',
+      'Saat ini video hanya bisa diputar secara streaming melalui platform. Video disimpan di Google Drive dan diputar langsung di halaman pemutar GLS FIK. Pastikan koneksi internet Anda stabil untuk pengalaman menonton yang lancar.',
   },
   {
-    question: 'How does the Checklist Tracker calculate completion percentage?',
+    question: 'Browser apa yang direkomendasikan?',
     answer:
-      'Each technique has an itemized movement standard. When an athlete or coach checks off a mastered technique, the completion percentage updates in real time on both the video player and athlete profile.',
+      'GLS FIK bekerja optimal di Google Chrome, Mozilla Firefox, Microsoft Edge, dan Safari versi terbaru. Pastikan browser Anda sudah diperbarui ke versi terakhir untuk kompatibilitas pemutar video yang terbaik.',
   },
   {
-    question: 'Can coaches submit evaluations and technical notes?',
+    question: 'Berapa jumlah kategori alat yang tersedia?',
     answer:
-      'Yes. Users with Coach or Administrator roles have an evaluation panel under each technique to assign mastery statuses (Mastered, Developing, Needs Work) and write specific biomechanical notes.',
+      'Tersedia 6 kategori alat senam artistik putra (MAG): Floor Exercise (Senam Lantai), Pommel Horse (Kuda-Kuda Pelana), Vault (Meja Lompat), Still Rings (Gelang-Gelang), Parallel Bars (Palang Sejajar), dan Horizontal Bar (Palang Tunggal).',
   },
   {
-    question: 'What domain is the official platform hosted on?',
+    question: 'Apakah platform ini bisa diakses dari handphone?',
     answer:
-      'The official platform operates at https://gymnasticcomplevel.com, engineered for mobile smartphones, tablets, and desktop workstations.',
+      'Ya, GLS FIK dirancang responsif dan bisa diakses dari perangkat apa pun — laptop, tablet, maupun handphone. Tampilan akan menyesuaikan ukuran layar Anda secara otomatis.',
   },
 ];
 
@@ -72,7 +72,7 @@ function AccordionItem({
       <button
         type="button"
         onClick={onToggle}
-        className="w-full flex items-center justify-between gap-4 p-5 sm:p-6 text-left cursor-pointer group min-h-[44px]"
+        className="w-full flex items-center justify-between gap-4 p-5 sm:p-6 text-left cursor-pointer group"
         aria-expanded={isOpen}
       >
         <span className="text-sm sm:text-base font-bold text-[#1F2A2E] leading-snug pr-2">
@@ -120,7 +120,7 @@ export function FAQSection() {
   return (
     <section
       id="faq"
-      className="py-16 sm:py-20 bg-white border-b border-slate-200 relative overflow-hidden text-[#1F2A2E] scroll-mt-16"
+      className="py-20 bg-white border-b border-slate-200 relative overflow-hidden text-[#1F2A2E] scroll-mt-16"
     >
       <div className="absolute bottom-10 right-10 w-[400px] h-[300px] bg-[radial-gradient(circle,rgba(193,255,114,0.08)_0%,transparent_70%)] pointer-events-none blur-3xl -z-0" />
 
@@ -134,7 +134,7 @@ export function FAQSection() {
         >
           <div className="flex items-center justify-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-[#C1FF72] flex items-center justify-center text-[#1F2A2E] font-black text-xs shadow-sm">
-              08
+              07
             </div>
             <div className="w-8 h-[1px] bg-slate-300" />
             <div className="px-3.5 py-1 rounded-full bg-[#1F2A2E] text-white text-xs font-bold shadow-sm">
@@ -143,10 +143,10 @@ export function FAQSection() {
           </div>
 
           <h2 className="text-2xl sm:text-4xl font-black text-[#1F2A2E] tracking-tight">
-            Frequently Asked Questions
+            Pertanyaan yang Sering Ditanyakan
           </h2>
           <p className="text-xs sm:text-sm text-[#52636A] mt-1.5 max-w-lg mx-auto">
-            Find answers regarding video access, athlete accounts, technique checklists, and coaching evaluations.
+            Temukan jawaban untuk pertanyaan umum seputar penggunaan platform GLS FIK.
           </p>
         </motion.div>
 
@@ -173,7 +173,7 @@ export function FAQSection() {
         >
           <HelpCircle className="w-4 h-4" />
           <span>
-            Need assistance or account access? Contact your technical director or GCL administrator.
+            Masih ada pertanyaan? Hubungi dosen pengampu atau admin GLS FIK.
           </span>
         </motion.div>
       </div>
