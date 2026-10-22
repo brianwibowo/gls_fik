@@ -52,6 +52,7 @@ func main() {
 
 	// Public Routes
 	r.POST("/api/auth/login", handler.Login)
+	r.POST("/api/auth/google", handler.GoogleLogin)
 	r.GET("/api/categories", handler.GetCategories)
 	r.GET("/api/videos", handler.GetVideos)
 	r.GET("/api/videos/:id", handler.GetVideoByID)

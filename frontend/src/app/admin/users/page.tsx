@@ -270,15 +270,24 @@ function AdminUsersContent() {
                 className="p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:bg-slate-50/80 transition-colors"
               >
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 ${
-                      isAdminRole
-                        ? 'bg-[#c1ff72] text-[#1f2a2e] border border-[#a8ed4b]'
-                        : 'bg-slate-100 text-slate-700 border border-slate-200'
-                    }`}
-                  >
-                    {u.name.charAt(0).toUpperCase()}
-                  </div>
+                  {u.avatar ? (
+                    <img
+                      src={u.avatar}
+                      alt={u.name}
+                      referrerPolicy="no-referrer"
+                      className="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200"
+                    />
+                  ) : (
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 ${
+                        isAdminRole
+                          ? 'bg-[#c1ff72] text-[#1f2a2e] border border-[#a8ed4b]'
+                          : 'bg-slate-100 text-slate-700 border border-slate-200'
+                      }`}
+                    >
+                      {u.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-slate-900 text-sm sm:text-base truncate">{u.name}</span>

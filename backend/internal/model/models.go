@@ -9,8 +9,8 @@ type User struct {
 	ID        string    `gorm:"primaryKey;type:varchar(64)" json:"id"`
 	Name      string    `gorm:"type:varchar(128);not null" json:"name"`
 	Email     string    `gorm:"uniqueIndex;type:varchar(128);not null" json:"email"`
-	Password  string    `gorm:"type:varchar(255);not null" json:"-"` // Omitted in JSON responses
-	Role      string    `gorm:"type:varchar(32);default:'athlete'" json:"role"` // 'athlete', 'coach', or 'admin'
+	Password  string    `gorm:"type:varchar(255)" json:"-"` // Omitted in JSON responses
+	Role      string    `gorm:"type:varchar(32);default:'user'" json:"role"` // 'user' or 'admin'
 	Avatar    string    `gorm:"type:varchar(255)" json:"avatar,omitempty"`
 	Bio       string    `gorm:"type:text" json:"bio,omitempty"`
 	CreatedAt time.Time `json:"createdAt"`

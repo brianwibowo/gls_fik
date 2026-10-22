@@ -93,9 +93,63 @@ export async function apiLogin(email: string, password: string): Promise<{ token
   }
 }
 
+export async function apiLoginGoogle(credential: string): Promise<{ token: string; user: User }> {
+  try {
+    const data = await fetchApi<{ token: string; user: User }>('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ credential }),
+    });
+    setAuthToken(data.token);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('gls_user', JSON.stringify(data.user));
+    }
+    return data;
+  } catch (err) {
+    console.warn('[API] Backend unreachable for Google Auth, decoding Google credential locally:', err);
+    try {
+      const base64Url = credential.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      const googleUser = JSON.parse(jsonPayload);
+      const adminEmails = [
+        'admin@gls.id',
+        'admin@gymnasticcomplevel.com',
+        ...(process.env.NEXT_PUBLIC_ADMIN_EMAILS || '').split(',').map((e) => e.trim().toLowerCase()),
+      ];
+      const isAdm = adminEmails.includes((googleUser.email || '').toLowerCase());
+
+      const fallbackUser: User = {
+        id: 'usr-' + (googleUser.sub || 'google'),
+        name: googleUser.name || googleUser.email.split('@')[0],
+        email: googleUser.email,
+        role: isAdm ? 'admin' : 'user',
+        avatar: googleUser.picture,
+        createdAt: new Date().toISOString(),
+      };
+      const token = 'google_session_' + credential.slice(-20);
+      setAuthToken(token);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('gls_user', JSON.stringify(fallbackUser));
+      }
+      return { token, user: fallbackUser };
+    } catch {
+      throw err;
+    }
+  }
+}
+
 export async function apiGetMe(): Promise<User> {
   try {
-    return await fetchApi<User>('/auth/me');
+    const user = await fetchApi<User>('/auth/me');
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('gls_user', JSON.stringify(user));
+    }
+    return user;
   } catch (err) {
     const token = getAuthToken();
     if (token === 'fallback_demo_token') {
@@ -106,6 +160,16 @@ export async function apiGetMe(): Promise<User> {
         role: 'admin',
         createdAt: new Date().toISOString(),
       };
+    }
+    if (typeof window !== 'undefined') {
+      const savedUserStr = localStorage.getItem('gls_user');
+      if (savedUserStr) {
+        try {
+          return JSON.parse(savedUserStr);
+        } catch {
+          // ignore
+        }
+      }
     }
     throw err;
   }

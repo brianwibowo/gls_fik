@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
+import { GoogleLogin } from '@react-oauth/google';
 import {
   Lock,
   Mail,
@@ -25,7 +26,7 @@ export function LoginModal({
   title = 'Akses Video Terkunci',
   subtitle = 'Materi ini membutuhkan akses akun atlet, pelatih, atau mahasiswa GLS FIK.',
 }: LoginModalProps) {
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -56,6 +57,20 @@ export function LoginModal({
       onClose();
     } else {
       setError(result.error || 'Login gagal. Periksa kembali email dan kata sandi Anda.');
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credential: string) => {
+    setError('');
+    setIsLoading(true);
+    const result = await loginWithGoogle(credential);
+    if (result.success) {
+      setIsLoading(false);
+      if (onSuccess) onSuccess();
+      onClose();
+    } else {
+      setError(result.error || 'Login dengan Google gagal. Silakan coba kembali.');
       setIsLoading(false);
     }
   };
@@ -100,6 +115,31 @@ export function LoginModal({
             <span>{error}</span>
           </div>
         )}
+
+        {/* Google One-Click Login */}
+        <div className="mb-4">
+          <div className="w-full flex justify-center [&>div]:!w-full [&>div>iframe]:!w-full [&>div>div]:!w-full">
+            <GoogleLogin
+              onSuccess={(res) => {
+                if (res.credential) handleGoogleSuccess(res.credential);
+              }}
+              onError={() => setError('Gagal melakukan login dengan Google.')}
+              theme="filled_black"
+              shape="pill"
+              size="large"
+              width="100%"
+              text="continue_with"
+            />
+          </div>
+
+          <div className="w-full flex items-center gap-3 my-4">
+            <div className="h-px bg-white/10 flex-1" />
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+              atau masuk dengan email
+            </span>
+            <div className="h-px bg-white/10 flex-1" />
+          </div>
+        </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4">

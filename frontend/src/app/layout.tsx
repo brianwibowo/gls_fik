@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
+import { GoogleAuthProvider } from "@/components/GoogleAuthProvider";
 import { SmoothScroll } from "@/components/SmoothScroll";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -42,9 +43,11 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${plusJakartaSans.variable} scroll-smooth`}>
       <body className="min-h-screen flex flex-col bg-[#0a0a0a] text-white antialiased">
-        <AuthProvider>
-          <SmoothScroll>{children}</SmoothScroll>
-        </AuthProvider>
+        <GoogleAuthProvider>
+          <AuthProvider>
+            <SmoothScroll>{children}</SmoothScroll>
+          </AuthProvider>
+        </GoogleAuthProvider>
       </body>
     </html>
   );

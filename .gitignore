@@ -26,6 +26,7 @@ frontend/out/
 frontend/build/
 backend/bin/
 backend/tmp/
+backend/api
 
 # backend / database
 *.db

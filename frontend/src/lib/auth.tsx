@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { User } from './types';
-import { apiLogin, apiGetMe, getAuthToken, removeAuthToken } from './api';
+import { apiLogin, apiLoginGoogle, apiGetMe, getAuthToken, removeAuthToken } from './api';
 
 // Auth context definition
 interface AuthContextValue {
@@ -10,6 +10,7 @@ interface AuthContextValue {
   isLoggedIn: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: (credential: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isReady: boolean; // true once hydration complete
 }
@@ -19,6 +20,7 @@ const AuthContext = createContext<AuthContextValue>({
   isLoggedIn: false,
   isAdmin: false,
   login: async () => ({ success: false }),
+  loginWithGoogle: async () => ({ success: false }),
   logout: () => {},
   isReady: false,
 });
@@ -42,6 +44,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
       .catch(() => {
         removeAuthToken();
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('gls_user');
+        }
         setUser(null);
       })
       .finally(() => {
@@ -59,8 +64,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const loginWithGoogle = useCallback(async (credential: string) => {
+    try {
+      const { user: loggedInUser } = await apiLoginGoogle(credential);
+      setUser(loggedInUser);
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Login dengan Google gagal.' };
+    }
+  }, []);
+
   const logout = useCallback(() => {
     removeAuthToken();
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('gls_user');
+    }
     setUser(null);
   }, []);
 
@@ -71,6 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoggedIn: !!user,
         isAdmin: user?.role === 'admin',
         login,
+        loginWithGoogle,
         logout,
         isReady,
       }}
