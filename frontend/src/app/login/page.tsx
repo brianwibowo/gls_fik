@@ -12,8 +12,6 @@ import {
   Lock,
   LogIn,
   AlertCircle,
-  ShieldCheck,
-  CheckCircle2,
 } from 'lucide-react';
 
 function LoginForm() {
@@ -52,11 +50,6 @@ function LoginForm() {
     }
   };
 
-  const handleFillDemo = (demoEmail: string, demoPass: string) => {
-    setEmail(demoEmail);
-    setPassword(demoPass);
-    setError('');
-  };
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-[#0a0a0a]">
@@ -205,42 +198,7 @@ function LoginForm() {
             </button>
           </form>
 
-          {/* Quick Demo Access Box */}
-          <div className="p-4 rounded-xl bg-[#141a24] border border-[#273549] space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-[#c1ff72]" />
-                <span className="text-xs font-bold text-slate-200">Akun Demo Pengujian:</span>
-              </div>
-              <span className="text-[10px] text-slate-400">Klik untuk isi otomatis</span>
-            </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleFillDemo('admin@gls.id', 'admin123')}
-                className="p-2.5 rounded-lg bg-[#1f2937] hover:bg-[#334155] border border-[#374151] text-left transition-colors cursor-pointer"
-              >
-                <div className="flex items-center justify-between text-xs font-bold text-white">
-                  <span>Akun Admin</span>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#c1ff72]" />
-                </div>
-                <p className="text-[10px] text-slate-400 mt-0.5">admin@gls.id</p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleFillDemo('alisha@gls.id', 'user123')}
-                className="p-2.5 rounded-lg bg-[#1f2937] hover:bg-[#334155] border border-[#374151] text-left transition-colors cursor-pointer"
-              >
-                <div className="flex items-center justify-between text-xs font-bold text-white">
-                  <span>Akun Atlet / User</span>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-slate-400" />
-                </div>
-                <p className="text-[10px] text-slate-400 mt-0.5">alisha@gls.id</p>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

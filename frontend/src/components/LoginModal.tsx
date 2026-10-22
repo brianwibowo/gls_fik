@@ -60,11 +60,6 @@ export function LoginModal({
     }
   };
 
-  const handleFillDemo = (demoEmail: string, demoPass: string) => {
-    setEmail(demoEmail);
-    setPassword(demoPass);
-    setError('');
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
@@ -152,28 +147,7 @@ export function LoginModal({
           </button>
         </form>
 
-        {/* Quick Demo Credentials */}
-        <div className="mt-5 pt-4 border-t border-white/10 text-center">
-          <p className="text-[11px] text-slate-400 mb-2.5 font-medium">
-            Atau gunakan akun demo untuk akses instan:
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => handleFillDemo('alisha@gls.id', 'user123')}
-              className="min-h-[38px] px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-semibold text-slate-200 transition-colors cursor-pointer flex items-center justify-center text-center"
-            >
-              Akun Atlet (Alisha)
-            </button>
-            <button
-              type="button"
-              onClick={() => handleFillDemo('admin@gls.id', 'admin123')}
-              className="min-h-[38px] px-3 py-2 rounded-xl bg-[#c1ff72]/10 hover:bg-[#c1ff72]/20 active:scale-95 border border-[#c1ff72]/30 text-xs font-bold text-[#c1ff72] transition-colors cursor-pointer flex items-center justify-center text-center"
-            >
-              Akun Admin (Dosen)
-            </button>
-          </div>
-        </div>
+
       </div>
     </div>
   );
