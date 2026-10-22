@@ -126,7 +126,7 @@ export default function WatchPage() {
               Episode {video.episodeNum}
             </span>
             <span className="px-2.5 py-1 rounded-lg bg-[#c1ff72] text-[#1f2a2e] font-black shadow-sm">
-              Level {video.level}
+              {video.level?.toLowerCase().startsWith('level') ? video.level : `Level ${video.level}`}
             </span>
           </div>
         </div>
