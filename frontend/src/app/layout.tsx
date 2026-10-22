@@ -12,25 +12,33 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "GLS - Gymnastics Learning System | Platform Pembelajaran Senam Digital",
+  metadataBase: new URL("https://gymnasticcomplevel.com"),
+  title: "Gymnastics Competition Level (GCL) | Artistic Gymnastics Technical Platform",
   description:
-    "Platform digital pembelajaran senam untuk pelatih, atlet, dan orang tua. Belajar teknik senam lebih terarah dengan kurikulum terstruktur dan video berkualitas tinggi.",
+    "Official Gymnastics Competition Level (GCL) technical curriculum. Authentic competition video analysis, 6 apparatus progressions, athlete checklists, and certified coach evaluations.",
   keywords: [
-    "Gymnastics Learning System",
-    "GLS",
-    "Senam Artistik",
-    "Pelatihan Senam",
-    "LMS Senam",
-    "Belajar Senam",
-    "Video Senam",
+    "Gymnastics Competition Level",
+    "GCL",
+    "gymnasticcomplevel.com",
+    "Artistic Gymnastics",
+    "Men's Artistic Gymnastics",
+    "Apparatus Curriculum",
+    "Floor Exercise",
+    "Pommel Horse",
+    "Still Rings",
+    "Vault",
+    "Parallel Bars",
+    "Horizontal Bar",
   ],
-  authors: [{ name: "Gymnastics Learning System" }],
+  authors: [{ name: "Gymnastics Competition Level (GCL)" }],
   openGraph: {
-    title: "GLS - Gymnastics Learning System",
+    title: "Gymnastics Competition Level (GCL)",
     description:
-      "Platform digital pembelajaran senam untuk pelatih dan atlet. Belajar teknik senam lebih terarah.",
+      "Technical curriculum, authentic competition videos, apparatus tracking, and coach evaluations for artistic gymnasts.",
+    url: "https://gymnasticcomplevel.com",
+    siteName: "GCL - Gymnastics Competition Level",
     type: "website",
-    locale: "id_ID",
+    locale: "en_US",
   },
 };
 
@@ -40,7 +48,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={`${plusJakartaSans.variable} scroll-smooth`}>
+    <html lang="en" className={`${plusJakartaSans.variable} scroll-smooth`}>
       <body className="min-h-screen flex flex-col bg-[#0a0a0a] text-white antialiased">
         <AuthProvider>
           <SmoothScroll>{children}</SmoothScroll>

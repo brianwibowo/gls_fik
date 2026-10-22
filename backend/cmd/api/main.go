@@ -24,7 +24,8 @@ func main() {
 	allowedOrigins := []string{
 		"http://localhost:3000",
 		"http://127.0.0.1:3000",
-		"https://gls-fik-unnes.vercel.app",
+		"https://gymnasticcomplevel.com",
+		"https://www.gymnasticcomplevel.com",
 	}
 	if envOrigin := os.Getenv("FRONTEND_URL"); envOrigin != "" {
 		for _, o := range strings.Split(envOrigin, ",") {
@@ -54,11 +55,22 @@ func main() {
 	r.GET("/api/categories", handler.GetCategories)
 	r.GET("/api/videos", handler.GetVideos)
 	r.GET("/api/videos/:id", handler.GetVideoByID)
+	r.GET("/api/techniques", handler.GetTechniques)
+	r.GET("/api/profiles", handler.GetProfiles)
 
-	// Protected Routes (User Login Required)
+	// Protected Routes (User Login Required: athlete, coach, admin)
 	authGroup := r.Group("/api", middleware.AuthMiddleware())
 	{
 		authGroup.GET("/auth/me", handler.Me)
+		authGroup.PUT("/auth/profile", handler.UpdateMyProfile)
+		authGroup.GET("/tracker", handler.GetAthleteTechniqueTracker)
+		authGroup.POST("/tracker/toggle", handler.ToggleAthleteProgress)
+	}
+
+	// Coach or Admin Routes (Evaluations & feedback)
+	coachGroup := r.Group("/api", middleware.AuthMiddleware(), middleware.CoachOrAdminOnly())
+	{
+		coachGroup.POST("/tracker/evaluations", handler.SaveTechniqueEvaluation)
 	}
 
 	// Protected Admin Routes (Role: admin Required)

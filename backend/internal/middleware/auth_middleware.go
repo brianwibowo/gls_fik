@@ -80,6 +80,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		c.Set("userId", claims.UserID)
 		c.Set("userEmail", claims.Email)
 		c.Set("userRole", claims.Role)
+		c.Set("role", claims.Role)
 
 		c.Next()
 	}
@@ -90,7 +91,20 @@ func AdminOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		role, exists := c.Get("userRole")
 		if !exists || role != "admin" {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Akses ditolak: Hanya untuk administrator"})
+			c.JSON(http.StatusForbidden, gin.H{"error": "Access denied: Administrator role required"})
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+}
+
+// CoachOrAdminOnly checks if user is a coach or admin
+func CoachOrAdminOnly() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		role, exists := c.Get("userRole")
+		if !exists || (role != "admin" && role != "coach") {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Access denied: Coach or Administrator role required"})
 			c.Abort()
 			return
 		}

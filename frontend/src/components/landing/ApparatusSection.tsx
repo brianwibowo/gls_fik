@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Video } from '@/lib/types';
@@ -17,111 +17,104 @@ export interface ApparatusInfo {
   id: string;
   code: string;
   name: string;
-  categoryTag: 'Khusus Putra (MAG)' | 'Khusus Putri (WAG)' | 'Putra & Putri';
+  categoryTag: string;
   dimensions: string;
   image: string;
   drillSummary: string;
   keyDrills: string[];
   safetyTip: string;
-  isPrimary?: boolean;
 }
 
 export const APPARATUS_DATA: ApparatusInfo[] = [
   {
     id: 'cat-fx',
     code: 'FX',
-    name: 'Floor Exercise (Senam Lantai)',
-    categoryTag: 'Khusus Putra (MAG)',
-    dimensions: 'Matras pegas 12 × 12 m',
+    name: 'Floor Exercise (FX)',
+    categoryTag: "Men's Artistic Gymnastics",
+    dimensions: '12 × 12 m Spring Mat',
     image: '/images/apparatus-floor.webp',
-    drillSummary: 'Rangkaian akrobatik lari awalan, variasi salto, dan teknik stick landing di atas matras.',
+    drillSummary: 'Acrobatic passes, rhythm hurdles, rotational tumbling sequences, and stuck landings.',
     keyDrills: [
-      'Drill awalan lari berirama dan entri hurdle',
-      'Tolakan round-off dan flic-flac (back handspring)',
-      'Teknik stick landing tanpa langkah tambahan (fleksi lutut peredam)',
+      'Accelerating approach run and hurdle entry drills',
+      'Round-off rebound into back handspring (flic-flac)',
+      'Controlled stick landings with knees absorbing impact',
     ],
-    safetyTip: 'Gunakan matras bantu pendaratan busa tambahan untuk latihan salto rotasi baru.',
-    isPrimary: true,
+    safetyTip: 'Use supplemental resi-mats for high-revolution rotational flip progressions.',
   },
   {
     id: 'cat-ph',
     code: 'PH',
-    name: 'Pommel Horse (Kuda-Kuda Pelana)',
-    categoryTag: 'Khusus Putra (MAG)',
-    dimensions: 'Tinggi 1.15 m | 2 Pelana',
+    name: 'Pommel Horse (PH)',
+    categoryTag: "Men's Artistic Gymnastics",
+    dimensions: 'Height: 1.15 m | 2 Pommels',
     image: '/images/apparatus-pommel.webp',
-    drillSummary: 'Putaran melingkar kontinyu dua kaki dan satu kaki bertumpu pada pergelangan tangan.',
+    drillSummary: 'Continuous circular and scissor leg routines executed across the length of the apparatus.',
     keyDrills: [
-      'Double leg circles konstan di atas pelana (pommels)',
-      'Scissor hop dengan pinggul terangkat tinggi',
-      'Perpindahan titik berat lateral untuk membebaskan tumpuan tangan',
+      'Single and double leg circles on mushroom trainers',
+      'High-hip scissor transitions across pommel handles',
+      'Lateral center-of-mass shifts to unweight hands smoothly',
     ],
-    safetyTip: 'Lakukan penguatan pergelangan tangan (wrist conditioning) secara teratur untuk mencegah cedera.',
-    isPrimary: true,
+    safetyTip: 'Incorporate dedicated wrist conditioning and mobility drills before each session.',
   },
   {
     id: 'cat-vt',
     code: 'VT',
-    name: 'Vault (Meja Lompat)',
-    categoryTag: 'Khusus Putra (MAG)',
-    dimensions: 'Tinggi meja 1.35 m (MAG)',
+    name: 'Vault (VT)',
+    categoryTag: "Men's Artistic Gymnastics",
+    dimensions: 'Table Height: 1.35 m (MAG)',
     image: '/images/apparatus-vault.webp',
-    drillSummary: 'Akselerasi sprint 25 meter, entri papan pegas (springboard), dan tolakan bahu instan.',
+    drillSummary: 'Sprint acceleration, explosive springboard contact, rapid shoulder block, and post-flight landing.',
     keyDrills: [
-      'Akselerasi sprint konstan tanpa melambat di 5 langkah akhir',
-      'Sudut serang telapak kaki saat menghantam papan pegas',
-      'Blocking tolakan tangan cepat pada meja lompat (< 0.2 detik)',
+      'Constant sprint acceleration maintaining velocity into final hurdle',
+      'Aggressive board strike angle transferring horizontal power to lift',
+      'Sub-0.2 second shoulder repulsion block on vault table',
     ],
-    safetyTip: 'Sesuaikan jarak papan pegas dan jumlah per pegas dengan berat serta power atlet.',
-    isPrimary: true,
+    safetyTip: 'Calibrate springboard distance and spring tension to athlete weight and approach power.',
   },
   {
     id: 'cat-sr',
     code: 'SR',
-    name: 'Still Rings (Gelang-Gelang)',
-    categoryTag: 'Khusus Putra (MAG)',
-    dimensions: 'Tinggi 2.8 m dari matras',
+    name: 'Still Rings (SR)',
+    categoryTag: "Men's Artistic Gymnastics",
+    dimensions: 'Ring Height: 2.80 m',
     image: '/images/apparatus-rings.webp',
-    drillSummary: 'Ujian kekuatan statis bahu (hold position) diselingi ayunan tanpa goyangan kabel.',
+    drillSummary: 'Static shoulder strength holds combined with dynamic swings without cable vibration.',
     keyDrills: [
-      'Hold statis (Cross, L-sit, Planche) tahan minimal 2 detik',
-      'Kip to handstand dengan ring turn-out',
-      'Ayunan dinamis tanpa membiarkan tali kabel bergetar',
+      'Isometric holds (Support hold, L-sit, Inverted hang) held for at least 2 seconds',
+      'Kip to straight-arm support with ring turn-out (RTO)',
+      'Smooth amplitude swings maintaining still cables',
     ],
-    safetyTip: 'Lakukan pemanasan sendi rotator cuff bahu secara menyeluruh sebelum melatih hold statis.',
-    isPrimary: false,
+    safetyTip: 'Warm up the rotator cuff and shoulder capsule thoroughly before training strength holds.',
   },
   {
     id: 'cat-pb',
     code: 'PB',
-    name: 'Parallel Bars (Palang Sejajar)',
-    categoryTag: 'Khusus Putra (MAG)',
-    dimensions: 'Tinggi 2.0 m | Panjang 3.5 m',
+    name: 'Parallel Bars (PB)',
+    categoryTag: "Men's Artistic Gymnastics",
+    dimensions: 'Height: 2.00 m | Length: 3.50 m',
     image: '/images/apparatus-bars.webp',
-    drillSummary: 'Kombinasi ayunan, tumpuan tangan, gerakan di bawah palang, dan dismount salto pendaratan.',
+    drillSummary: 'Support swings, upper arm holds, transitions below and above the bars, and stuck dismounts.',
     keyDrills: [
-      'Ayunan bahu (shoulder swing) di antara dua palang',
-      'Cast to handstand dan pirouette di atas palang',
-      'Salto dismount samping dengan posisi stick landing kokoh',
+      'Shoulder swings in straight-arm support between bars',
+      'Upper-arm support to straddle and swing to handstand',
+      'Side swing flank dismount with secure landing absorption',
     ],
-    safetyTip: 'Pastikan lebar jarak kedua palang diatur tepat sesuai lebar bahu atlet.',
-    isPrimary: false,
+    safetyTip: 'Ensure bar width is individually adjusted to the athlete shoulder span.',
   },
   {
     id: 'cat-hb',
     code: 'HB',
-    name: 'Horizontal Bar (Palang Tunggal)',
-    categoryTag: 'Khusus Putra (MAG)',
-    dimensions: 'Tinggi 2.8 m | Palang baja elastis',
+    name: 'Horizontal Bar (HB)',
+    categoryTag: "Men's Artistic Gymnastics",
+    dimensions: 'Height: 2.80 m | Elastic Steel Bar',
     image: '/images/apparatus-highbar.jpg',
-    drillSummary: 'Gerakan ayunan dinamis kecepatan tinggi, giant swing terus-menerus, dan pelepasan pegangan salto spektakuler.',
+    drillSummary: 'High-speed rhythm swings, giant rotations, bar flight releases, and aerial dismounts.',
     keyDrills: [
-      'Tap swing pembentukan bentuk arch-to-hollow fleksibel',
-      'Giant swing rotasi 360° penuh dan perubahan posisi cengkeraman (grip)',
-      'Flyaway release move dan pendaratan terfiksasi di matras tebal',
+      'Tap swing hollow-to-arch rhythm timing',
+      '360-degree giant swings with grip changes and kip elements',
+      'Release trajectory and high-amplitude flyaway dismount to landing mat',
     ],
-    safetyTip: 'Wajib gunakan handgrip pelindung kulit telapak tangan dan chalk sebelum naik palang.',
-    isPrimary: false,
+    safetyTip: 'Gymnastics handguards (dowel grips) and magnesium chalk are mandatory on high bar.',
   },
 ];
 
@@ -133,15 +126,10 @@ interface ApparatusSectionProps {
 
 export function ApparatusSection({ activeId, onSelectApparatus, videos = [] }: ApparatusSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [showAllApparatus, setShowAllApparatus] = useState(false);
-
-  const displayedApparatus = showAllApparatus
-    ? APPARATUS_DATA
-    : APPARATUS_DATA.filter((item) => item.isPrimary);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
-      const scrollAmount = 300;
+      const scrollAmount = 340;
       scrollRef.current.scrollBy({
         left: direction === 'left' ? -scrollAmount : scrollAmount,
         behavior: 'smooth',
@@ -149,181 +137,158 @@ export function ApparatusSection({ activeId, onSelectApparatus, videos = [] }: A
     }
   };
 
-  const selectedApparatus =
-    APPARATUS_DATA.find((item) => item.id === activeId) || APPARATUS_DATA[0];
+  const getFirstVideoForCategory = (categoryId: string) => {
+    return videos.find((v) => v.categoryId === categoryId);
+  };
 
   return (
-    <section id="nomor-alat" className="py-16 border-b border-slate-200 bg-white scroll-mt-16 text-[#1F2A2E] relative overflow-hidden">
-      {/* Scroll anchor compatibility */}
-      <div id="kategori-senam" className="sr-only" />
-      {/* Subtle ambient lighting blend */}
-      <div className="absolute top-0 right-1/4 w-[500px] h-[350px] bg-[radial-gradient(circle,rgba(193,255,114,0.12)_0%,transparent_70%)] pointer-events-none blur-3xl -z-0" />
-      <div className="absolute bottom-0 left-10 w-[400px] h-[300px] bg-[radial-gradient(circle,rgba(193,255,114,0.06)_0%,transparent_70%)] pointer-events-none blur-3xl -z-0" />
+    <section
+      id="apparatus"
+      className="py-16 sm:py-20 bg-[#F4F8FA] border-b border-slate-200/90 relative overflow-hidden text-[#1F2A2E] scroll-mt-16"
+    >
+      <div className="absolute top-10 left-10 w-[500px] h-[350px] bg-[radial-gradient(circle,rgba(193,255,114,0.12)_0%,transparent_70%)] pointer-events-none blur-3xl -z-0" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Section Header with Reference Motif */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 sm:mb-8 gap-4">
-          <div>
-            {/* Signature Motif: [03] --- [Kategori Senam] */}
+        {/* Section Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10 border-b border-slate-200 pb-5">
+          <div className="max-w-2xl">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-8 h-8 rounded-full bg-[#C1FF72] flex items-center justify-center text-[#1F2A2E] font-black text-xs shadow-sm">
                 03
               </div>
               <div className="w-8 h-[1px] bg-slate-300" />
               <div className="px-3.5 py-1 rounded-full bg-[#1F2A2E] text-white text-xs font-bold shadow-sm">
-                Kategori Senam
+                Apparatus Standards
               </div>
             </div>
 
             <h2 className="text-2xl sm:text-4xl font-black text-[#1F2A2E] tracking-tight">
-              Kategori Senam Terpilih
+              All 6 Men&apos;s Artistic Gymnastics Apparatus
             </h2>
-            <p className="text-xs sm:text-sm text-[#52636A] mt-1.5 max-w-xl">
-              Menampilkan 3 kategori materi inti perkuliahan: Senam Lantai, Kuda-Kuda Pelana, dan Meja Lompat.
+            <p className="text-xs sm:text-sm text-[#52636A] mt-1.5 leading-relaxed">
+              Explore equipment specifications, FIG safety guidelines, key technical drills, and curriculum video breakdowns.
             </p>
           </div>
 
-          {/* Toggle & Scroll Buttons: Mobile wrap cleanly with 40px+ touch targets */}
-          <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+          {/* Desktop scroll buttons */}
+          <div className="hidden sm:flex items-center gap-2 shrink-0">
+            <span className="text-xs text-[#52636A] font-bold mr-1">
+              6 Disciplines
+            </span>
             <button
               type="button"
-              onClick={() => setShowAllApparatus(!showAllApparatus)}
-              className="min-h-[40px] inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-[#1F2A2E] transition-all cursor-pointer shadow-sm active:scale-95"
+              onClick={() => scroll('left')}
+              aria-label="Scroll left apparatus list"
+              className="w-10 h-10 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-[#1F2A2E] flex items-center justify-center transition-colors cursor-pointer shadow-sm active:scale-95"
             >
-              <Layers className="w-4 h-4 text-emerald-700" />
-              <span>{showAllApparatus ? 'Tampilkan 3 Alat Inti' : 'Tampilkan Semua 6 Alat (+3)'}</span>
+              <ChevronLeft className="w-5 h-5" />
             </button>
-
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => scroll('left')}
-                aria-label="Geser kiri"
-                className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-[#1F2A2E] flex items-center justify-center transition-colors cursor-pointer shadow-sm active:scale-95"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => scroll('right')}
-                aria-label="Geser kanan"
-                className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-[#1F2A2E] flex items-center justify-center transition-colors cursor-pointer shadow-sm active:scale-95"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => scroll('right')}
+              aria-label="Scroll right apparatus list"
+              className="w-10 h-10 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-[#1F2A2E] flex items-center justify-center transition-colors cursor-pointer shadow-sm active:scale-95"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
-        {/* Horizontal scrollable apparatus cards - Edge-to-edge swipe on phones */}
+        {/* 6 Apparatus Cards Grid / Horizontal Scroll */}
         <div
           ref={scrollRef}
-          className="-mx-4 px-4 sm:mx-0 sm:px-0 flex gap-3.5 sm:gap-5 overflow-x-auto pb-4 pt-1 snap-x snap-mandatory scroll-smooth no-scrollbar"
+          data-lenis-prevent
+          className="-mx-4 px-4 sm:mx-0 sm:px-0 flex sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-5 overflow-x-auto sm:overflow-visible pb-4 pt-1 snap-x snap-mandatory no-scrollbar"
         >
-          {displayedApparatus.map((item) => {
-            const isSelected = item.id === activeId;
+          {APPARATUS_DATA.map((item) => {
+            const firstVideo = getFirstVideoForCategory(item.id);
+            const watchUrl = firstVideo ? `/watch/${firstVideo.id}` : `/#katalog-video`;
+            const isActive = activeId === item.id;
+
             return (
-              <button
-                type="button"
+              <div
                 key={item.id}
                 onClick={() => onSelectApparatus(item.id)}
-                className={`w-[260px] xs:w-[285px] sm:w-[310px] shrink-0 snap-start text-left rounded-2xl border p-4 transition-all cursor-pointer flex flex-col justify-between active:scale-[0.99] ${
-                  isSelected
-                    ? 'bg-white border-2 border-[#1F2A2E] ring-4 ring-[#C1FF72]/50 shadow-md'
-                    : 'bg-white border-slate-200 hover:border-slate-400 shadow-sm'
+                className={`w-[290px] xs:w-[320px] sm:w-auto shrink-0 snap-start bg-white border rounded-3xl overflow-hidden flex flex-col justify-between transition-all duration-300 shadow-sm hover:shadow-xl group cursor-pointer ${
+                  isActive
+                    ? 'border-[#1F2A2E] ring-2 ring-[#C1FF72]'
+                    : 'border-slate-200 hover:border-slate-300'
                 }`}
               >
                 <div>
-                  <div className="relative h-36 sm:h-40 w-full rounded-xl overflow-hidden bg-slate-100 mb-3.5 shadow-inner">
+                  {/* Apparatus Photo */}
+                  <div className="relative w-full h-44 overflow-hidden bg-slate-100">
                     <Image
                       src={item.image}
                       alt={item.name}
                       fill
-                      className="object-cover object-center"
-                      sizes="310px"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      sizes="(max-width: 768px) 320px, (max-width: 1200px) 50vw, 33vw"
                     />
-                    <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                      <span className="px-2.5 py-0.5 rounded-full bg-[#C1FF72] font-black text-xs text-[#1F2A2E] shadow-sm border border-[#a8ed4b]">
-                        {item.code}
-                      </span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+
+                    {/* Code badge */}
+                    <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-[#1F2A2E]/90 text-[#C1FF72] text-xs font-black backdrop-blur-xs shadow-sm border border-white/10">
+                      {item.code}
+                    </div>
+
+                    {/* Dimensions Pill */}
+                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-[11px] font-bold">
+                      <span className="truncate">{item.dimensions}</span>
                     </div>
                   </div>
 
-                  <h3 className="text-base font-black leading-snug text-[#1F2A2E]">
-                    {item.name}
-                  </h3>
-                  <p className="text-[11px] font-bold text-[#52636A] mt-0.5">
-                    {item.categoryTag}
-                  </p>
+                  {/* Body Content */}
+                  <div className="p-5 space-y-3.5">
+                    <div>
+                      <span className="text-[10px] font-bold text-[#52636A] uppercase tracking-wider block mb-1">
+                        {item.categoryTag}
+                      </span>
+                      <h3 className="text-lg font-black text-[#1F2A2E] leading-snug group-hover:text-black transition-colors">
+                        {item.name}
+                      </h3>
+                      <p className="text-xs text-[#52636A] mt-1.5 leading-relaxed line-clamp-2">
+                        {item.drillSummary}
+                      </p>
+                    </div>
+
+                    {/* Key Drills */}
+                    <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#1F2A2E]">
+                        <Target className="w-3.5 h-3.5 text-[#1F2A2E]" />
+                        <span>Key Training Drills:</span>
+                      </div>
+                      <ul className="space-y-1 text-xs text-[#52636A]">
+                        {item.keyDrills.slice(0, 2).map((drill, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5 line-clamp-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#C1FF72] mt-1.5 shrink-0 border border-[#1F2A2E]/30" />
+                            <span>{drill}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Safety Tip */}
+                    <div className="p-2.5 rounded-xl bg-[#F4F8FA] border border-slate-200/80 flex items-start gap-2 text-[11px] text-[#52636A]">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                      <span className="line-clamp-2">{item.safetyTip}</span>
+                    </div>
+                  </div>
                 </div>
 
-                <p className="text-xs text-[#52636A] mt-3 line-clamp-2 leading-relaxed">
-                  {item.drillSummary}
-                </p>
-              </button>
+                {/* Bottom Action Button */}
+                <div className="p-5 pt-0">
+                  <Link
+                    href={watchUrl}
+                    className="w-full min-h-[44px] py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all bg-[#1F2A2E] hover:bg-black text-[#C1FF72] shadow-sm group-hover:scale-[1.01]"
+                  >
+                    <span>Watch Curriculum Videos</span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
             );
           })}
-        </div>
-
-        {/* Active apparatus coaching card */}
-        <div className="mt-8 p-4 sm:p-6 lg:p-8 rounded-3xl bg-[#F4F8FA] border border-slate-200/90 shadow-sm">
-          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5 sm:gap-6">
-            {/* Left: Specs & Drills */}
-            <div className="flex-1 space-y-3.5 sm:space-y-4">
-              <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-                <span className="px-3 py-1 rounded-full bg-[#C1FF72] font-black text-xs text-[#1F2A2E] shadow-sm border border-[#a8ed4b]">
-                  {selectedApparatus.code}
-                </span>
-                <h3 className="text-lg sm:text-xl font-black text-[#1F2A2E]">
-                  Panduan Latihan: {selectedApparatus.name}
-                </h3>
-                <span className="text-xs text-[#1F2A2E] font-bold bg-white border border-slate-200 px-3 py-1 rounded-lg">
-                  {selectedApparatus.dimensions}
-                </span>
-              </div>
-
-              {/* Key drills */}
-              <div className="space-y-2 pt-1">
-                <p className="text-xs font-black text-[#1F2A2E] uppercase tracking-wider flex items-center gap-2">
-                  <Target className="w-4 h-4 text-emerald-700" />
-                  <span>Drill Teknik Utama:</span>
-                </p>
-                <ul className="space-y-1.5 text-xs sm:text-sm text-[#1F2A2E]">
-                  {selectedApparatus.keyDrills.map((drill, idx) => (
-                    <li key={idx} className="flex items-start gap-2.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#C1FF72] mt-1.5 shrink-0 border border-slate-600" />
-                      <span>{drill}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Safety note */}
-              <div className="flex items-start gap-3 p-3.5 sm:p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-950">
-                <ShieldCheck className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
-                <div>
-                  <strong className="text-amber-900 block font-bold mb-0.5">Protokol Keselamatan:</strong>
-                  <span>{selectedApparatus.safetyTip}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Direct Watch Video button */}
-            <div className="w-full lg:w-64 shrink-0 flex flex-col justify-center pt-2 lg:pt-0">
-              {(() => {
-                const firstVid = videos.find((v) => v.categoryId === selectedApparatus.id);
-                return (
-                  <Link
-                    href={firstVid ? `/watch/${firstVid.id}` : `#section-${selectedApparatus.id}`}
-                    className="w-full min-h-[48px] inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 rounded-full bg-[#C1FF72] hover:bg-[#b0f555] text-[#1F2A2E] font-black text-sm transition-all cursor-pointer shadow-md hover:scale-[1.02] active:scale-95 border border-[#a8ed4b]"
-                  >
-                    <span>Putar Video {selectedApparatus.code}</span>
-                    <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
-                  </Link>
-                );
-              })()}
-            </div>
-          </div>
         </div>
       </div>
     </section>

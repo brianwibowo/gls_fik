@@ -1,12 +1,12 @@
-// Centralized API Client untuk berkomunikasi dengan Go Backend
+// Centralized API Client for Gymnastics Competition Level (GCL)
 
-import type { Category, Video, User } from './types';
+import type { Category, Video, User, Technique, ProgressTrackerResponse, TechniqueEvaluation, UserProfile } from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 
 export { extractDriveFileId } from './utils';
 
-// Helper untuk token autentikasi
+// Helper for auth token in localStorage
 export function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem('gls_token');
@@ -22,7 +22,7 @@ export function removeAuthToken(): void {
   localStorage.removeItem('gls_token');
 }
 
-// Helper fetcher dengan header Authorization otomatis
+// Internal fetcher with automatic Authorization header
 async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = getAuthToken();
   const headers = new Headers(options.headers || {});
@@ -62,6 +62,13 @@ export async function apiLogin(email: string, password: string): Promise<{ token
 
 export async function apiGetMe(): Promise<User> {
   return fetchApi<User>('/auth/me');
+}
+
+export async function apiUpdateMyProfile(data: { name?: string; bio?: string; avatar?: string }): Promise<User> {
+  return fetchApi<User>('/auth/profile', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
 }
 
 // ── Categories API ──
@@ -117,6 +124,52 @@ export async function apiDeleteVideo(id: string): Promise<{ message: string }> {
   return fetchApi<{ message: string }>(`/videos/${id}`, {
     method: 'DELETE',
   });
+}
+
+// ── Techniques & Checklist Tracker API ──
+export async function apiGetTechniques(categoryId?: string, level?: number): Promise<Technique[]> {
+  const params = new URLSearchParams();
+  if (categoryId) params.append('categoryId', categoryId);
+  if (level) params.append('level', level.toString());
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return fetchApi<Technique[]>(`/techniques${queryString}`);
+}
+
+export async function apiGetTracker(athleteId?: string, categoryId?: string, level?: number): Promise<ProgressTrackerResponse> {
+  const params = new URLSearchParams();
+  if (athleteId) params.append('athleteId', athleteId);
+  if (categoryId) params.append('categoryId', categoryId);
+  if (level) params.append('level', level.toString());
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return fetchApi<ProgressTrackerResponse>(`/tracker${queryString}`);
+}
+
+export async function apiToggleProgress(techniqueId: string, isCompleted: boolean, athleteId?: string): Promise<any> {
+  return fetchApi<any>('/tracker/toggle', {
+    method: 'POST',
+    body: JSON.stringify({
+      techniqueId,
+      isCompleted,
+      athleteId,
+    }),
+  });
+}
+
+export async function apiSaveEvaluation(data: {
+  athleteId: string;
+  techniqueId: string;
+  notes: string;
+  score?: string;
+}): Promise<TechniqueEvaluation> {
+  return fetchApi<TechniqueEvaluation>('/tracker/evaluations', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+// ── Profiles API ──
+export async function apiGetProfiles(): Promise<UserProfile[]> {
+  return fetchApi<UserProfile[]>('/profiles');
 }
 
 // ── Users API (Admin Only) ──

@@ -43,11 +43,14 @@ func MigrateDatabase(db *gorm.DB) {
 		&model.User{},
 		&model.Category{},
 		&model.Video{},
+		&model.Technique{},
+		&model.AthleteProgress{},
+		&model.TechniqueEvaluation{},
 	)
 	if err != nil {
 		log.Fatalf("Gagal auto-migrate tabel: %v", err)
 	}
-	log.Println("Berhasil migrasi tabel: users, categories, videos")
+	log.Println("Berhasil migrasi tabel: users, categories, videos, techniques, athlete_progress, technique_evaluations")
 }
 
 func getEnv(key, fallback string) string {

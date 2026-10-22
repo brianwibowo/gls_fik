@@ -51,12 +51,12 @@ export function VideoCard({ video, categoryName, className = '' }: VideoCardProp
         <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
           {video.isFree ? (
             <span className="px-2.5 py-0.5 rounded-full bg-[#C1FF72] text-[10px] font-black text-[#1F2A2E] uppercase tracking-wider shadow-sm border border-[#a8ed4b]">
-              Gratis
+              FREE
             </span>
           ) : !isLoggedIn ? (
             <span className="px-2.5 py-0.5 rounded-full bg-[#1F2A2E] text-[10px] font-bold text-white shadow-sm flex items-center gap-1">
               <Lock className="w-2.5 h-2.5 text-[#C1FF72]" />
-              <span>Login</span>
+              <span>Sign In</span>
             </span>
           ) : null}
         </div>
@@ -88,11 +88,11 @@ export function VideoCard({ video, categoryName, className = '' }: VideoCardProp
 
         <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-100">
           <span className="px-2.5 py-0.5 rounded-md bg-[#F4F8FA] border border-slate-200 text-[11px] font-bold text-[#1F2A2E]">
-            Level {video.level}
+            {video.level}
           </span>
 
           <span className="text-xs font-black text-[#1F2A2E] group-hover:text-slate-900 inline-flex items-center gap-1">
-            <span>{canWatch ? 'Tonton' : 'Masuk Akun'}</span>
+            <span>{canWatch ? 'Watch' : 'Sign In'}</span>
             <ArrowUpRight className="w-3.5 h-3.5 text-[#1F2A2E] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
           </span>
         </div>

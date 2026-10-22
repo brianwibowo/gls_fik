@@ -134,3 +134,92 @@ func DeleteUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Pengguna berhasil dihapus"})
 }
+
+// ProfileResponse represents public user details for coaches and athletes
+type ProfileResponse struct {
+	ID             string `json:"id"`
+	Name           string `json:"name"`
+	Email          string `json:"email"`
+	Role           string `json:"role"`
+	Avatar         string `json:"avatar,omitempty"`
+	Bio            string `json:"bio,omitempty"`
+	CompletedCount int    `json:"completedCount,omitempty"`
+	TotalCount     int    `json:"totalCount,omitempty"`
+}
+
+// GetProfiles handles GET /api/profiles (Public)
+func GetProfiles(c *gin.Context) {
+	var users []model.User
+	if err := config.DB.Where("role IN ?", []string{"coach", "athlete", "admin"}).Order("role ASC, name ASC").Find(&users).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve profiles"})
+		return
+	}
+
+	var totalTechniques int64
+	config.DB.Model(&model.Technique{}).Count(&totalTechniques)
+
+	profiles := make([]ProfileResponse, len(users))
+	for i, u := range users {
+		var completedCount int64 = 0
+		if u.Role == "athlete" {
+			config.DB.Model(&model.AthleteProgress{}).Where("athlete_id = ? AND is_completed = true", u.ID).Count(&completedCount)
+		}
+		profiles[i] = ProfileResponse{
+			ID:             u.ID,
+			Name:           u.Name,
+			Email:          u.Email,
+			Role:           u.Role,
+			Avatar:         u.Avatar,
+			Bio:            u.Bio,
+			CompletedCount: int(completedCount),
+			TotalCount:     int(totalTechniques),
+		}
+	}
+
+	c.JSON(http.StatusOK, profiles)
+}
+
+// UpdateProfileRequest payload for self profile updates
+type UpdateProfileRequest struct {
+	Name   string `json:"name"`
+	Bio    string `json:"bio"`
+	Avatar string `json:"avatar"`
+}
+
+// UpdateMyProfile handles PUT /api/auth/profile (Authenticated)
+func UpdateMyProfile(c *gin.Context) {
+	userID, exists := c.Get("userId")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	var user model.User
+	if err := config.DB.First(&user, "id = ?", userID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	var req UpdateProfileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if req.Name != "" {
+		user.Name = req.Name
+	}
+	user.Bio = req.Bio
+	if req.Avatar != "" {
+		user.Avatar = req.Avatar
+	}
+	user.UpdatedAt = time.Now()
+
+	if err := config.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
+

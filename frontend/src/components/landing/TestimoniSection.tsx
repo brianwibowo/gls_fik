@@ -14,32 +14,32 @@ interface Testimonial {
 const TESTIMONIALS: Testimonial[] = [
   {
     quote:
-      'Platform GLS membantu saya mendemonstrasikan teknik senam yang benar kepada mahasiswa secara visual. Mereka bisa mengulang video kapan saja di luar jam kuliah, sehingga waktu praktik di hall lebih efisien.',
-    name: 'Dr. Budi Santoso, M.Pd.',
-    role: 'Dosen Mata Kuliah Senam Artistik',
-    initials: 'BS',
+      'GCL provides our athletes with an objective benchmark for technique execution. Having real competition footage and itemized checklists makes video review sessions twice as productive.',
+    name: 'Coach David Chen',
+    role: 'National MAG Coach & FIG Brevet Evaluator',
+    initials: 'DC',
   },
   {
     quote:
-      'Sebelum pakai GLS, saya harus bolak-balik bertanya ke pelatih soal urutan gerakan vault. Sekarang tinggal buka video, pause di bagian yang perlu, dan latihan mandiri jadi lebih terarah.',
-    name: 'Andi Pratama',
-    role: 'Mahasiswa FIK, Angkatan 2024',
-    initials: 'AP',
+      'The step-by-step apparatus progression helped me understand proper vault block angles and high bar tap timing. I track my completed techniques and check coach feedback directly after practice.',
+    name: 'Marcus Vance',
+    role: 'Senior Men&apos;s Artistic Gymnast',
+    initials: 'MV',
   },
   {
     quote:
-      'Sebagai pelatih klub, saya sering merujuk video GLS untuk menunjukkan perbedaan antara teknik yang benar dan kesalahan umum. Materinya tersusun rapi per alat, jadi gampang dicari.',
-    name: 'Coach Rina Wulandari',
-    role: 'Pelatih Klub Senam Daerah',
-    initials: 'RW',
+      'As an all-around competitor, managing preparation across 6 apparatus used to be overwhelming. The GCL tracker gives clarity on which skills are competition-ready and where deductions occur.',
+    name: 'Liam Parker',
+    role: 'Junior All-Around Competitor',
+    initials: 'LP',
   },
 ];
 
 export function TestimoniSection() {
   return (
     <section
-      id="testimoni"
-      className="py-20 bg-[#F4F8FA] border-b border-slate-200 relative overflow-hidden text-[#1F2A2E] scroll-mt-16"
+      id="testimonials"
+      className="py-16 sm:py-20 bg-[#F4F8FA] border-b border-slate-200 relative overflow-hidden text-[#1F2A2E] scroll-mt-16"
     >
       <div className="absolute top-10 left-1/4 w-[500px] h-[350px] bg-[radial-gradient(circle,rgba(193,255,114,0.10)_0%,transparent_70%)] pointer-events-none blur-3xl -z-0" />
 
@@ -53,19 +53,19 @@ export function TestimoniSection() {
         >
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-[#C1FF72] flex items-center justify-center text-[#1F2A2E] font-black text-xs shadow-sm">
-              06
+              07
             </div>
             <div className="w-8 h-[1px] bg-slate-300" />
             <div className="px-3.5 py-1 rounded-full bg-[#1F2A2E] text-white text-xs font-bold shadow-sm">
-              Testimoni
+              Evaluations &amp; Feedback
             </div>
           </div>
 
           <h2 className="text-2xl sm:text-4xl font-black text-[#1F2A2E] tracking-tight">
-            Kata Mereka Tentang GLS
+            Trusted by Coaches &amp; Athletes
           </h2>
           <p className="text-xs sm:text-sm text-[#52636A] mt-1.5 max-w-xl">
-            Pendapat dosen, mahasiswa, dan pelatih yang sudah menggunakan platform ini.
+            Real feedback from certified coaching staff and competing gymnasts utilizing the GCL technical platform.
           </p>
         </motion.div>
 

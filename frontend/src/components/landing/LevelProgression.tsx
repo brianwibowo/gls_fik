@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, CheckCircle2 } from 'lucide-react';
 
 interface LevelStep {
   level: string;
@@ -14,39 +14,39 @@ interface LevelStep {
 
 const LEVELS: LevelStep[] = [
   {
-    level: 'Beginner',
-    label: 'Dasar',
+    level: 'Level 1',
+    label: 'Foundation',
     description:
-      'Pengenalan gerakan dasar, pemanasan spesifik alat, dan penguatan pondasi fisik yang diperlukan sebelum latihan teknik.',
+      'Core movement patterns, apparatus-specific conditioning, body shapes (tuck, pike, hollow, arch), and balance control.',
     color: '#22c55e',
     skills: [
-      'Pemanasan dan conditioning khusus senam',
-      'Posisi tubuh dasar (tuck, pike, layout)',
-      'Keseimbangan dan koordinasi fundamental',
+      'Specific physical conditioning and joint mobility',
+      'Fundamental body positions and static holds (2s)',
+      'Basic rolling, support holds, and controlled landings',
     ],
   },
   {
-    level: 'Intermediate',
-    label: 'Menengah',
+    level: 'Level 2',
+    label: 'Intermediate',
     description:
-      'Penguasaan teknik inti setiap alat dengan penekanan pada bentuk tubuh, timing, dan konsistensi gerakan.',
+      'Dynamic transitions, momentum generation, swinging elements, handstand alignment, and consecutive technical combinations.',
     color: '#eab308',
     skills: [
-      'Teknik spesifik per alat (ayunan, tolakan, hold)',
-      'Rangkaian gerak 2-3 elemen berurutan',
-      'Pendaratan terkontrol dan stick landing',
+      'Apparatus-specific swing amplitude and kip progressions',
+      'Consecutive circle drills and inverted holds',
+      'Controlled stuck landing absorption techniques',
     ],
   },
   {
-    level: 'Advanced',
-    label: 'Lanjutan',
+    level: 'Level 3',
+    label: 'Advanced Competition',
     description:
-      'Kombinasi elemen sulit, variasi salto dan putaran, serta persiapan rutinitas kompetisi dengan nilai kesulitan tinggi.',
+      'High-amplitude acrobatics, flight elements, releases, press handstands, and competition routines judged under FIG scoring criteria.',
     color: '#ef4444',
     skills: [
-      'Elemen akrobatik kombinasi (salto + twist)',
-      'Rutinitas kompetisi dengan D-score tinggi',
-      'Dismount kompleks dan pendaratan presisi',
+      'Combination passes (Round-off to back handspring)',
+      'High-velocity bar releases and pirouette turns',
+      'Maximum execution score (E-Score) stuck dismounts',
     ],
   },
 ];
@@ -54,8 +54,8 @@ const LEVELS: LevelStep[] = [
 export function LevelProgression() {
   return (
     <section
-      id="level-belajar"
-      className="py-20 bg-[#1F2A2E] border-b border-[#2D3A3F] relative overflow-hidden text-white scroll-mt-16"
+      id="level-progression"
+      className="py-16 sm:py-20 bg-[#1F2A2E] border-b border-[#2D3A3F] relative overflow-hidden text-white scroll-mt-16"
     >
       <div className="absolute top-20 left-10 w-[500px] h-[400px] bg-[radial-gradient(circle,rgba(193,255,114,0.10)_0%,transparent_70%)] pointer-events-none blur-3xl -z-0" />
 
@@ -69,20 +69,19 @@ export function LevelProgression() {
         >
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-[#C1FF72] flex items-center justify-center text-[#1F2A2E] font-black text-xs shadow-sm">
-              05
+              06
             </div>
             <div className="w-8 h-[1px] bg-white/20" />
             <div className="px-3.5 py-1 rounded-full bg-white/10 border border-white/15 text-[#C1FF72] text-xs font-bold shadow-sm">
-              Alur Belajar
+              Curriculum Pathway
             </div>
           </div>
 
           <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-            Progression Path Tiap Alat
+            Standardized 3-Level Progression Path
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 mt-1.5 max-w-xl">
-            Setiap kategori alat memiliki 3 tingkat kesulitan. Mulai dari dasar, naik ke
-            menengah, hingga level lanjutan.
+            Each apparatus curriculum features three tiers of structured technical mastery from foundation movements to competition-ready routines.
           </p>
         </motion.div>
 
@@ -114,7 +113,7 @@ export function LevelProgression() {
                     <p className="text-lg font-black text-white leading-none">
                       {level.level}
                     </p>
-                    <p className="text-[11px] font-bold text-slate-400 mt-0.5">
+                    <p className="text-xs font-bold text-slate-400 mt-0.5">
                       {level.label}
                     </p>
                   </div>
@@ -128,9 +127,9 @@ export function LevelProgression() {
                 <ul className="space-y-2">
                   {level.skills.map((skill) => (
                     <li key={skill} className="flex items-start gap-2.5 text-xs text-slate-200">
-                      <span
-                        className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
-                        style={{ backgroundColor: level.color }}
+                      <CheckCircle2
+                        className="w-4 h-4 shrink-0 mt-0.5"
+                        style={{ color: level.color }}
                       />
                       <span>{skill}</span>
                     </li>
@@ -140,10 +139,10 @@ export function LevelProgression() {
 
               {/* Progress bar visual */}
               <div className="mt-6 pt-4 border-t border-white/10">
-                <div className="flex items-center justify-between text-[11px] mb-2">
-                  <span className="font-bold text-slate-400">Tingkat Kesulitan</span>
-                  <span className="font-black" style={{ color: level.color }}>
-                    {idx === 0 ? 'Rendah' : idx === 1 ? 'Sedang' : 'Tinggi'}
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <span className="font-semibold text-slate-400">Technical Difficulty</span>
+                  <span className="font-bold" style={{ color: level.color }}>
+                    {idx === 0 ? 'Foundation' : idx === 1 ? 'Intermediate' : 'Advanced'}
                   </span>
                 </div>
                 <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
@@ -159,22 +158,6 @@ export function LevelProgression() {
               </div>
             </motion.div>
           ))}
-        </div>
-
-        {/* Connector line between cards (desktop only) */}
-        <div className="hidden lg:flex items-center justify-center mt-8 gap-4">
-          {['Beginner', '', 'Intermediate', '', 'Advanced'].map((label, i) =>
-            label ? (
-              <span
-                key={label}
-                className="text-xs font-bold text-slate-500"
-              >
-                {label}
-              </span>
-            ) : (
-              <div key={`arrow-${i}`} className="w-16 h-[1px] bg-gradient-to-r from-white/20 to-[#C1FF72]/40" />
-            )
-          )}
         </div>
       </div>
     </section>
