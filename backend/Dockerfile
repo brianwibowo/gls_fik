@@ -3,9 +3,6 @@ FROM golang:1.27-alpine AS builder
 
 WORKDIR /app
 
-# Install git and ca-certificates if needed
-RUN apk add --no-cache git ca-certificates tzdata
-
 # Cache dependency Go
 COPY go.mod go.sum ./
 RUN go mod download
@@ -16,17 +13,18 @@ COPY . .
 # Compile binary statis (CGO_ENABLED=0 agar standalone & sangat ringan)
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /app/server ./cmd/api/main.go
 
-# Stage 2: Minimal Production Image (Ukuran hanya ~20MB)
+# Stage 2: Minimal Production Image
 FROM alpine:3.20
 
 WORKDIR /app
 
-# Install timezone dan certificates untuk koneksi HTTPS aman
-RUN apk add --no-cache ca-certificates tzdata
-ENV TZ=Asia/Jakarta
+# Salin SSL root certificates dari builder image (tanpa perlu koneksi ke apk mirror)
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
 # Copy binary dari builder
 COPY --from=builder /app/server /app/server
+
+ENV TZ=Asia/Jakarta
 
 # Expose port 8080
 EXPOSE 8080
