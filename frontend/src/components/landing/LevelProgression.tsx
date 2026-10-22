@@ -14,39 +14,39 @@ interface LevelStep {
 
 const LEVELS: LevelStep[] = [
   {
-    level: 'Beginner',
-    label: 'Dasar',
+    level: 'Level 1',
+    label: 'Fondasi & Posisi Statis',
     description:
-      'Pengenalan gerakan dasar, pemanasan spesifik alat, dan penguatan pondasi fisik yang diperlukan sebelum latihan teknik.',
+      'Pembentukan postur awal, keseimbangan tubuh tahan 2 detik, serta pengenalan ayunan dasar dan pendaratan aman di 6 nomor alat.',
     color: '#22c55e',
     skills: [
-      'Pemanasan dan conditioning khusus senam',
-      'Posisi tubuh dasar (tuck, pike, layout)',
-      'Keseimbangan dan koordinasi fundamental',
+      'FX: Single Leg Balance (2 dtk), Forward Roll, Handstand (2 dtk), Bridge',
+      'PH & SR: Double Leg Circle bertahap (5×), Tuck Hang (2 dtk), L-Sit Prep',
+      'VT, PB & HB: Controlled Run, Mount boks, Tuck Support (2 dtk), Safe Mount',
     ],
   },
   {
-    level: 'Intermediate',
-    label: 'Menengah',
+    level: 'Level 2',
+    label: 'Transisi & Dinamika Gerak',
     description:
-      'Penguasaan teknik inti setiap alat dengan penekanan pada bentuk tubuh, timing, dan konsistensi gerakan.',
+      'Pengembangan rotasi dinamis, putaran kaki kontinyu tanpa jeda, serta transisi rangkaian gerak berurutan dengan teknik terkontrol.',
     color: '#eab308',
     skills: [
-      'Teknik spesifik per alat (ayunan, tolakan, hold)',
-      'Rangkaian gerak 2-3 elemen berurutan',
-      'Pendaratan terkontrol dan stick landing',
+      'FX: Cartwheel, Round-off, Tiger Jump, Backward Roll to Handstand',
+      'PH & SR: Double Leg Circle 5× kontinyu langsung, Inlocate, Inverted Hang',
+      'VT, PB & HB: Handstand Flat-back, Swing to Handstand, Pull Over, Glide Swing',
     ],
   },
   {
-    level: 'Advanced',
-    label: 'Lanjutan',
+    level: 'Level 3',
+    label: 'Rangkaian Lanjutan & Akrobatik',
     description:
-      'Kombinasi elemen sulit, variasi salto dan putaran, serta persiapan rutinitas kompetisi dengan nilai kesulitan tinggi.',
+      'Penguasaan kekuatan murni (press & kip), tolakan meja lompat dinamis, serta kombinasi akrobatik kompetisi berpresisi tinggi.',
     color: '#ef4444',
     skills: [
-      'Elemen akrobatik kombinasi (salto + twist)',
-      'Rutinitas kompetisi dengan D-score tinggi',
-      'Dismount kompleks dan pendaratan presisi',
+      'FX: Press Handstand, Round-off to Back Handspring, Handstand presisi',
+      'PH & SR: Double Leg Circle 10× kontinyu penuh, Support Hold, Inlocate dinamis',
+      'VT, PB & HB: Handspring Vault penuh, Kip di Palang Sejajar & Tunggal, Turn 180°',
     ],
   },
 ];
@@ -163,7 +163,7 @@ export function LevelProgression() {
 
         {/* Connector line between cards (desktop only) */}
         <div className="hidden lg:flex items-center justify-center mt-8 gap-4">
-          {['Beginner', '', 'Intermediate', '', 'Advanced'].map((label, i) =>
+          {['Level 1', '', 'Level 2', '', 'Level 3'].map((label, i) =>
             label ? (
               <span
                 key={label}
