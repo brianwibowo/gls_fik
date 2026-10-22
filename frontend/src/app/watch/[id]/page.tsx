@@ -195,7 +195,7 @@ export default function WatchPage() {
               Episode {video.episodeNum}: {video.title}
             </h1>
 
-            <p className="mt-3 text-sm text-slate-300 leading-relaxed max-w-3xl">
+            <p className="mt-3 text-sm text-slate-300 leading-relaxed max-w-3xl whitespace-pre-line">
               {video.description}
             </p>
           </div>

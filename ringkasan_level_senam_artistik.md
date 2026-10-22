@@ -1,95 +1,91 @@
-# Kurikulum & Tingkat Kemahiran Senam Artistik Putra (MAG)
+# Kurikulum & Level Senam Artistik
 
-Dokumen ini memuat standar kurikulum teknis peragaan gerak pada 6 nomor alat Senam Artistik Putra (Men's Artistic Gymnastics / MAG), terbagi ke dalam **Level 1 (Dasar/Fondasi)**, **Level 2 (Menengah/Transisi)**, dan **Level 3 (Lanjutan/Kompetisi)**.
-
----
-
-## 1. Floor Exercise (FX / Senam Lantai)
+## FX (Lantai)
 
 | Level 1 | Level 2 | Level 3 |
 | :--- | :--- | :--- |
 | Starting Position | Starting Position | Starting Position |
-| Single Leg Balance – tahan 2 detik | Single Leg Balance – tahan 2 detik | Single Leg Balance |
+| Single Leg Balance – tahan 2 detik | Single Leg Balance – 2 detik | Single Leg Balance |
 | Forward Roll | Forward Roll | Handstand |
-| Handstand – tahan 2 detik | Handstand – tahan 2 detik | Cartwheel |
+| Handstand – tahan 2 detik | Handstand – 2 detik | Cartwheel |
 | Cartwheel | Cartwheel | Backward Roll to Handstand |
 | Bridge – tahan 2 detik | Bridge | Press Handstand |
-| Backward Roll | Backward Roll to Handstand | Tiger Jump |
+| Backward Roll | Backward to Handstand | Tiger Jump |
 | Standing Finish | Round-off | Round-off |
 | | Tiger Jump | Back Handspring |
 | | Standing Finish | Standing Finish |
 
 ---
 
-## 2. Pommel Horse & Mushroom (PH / Jamur & Kuda-Kuda Pelana)
+## PH (Jamur / Kuda Pelana)
 
 | Level 1 | Level 2 | Level 3 |
 | :--- | :--- | :--- |
 | Starting Position | Starting Position | Starting Position |
-| Double Leg Circle – 5× repetisi tunggal bertahap (1 sirkel diulang 5 kali) | Double Leg Circle – 5× lingkaran kontinyu (langsung tanpa henti) | Double Leg Circle – 10× lingkaran kontinyu (langsung tanpa henti) |
+| Double leg circle – 5 kali (Dilakukan 1 kali sirkel dan diulangi sebanyak 5 kali) | Double leg circle – 5 kali dilakukan secara langsung | Double leg circle – 10 kali dilakukan secara langsung |
 | Standing Finish | Standing Finish | Standing Finish |
 
 ---
 
-## 3. Still Rings (SR / Gelang-Gelang)
+## SR (Gelang-Gelang)
 
 | Level 1 | Level 2 | Level 3 |
 | :--- | :--- | :--- |
 | Hang Position | Hang Position | Hang Position |
-| Tuck Hang – tahan 2 detik | Tuck Hang – tahan 2 detik | Tuck Hang – tahan 2 detik |
-| L-Sit Preparation | L-Sit Preparation | Support Hold (dengan bantuan pelatih) |
+| Tuck Hang | Tuck Hang | Tuck Hang |
+| L-Sit Preparation | L-Sit Preparation | Support Hold (Assistant by coach) |
 | Pike Position | Inverted Hang | L-Sit Preparation |
-| Swing Forward–Backward (3 kali) | Inlocate | Inverted Hang |
-| Controlled Dismount (Straight Jump) | Swing Forward–Backward (3 kali) | Inlocate |
-| | Controlled Dismount (Straight Jump) | Swing Forward–Backward (3 kali) |
-| | | Controlled Dismount (Straight Jump) |
+| Swing Forward–Backward | Inlocate | Inverted Hang |
+| Dismount (Straight Jump) | Swing Forward–Backward | Inlocate |
+| | Dismount (Straight Jump) | Swing Forward–Backward |
+| | | Dismount (Straight Jump) |
 
 ---
 
-## 4. Vault (VT / Meja Lompat)
+## Meja Lompat
 
-### Skill 1: Rangkaian Lari, Tumpuan & Pendaratan
+### Skill 1
 
 | Level 1 | Level 2 | Level 3 |
 | :--- | :--- | :--- |
 | Starting Position | Starting Position | Starting Position |
-| Controlled Run (Lari awalan terkontrol) | Controlled Run (Lari awalan terkontrol) | Controlled Run (Lari awalan terkontrol) |
-| Hurdle (Lompatan transisi ke papan) | Hurdle (Lompatan transisi ke papan) | Hurdle (Lompatan transisi ke papan) |
-| Two-foot Take-off (Tolakan dua kaki) | Board Contact (Kontak papan pegas) | Board Contact (Kontak papan pegas) |
-| Jump to Mat (Lompat ke matras pendaratan) | Hand Contact (Kontak telapak tangan ke meja) | Hand Contact (Kontak telapak tangan ke meja) |
-| Controlled Landing (Pendaratan terkontrol) | Handstand Flat-back | Block (Tolakan bahu eksplosif) |
-| | Controlled Landing (Pendaratan terkontrol) | Flight (Fase layangan di udara) |
+| Controlled Run | Controlled Run | Controlled Run |
+| Hurdle | Hurdle | Hurdle |
+| Two-foot Take-off | Board Contact | Board Contact |
+| Jump to Mat | Hand Contact | Hand Contact |
+| Controlled Landing | Handstand Flat-back | Block |
+| | Controlled Landing | Flight |
 | | | Handspring Vault |
-| | | Controlled Landing (Pendaratan terkontrol) |
+| | | Controlled Landing |
 
-### Skill 2: Elemen Pendukung Meja Lompat
+### Skill 2
 
 | Level 1 | Level 2 | Level 3 |
 | :--- | :--- | :--- |
-| Handstand to Flat Back (Matras bertingkat) | Handstand Flat-back (Tinggi penuh) | Handspring Vault terintegrasi |
+| Handstand to Flat Back | - | - |
 
 ---
 
-## 5. Parallel Bars (PB / Palang Sejajar)
+## Palang Sejajar
 
 | Level 1 | Level 2 | Level 3 |
 | :--- | :--- | :--- |
-| Mount from box (Naik bantuan boks) | Mount from box (Naik bantuan boks) | Mount without box (Naik mandiri tanpa boks) |
-| Tuck Support – tahan 2 detik | From Upper Arm Support to Straddle | Kip |
-| L-Sit – tahan 2 detik | L-Sit – tahan 2 detik | L-Sit – tahan 2 detik |
-| Basic Swing – 3 kali ayunan | Swing to Handstand | Swing to Handstand |
+| Mount from box | Mount from box | Mount without box |
+| Tuck Support – 2 sec | From upper arm support to straddle | Kip |
+| L sit – 2 sec | L sit – 2 sec | L-Sit – 2 sec |
+| Basic Swing – 3 kali | Swing to handstand | Swing to handstand |
 | Controlled Dismount | Controlled Dismount | Controlled Dismount |
 
 ---
 
-## 6. Horizontal Bar (HB / Palang Tunggal)
+## Palang Tunggal
 
 | Level 1 | Level 2 | Level 3 |
 | :--- | :--- | :--- |
-| Safe Mount (Naik aman ke palang) | Safe Mount (Naik aman ke palang) | Safe Mount (Naik aman ke palang) |
-| Tuck Hang – tahan 2 detik | Tuck Hang – tahan 2 detik | Tuck Hang – tahan 2 detik |
-| L-Hang – tahan 2 detik | L-Hang – tahan 2 detik | L-Hang – tahan 2 detik |
-| Body Tension (Posisi hollow/arch kencang) | Pull Over (dengan bantuan pelatih) | Kip |
-| Basic Swing – 3 kali ayunan | Glide to Basic Swing – 3 kali ayunan | Glide to Basic Swing |
-| Controlled Dismount | Controlled Dismount | Swing Forward turn 180° |
+| Safe Mount | Safe Mount | Safe Mount |
+| Tuck Hang – 2 sec | Tuck Hang – 2 detik | Tuck Hang – 2 detik |
+| L Hang – 2 sec | L Hang – 2 detik | L Hang – 2 detik |
+| Body Tension | Pull over – Assistant by coach | Kip |
+| Basic Swing – 3x | Glide to basic swing – 3x | Glide to basic swing |
+| Controlled Dismount | Controlled Dismount | Swing Forward turn 180 |
 | | | Controlled Dismount |

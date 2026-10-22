@@ -15,38 +15,38 @@ interface LevelStep {
 const LEVELS: LevelStep[] = [
   {
     level: 'Level 1',
-    label: 'Fondasi & Posisi Statis',
+    label: 'Dasar / Fondasi',
     description:
-      'Pembentukan postur awal, keseimbangan tubuh tahan 2 detik, serta pengenalan ayunan dasar dan pendaratan aman di 6 nomor alat.',
+      'Pengenalan posisi siap, tumpuan aman, keseimbangan statis, dan elemen gerak dasar alat senam artistik.',
     color: '#22c55e',
     skills: [
-      'FX: Single Leg Balance (2 dtk), Forward Roll, Handstand (2 dtk), Bridge',
-      'PH & SR: Double Leg Circle bertahap (5×), Tuck Hang (2 dtk), L-Sit Prep',
-      'VT, PB & HB: Controlled Run, Mount boks, Tuck Support (2 dtk), Safe Mount',
+      'Posisi awal, tumpuan, dan keseimbangan (Single Leg, Tuck/L-Hang 2 detik)',
+      'Gulingan dasar (Forward & Backward Roll) dan kayang bridge',
+      'Mount bantuan boks, ayunan dasar ritmis & controlled dismount',
     ],
   },
   {
     level: 'Level 2',
-    label: 'Transisi & Dinamika Gerak',
+    label: 'Menengah / Transisi',
     description:
-      'Pengembangan rotasi dinamis, putaran kaki kontinyu tanpa jeda, serta transisi rangkaian gerak berurutan dengan teknik terkontrol.',
+      'Penguasaan teknik inti alat dengan penekanan pada kestabilan bentuk tubuh, kontinuitas sirkel, dan awalan dinamis.',
     color: '#eab308',
     skills: [
-      'FX: Cartwheel, Round-off, Tiger Jump, Backward Roll to Handstand',
-      'PH & SR: Double Leg Circle 5× kontinyu langsung, Inlocate, Inverted Hang',
-      'VT, PB & HB: Handstand Flat-back, Swing to Handstand, Pull Over, Glide Swing',
+      'Handstand vertikal, cartwheel bertenaga, round-off & tiger jump',
+      'Double leg circle 5x langsung kontinyu & inlocate gelang-gelang',
+      'Glide to basic swing 3x, pull-over pelatih & swing to handstand',
     ],
   },
   {
     level: 'Level 3',
-    label: 'Rangkaian Lanjutan & Akrobatik',
+    label: 'Lanjutan / Kompetisi',
     description:
-      'Penguasaan kekuatan murni (press & kip), tolakan meja lompat dinamis, serta kombinasi akrobatik kompetisi berpresisi tinggi.',
+      'Kombinasi elemen teknik sulit, rotasi cepat, kip mandiri, dan rangkaian gerak standar kompetisi artistik.',
     color: '#ef4444',
     skills: [
-      'FX: Press Handstand, Round-off to Back Handspring, Handstand presisi',
-      'PH & SR: Double Leg Circle 10× kontinyu penuh, Support Hold, Inlocate dinamis',
-      'VT, PB & HB: Handspring Vault penuh, Kip di Palang Sejajar & Tunggal, Turn 180°',
+      'Backward roll to handstand, press handstand & back handspring',
+      'Double leg circle 10x kontinyu & support hold gelang-gelang',
+      'Handspring vault, kip palang mandiri & swing forward turn 180',
     ],
   },
 ];
@@ -163,7 +163,7 @@ export function LevelProgression() {
 
         {/* Connector line between cards (desktop only) */}
         <div className="hidden lg:flex items-center justify-center mt-8 gap-4">
-          {['Level 1', '', 'Level 2', '', 'Level 3'].map((label, i) =>
+          {['Level 1 (Dasar)', '', 'Level 2 (Menengah)', '', 'Level 3 (Lanjutan)'].map((label, i) =>
             label ? (
               <span
                 key={label}
