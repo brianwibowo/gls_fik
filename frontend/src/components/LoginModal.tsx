@@ -23,8 +23,8 @@ export function LoginModal({
   isOpen,
   onClose,
   onSuccess,
-  title = 'Akses Video Terkunci',
-  subtitle = 'Materi ini membutuhkan akses akun atlet, pelatih, atau mahasiswa GLS FIK.',
+  title = 'Access Locked Video',
+  subtitle = 'This content requires a student, coach, or member account.',
 }: LoginModalProps) {
   const { loginWithGoogle } = useAuth();
   const [error, setError] = useState('');
@@ -52,7 +52,7 @@ export function LoginModal({
       if (onSuccess) onSuccess();
       onClose();
     } else {
-      setError(result.error || 'Login dengan Google gagal. Silakan coba kembali.');
+      setError(result.error || 'Google sign-in failed. Please try again.');
       setIsLoading(false);
     }
   };
@@ -65,7 +65,7 @@ export function LoginModal({
           type="button"
           onClick={onClose}
           className="absolute top-4 right-4 sm:top-5 sm:right-5 w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl text-slate-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all cursor-pointer flex items-center justify-center"
-          aria-label="Tutup pop-up login"
+          aria-label="Close login dialog"
         >
           <X className="w-5 h-5" />
         </button>
@@ -77,7 +77,7 @@ export function LoginModal({
           </div>
           <div>
             <span className="text-[11px] font-black text-[#c1ff72] uppercase tracking-wider block">
-              Login Diperlukan
+              Sign In Required
             </span>
             <h2 className="text-lg sm:text-xl font-black text-white tracking-tight leading-tight">
               {title}
@@ -86,7 +86,7 @@ export function LoginModal({
         </div>
 
         <p className="text-xs sm:text-sm text-slate-300 mb-6 leading-relaxed">
-          {subtitle} Masuk langsung dengan akun Google Anda untuk membuka seluruh kurikulum video latihan.
+          {subtitle} Sign in with your Google account to unlock all instructional training videos.
         </p>
 
         {/* Error notification */}
@@ -104,7 +104,7 @@ export function LoginModal({
               onSuccess={(res) => {
                 if (res.credential) handleGoogleSuccess(res.credential);
               }}
-              onError={() => setError('Gagal melakukan login dengan Google.')}
+              onError={() => setError('Failed to sign in with Google.')}
               theme="filled_black"
               shape="pill"
               size="large"
@@ -115,13 +115,13 @@ export function LoginModal({
 
           {isLoading && (
             <p className="text-center text-xs text-[#c1ff72] font-semibold animate-pulse">
-              Memverifikasi akun Google & membuka video...
+              Verifying Google account & unlocking video...
             </p>
           )}
 
           <div className="pt-3 border-t border-white/10 flex items-center justify-center gap-2 text-slate-400 text-[11px]">
             <ShieldCheck className="w-3.5 h-3.5 text-[#c1ff72]" />
-            <span>Otentikasi aman terenkripsi Google OAuth 2.0</span>
+            <span>Encrypted authentication via Google OAuth 2.0</span>
           </div>
         </div>
       </div>

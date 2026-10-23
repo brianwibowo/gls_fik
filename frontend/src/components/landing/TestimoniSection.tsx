@@ -14,23 +14,23 @@ interface Testimonial {
 const TESTIMONIALS: Testimonial[] = [
   {
     quote:
-      'Platform GLS membantu saya mendemonstrasikan teknik senam yang benar kepada mahasiswa secara visual. Mereka bisa mengulang video kapan saja di luar jam kuliah, sehingga waktu praktik di hall lebih efisien.',
+      'The GLS platform allows me to visually demonstrate proper gymnastics techniques to students. They can review videos anytime outside lecture hours, making gym practice time significantly more productive.',
     name: 'Dr. Budi Santoso, M.Pd.',
-    role: 'Dosen Mata Kuliah Senam Artistik',
+    role: 'Artistic Gymnastics Course Lecturer',
     initials: 'BS',
   },
   {
     quote:
-      'Sebelum pakai GLS, saya harus bolak-balik bertanya ke pelatih soal urutan gerakan vault. Sekarang tinggal buka video, pause di bagian yang perlu, dan latihan mandiri jadi lebih terarah.',
+      'Before GLS, I constantly had to ask my coach to re-explain vault sequences. Now I can just watch the video, pause at crucial phases, and train independently with confidence.',
     name: 'Andi Pratama',
-    role: 'Mahasiswa FIK, Angkatan 2024',
+    role: 'Sports Science Student, Class of 2024',
     initials: 'AP',
   },
   {
     quote:
-      'Sebagai pelatih klub, saya sering merujuk video GLS untuk menunjukkan perbedaan antara teknik yang benar dan kesalahan umum. Materinya tersusun rapi per alat, jadi gampang dicari.',
+      'As a gymnastics coach, I regularly reference GLS videos to illustrate the difference between correct mechanics and common faults. The material is neatly organized by apparatus.',
     name: 'Coach Rina Wulandari',
-    role: 'Pelatih Klub Senam Daerah',
+    role: 'Regional Gymnastics Club Coach',
     initials: 'RW',
   },
 ];
@@ -53,19 +53,19 @@ export function TestimoniSection() {
         >
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-[#C1FF72] flex items-center justify-center text-[#1F2A2E] font-black text-xs shadow-sm">
-              06
+              07
             </div>
             <div className="w-8 h-[1px] bg-slate-300" />
             <div className="px-3.5 py-1 rounded-full bg-[#1F2A2E] text-white text-xs font-bold shadow-sm">
-              Testimoni
+              Testimonials
             </div>
           </div>
 
           <h2 className="text-2xl sm:text-4xl font-black text-[#1F2A2E] tracking-tight">
-            Kata Mereka Tentang GLS
+            What Users Say About GLS
           </h2>
           <p className="text-xs sm:text-sm text-[#52636A] mt-1.5 max-w-xl">
-            Pendapat dosen, mahasiswa, dan pelatih yang sudah menggunakan platform ini.
+            Feedback from lecturers, students, and coaches utilizing this platform.
           </p>
         </motion.div>
 

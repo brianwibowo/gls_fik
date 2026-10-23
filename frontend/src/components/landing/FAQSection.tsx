@@ -11,34 +11,34 @@ interface FAQItem {
 
 const FAQ_ITEMS: FAQItem[] = [
   {
-    question: 'Apakah saya perlu login untuk menonton video?',
+    question: 'Do I need to sign in to watch videos?',
     answer:
-      'Tidak semua video memerlukan login. Video yang ditandai badge "GRATIS" bisa langsung ditonton tanpa akun. Untuk mengakses seluruh koleksi video termasuk materi lanjutan, Anda perlu login dengan akun yang sudah didaftarkan oleh admin.',
+      'Not all videos require signing in. Videos marked with the "FREE" badge can be watched immediately without an account. To unlock the full curriculum and advanced drills, simply sign in with your Google account.',
   },
   {
-    question: 'Bagaimana cara mendapatkan akun GLS FIK?',
+    question: 'How do I get access to GLS FIK?',
     answer:
-      'Akun dibuat oleh admin atau dosen pengampu mata kuliah senam. Hubungi dosen pembimbing Anda untuk didaftarkan ke dalam sistem. Setelah akun dibuat, Anda bisa login menggunakan email dan password yang diberikan.',
+      'Access is available instantly via your Google account. Instructors or administrators can assign specific user or admin roles to registered accounts.',
   },
   {
-    question: 'Apakah video bisa diunduh untuk ditonton offline?',
+    question: 'Can videos be downloaded for offline viewing?',
     answer:
-      'Saat ini video hanya bisa diputar secara streaming melalui platform. Video disimpan di Google Drive dan diputar langsung di halaman pemutar GLS FIK. Pastikan koneksi internet Anda stabil untuk pengalaman menonton yang lancar.',
+      'Videos are streamed directly through the platform from Google Drive. Ensure you have an active internet connection for the best playback experience.',
   },
   {
-    question: 'Browser apa yang direkomendasikan?',
+    question: 'Which web browsers are recommended?',
     answer:
-      'GLS FIK bekerja optimal di Google Chrome, Mozilla Firefox, Microsoft Edge, dan Safari versi terbaru. Pastikan browser Anda sudah diperbarui ke versi terakhir untuk kompatibilitas pemutar video yang terbaik.',
+      'GLS FIK works smoothly on modern versions of Google Chrome, Safari, Mozilla Firefox, and Microsoft Edge.',
   },
   {
-    question: 'Berapa jumlah kategori alat yang tersedia?',
+    question: 'How many apparatus categories are covered?',
     answer:
-      'Tersedia 6 kategori alat senam artistik putra (MAG): Floor Exercise (Senam Lantai), Pommel Horse (Kuda-Kuda Pelana), Vault (Meja Lompat), Still Rings (Gelang-Gelang), Parallel Bars (Palang Sejajar), dan Horizontal Bar (Palang Tunggal).',
+      'There are 6 Men’s Artistic Gymnastics (MAG) categories available: Floor Exercise, Pommel Horse, Vault, Still Rings, Parallel Bars, and Horizontal Bar.',
   },
   {
-    question: 'Apakah platform ini bisa diakses dari handphone?',
+    question: 'Is this platform accessible on mobile devices?',
     answer:
-      'Ya, GLS FIK dirancang responsif dan bisa diakses dari perangkat apa pun — laptop, tablet, maupun handphone. Tampilan akan menyesuaikan ukuran layar Anda secara otomatis.',
+      'Yes, GLS FIK is fully responsive and optimized for phones, tablets, and laptops.',
   },
 ];
 
@@ -134,7 +134,7 @@ export function FAQSection() {
         >
           <div className="flex items-center justify-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-[#C1FF72] flex items-center justify-center text-[#1F2A2E] font-black text-xs shadow-sm">
-              07
+              08
             </div>
             <div className="w-8 h-[1px] bg-slate-300" />
             <div className="px-3.5 py-1 rounded-full bg-[#1F2A2E] text-white text-xs font-bold shadow-sm">
@@ -143,10 +143,10 @@ export function FAQSection() {
           </div>
 
           <h2 className="text-2xl sm:text-4xl font-black text-[#1F2A2E] tracking-tight">
-            Pertanyaan yang Sering Ditanyakan
+            Frequently Asked Questions
           </h2>
           <p className="text-xs sm:text-sm text-[#52636A] mt-1.5 max-w-lg mx-auto">
-            Temukan jawaban untuk pertanyaan umum seputar penggunaan platform GLS FIK.
+            Find answers to common questions about using the GLS FIK learning platform.
           </p>
         </motion.div>
 
@@ -173,7 +173,7 @@ export function FAQSection() {
         >
           <HelpCircle className="w-4 h-4" />
           <span>
-            Masih ada pertanyaan? Hubungi dosen pengampu atau admin GLS FIK.
+            Still have questions? Contact your course instructor or GLS FIK administrator.
           </span>
         </motion.div>
       </div>

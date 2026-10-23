@@ -65,12 +65,12 @@ function CategoryVideoRow({
         {/* Scroll Controls */}
         <div className="flex items-center gap-2 shrink-0">
           <span className="text-xs text-[#52636A] font-bold hidden sm:inline mr-1">
-            {videos.length} episode
+            {videos.length} {videos.length === 1 ? 'episode' : 'episodes'}
           </span>
           <button
             type="button"
             onClick={() => scroll('left')}
-            aria-label={`Scroll kiri ${category.name}`}
+            aria-label={`Scroll left ${category.name}`}
             className="w-9 h-9 sm:w-8 sm:h-8 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-[#1F2A2E] flex items-center justify-center transition-colors cursor-pointer shadow-sm active:scale-95"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -78,7 +78,7 @@ function CategoryVideoRow({
           <button
             type="button"
             onClick={() => scroll('right')}
-            aria-label={`Scroll kanan ${category.name}`}
+            aria-label={`Scroll right ${category.name}`}
             className="w-9 h-9 sm:w-8 sm:h-8 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-[#1F2A2E] flex items-center justify-center transition-colors cursor-pointer shadow-sm active:scale-95"
           >
             <ChevronRight className="w-4 h-4" />
@@ -102,7 +102,7 @@ function CategoryVideoRow({
       ) : (
         <div className="p-6 rounded-2xl bg-[#F4F8FA] border border-slate-200 flex items-center gap-3 text-xs text-[#52636A]">
           <Film className="w-5 h-5 text-slate-500 shrink-0" />
-          <span>Materi video untuk kategori ini belum diunggah. Dosen atau admin dapat menambahkannya via Panel Admin.</span>
+          <span>No video lessons uploaded for this category yet. Instructors can add them via the Admin Panel.</span>
         </div>
       )}
     </motion.div>
@@ -127,7 +127,7 @@ export default function HomePage() {
           setVideos(vids);
         }
       } catch (err) {
-        console.error('Gagal memuat data:', err);
+        console.error('Failed to load data:', err);
       }
     }
     loadData();
@@ -167,17 +167,20 @@ export default function HomePage() {
 
       {/* ── Fullscreen Cinematic Video Hero (Studiova Style) ── */}
       <section className="relative w-full h-[100dvh] min-h-[580px] flex flex-col justify-between overflow-hidden bg-black">
-        {/* Background Video */}
+        {/* Background Video looping VT_Level 3.mp4 */}
         <video
-          src="/images/gymnastic.mp4"
+          src="/videos/VT_Level 3.mp4"
           autoPlay
           loop
           muted
           playsInline
           className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-        />
+        >
+          <source src="/videos/VT_Level 3.mp4" type="video/mp4" />
+          <source src="/videos/VT_Level%203.mp4" type="video/mp4" />
+        </video>
 
-        {/* Ambient Dark Overlays for Readability & Cinematic Mood */}
+        {/* Ambient Dark Overlays / Vignette for Readability & Cinematic Mood */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/50 to-transparent pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-transparent pointer-events-none" />
         <div className="absolute inset-0 bg-black/25 pointer-events-none" />
@@ -211,9 +214,9 @@ export default function HomePage() {
                   <path d="M12 2L13.8 8.2L20 6.5L16.2 12L20 17.5L13.8 15.8L12 22L10.2 15.8L4 17.5L7.8 12L4 6.5L10.2 8.2L12 2Z" />
                 </svg>
                 <p className="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed max-w-md">
-                  Sistem Pembelajaran Senam Artistik{' '}
-                  <span className="text-[#c1ff72] font-bold">Fakultas Ilmu Keolahragaan</span> untuk
-                  kurikulum peragaan gerak, teknik awalan, hingga stick landing.
+                  Artistic Gymnastics Learning System{' '}
+                  <span className="text-[#c1ff72] font-bold">Faculty of Sports Science</span> for
+                  movement technique, vault routines, and stick landings.
                 </p>
               </motion.div>
 
@@ -231,9 +234,9 @@ export default function HomePage() {
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.94 }}
                   href="#katalog-video"
-                  aria-label="Jelajahi katalog video senam"
+                  aria-label="Explore gymnastics video catalog"
                   className="inline-flex items-center justify-center w-12 xs:w-14 sm:w-20 h-9 sm:h-11 min-h-[38px] rounded-full bg-[#c1ff72] hover:bg-[#b0f555] transition-colors text-[#1f2a2e] shadow-xl group cursor-pointer"
-                  title="Jelajahi Katalog Video"
+                  title="Explore Video Catalog"
                 >
                   <ArrowUpRight className="w-5 sm:w-6 h-5 sm:h-6 stroke-[2.5] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </motion.a>
@@ -252,14 +255,14 @@ export default function HomePage() {
                     className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 backdrop-blur-md border border-white/25 text-white font-bold text-xs sm:text-sm transition-all min-h-[44px] shadow-sm hover:scale-[1.02]"
                   >
                     <Play className="w-3.5 h-3.5 fill-white" />
-                    <span>Tonton Video Gratis ({featuredVideo.title})</span>
+                    <span>Watch Free Video ({featuredVideo.title})</span>
                   </Link>
                 )}
                 <a
                   href="#katalog-video"
                   className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-black/40 hover:bg-black/60 active:scale-95 backdrop-blur-md border border-white/15 text-slate-200 hover:text-white text-xs sm:text-sm font-semibold transition-all min-h-[44px] hover:scale-[1.02]"
                 >
-                  <span>Lihat Katalog Video</span>
+                  <span>Browse Catalog</span>
                   <ArrowRight className="w-4 h-4" />
                 </a>
               </motion.div>
@@ -268,7 +271,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Section 02: Tentang Platform ── */}
+      {/* ── Section 02: About Platform ── */}
       <section id="tentang-platform" className="py-20 bg-white border-b border-slate-200 relative overflow-hidden text-[#1F2A2E] scroll-mt-16">
         <div className="absolute top-10 right-1/4 w-[500px] h-[350px] bg-[radial-gradient(circle,rgba(193,255,114,0.12)_0%,transparent_70%)] pointer-events-none blur-3xl -z-0" />
 
@@ -286,20 +289,20 @@ export default function HomePage() {
               </div>
               <div className="w-8 h-[1px] bg-slate-300" />
               <div className="px-3.5 py-1 rounded-full bg-[#1F2A2E] text-white text-xs font-bold shadow-sm">
-                Tentang Platform
+                About Platform
               </div>
             </div>
 
             <h2 className="text-2xl sm:text-4xl font-black text-[#1F2A2E] tracking-tight">
-              Apa itu GLS FIK?
+              What is GLS FIK?
             </h2>
             <p className="text-xs sm:text-sm text-[#52636A] mt-2 leading-relaxed">
-              Gymnastics Learning System (GLS) adalah platform pembelajaran senam digital yang dikembangkan oleh Fakultas Ilmu Keolahragaan. Dirancang untuk membantu mahasiswa, pelatih, dan atlet mempelajari teknik senam artistik melalui video peragaan berkualitas tinggi yang tersusun secara sistematis berdasarkan kategori alat.
+              Gymnastics Learning System (GLS) is a digital learning platform developed by the Faculty of Sports Science. Designed to help students, coaches, and athletes master artistic gymnastics techniques through high-quality instructional videos organized systematically by apparatus.
             </p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Feature 1: Video Pembelajaran */}
+            {/* Feature 1: Movement Demonstrations */}
             <motion.div
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -311,20 +314,20 @@ export default function HomePage() {
               <div className="relative w-full h-48 overflow-hidden">
                 <Image
                   src="/images/feature-video.webp"
-                  alt="Video pembelajaran senam"
+                  alt="Instructional gymnastics videos"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
               <div className="p-6">
-                <h3 className="text-base font-black text-[#1F2A2E] mb-2">Video Peragaan Teknik</h3>
+                <h3 className="text-base font-black text-[#1F2A2E] mb-2">Technique Demonstrations</h3>
                 <p className="text-xs text-[#52636A] leading-relaxed">
-                  Koleksi video demonstrasi gerak senam artistik dari Google Drive yang diorganisir per kategori alat. Setiap video dilengkapi informasi level kesulitan dan durasi latihan.
+                  A structured video library showing proper movement mechanics, form, and landings. Each lesson includes difficulty levels and exercise durations.
                 </p>
               </div>
             </motion.div>
 
-            {/* Feature 2: Struktur Kategori */}
+            {/* Feature 2: 6 MAG Apparatus Categories */}
             <motion.div
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -336,20 +339,20 @@ export default function HomePage() {
               <div className="relative w-full h-48 overflow-hidden">
                 <Image
                   src="/images/feature-structured.webp"
-                  alt="Struktur kategori alat senam"
+                  alt="Apparatus categories structure"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
               <div className="p-6">
-                <h3 className="text-base font-black text-[#1F2A2E] mb-2">6 Kategori Alat MAG</h3>
+                <h3 className="text-base font-black text-[#1F2A2E] mb-2">6 MAG Apparatus Events</h3>
                 <p className="text-xs text-[#52636A] leading-relaxed">
-                  Materi disusun berdasarkan 6 kategori alat senam artistik putra: Floor Exercise, Pommel Horse, Vault, Still Rings, Parallel Bars, dan Horizontal Bar.
+                  Materials are systematically organized across 6 men&apos;s artistic gymnastics apparatuses: Floor Exercise, Pommel Horse, Vault, Still Rings, Parallel Bars, and Horizontal Bar.
                 </p>
               </div>
             </motion.div>
 
-            {/* Feature 3: Evaluasi Pelatih */}
+            {/* Feature 3: Coach Guidance */}
             <motion.div
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -361,15 +364,15 @@ export default function HomePage() {
               <div className="relative w-full h-48 overflow-hidden">
                 <Image
                   src="/images/feature-coaching.webp"
-                  alt="Evaluasi dan pendampingan pelatih"
+                  alt="Coaching and evaluation"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
               <div className="p-6">
-                <h3 className="text-base font-black text-[#1F2A2E] mb-2">Pendampingan Pelatih</h3>
+                <h3 className="text-base font-black text-[#1F2A2E] mb-2">Coach Guidance & Review</h3>
                 <p className="text-xs text-[#52636A] leading-relaxed">
-                  Platform ini mendukung pelatih dalam mengevaluasi teknik atlet melalui video peragaan yang bisa diulang-ulang. Admin dapat menambah, mengubah, dan mengelola seluruh konten materi.
+                  Empowers coaches and athletes to review movement execution repeatedly with clear frame-by-frame clarity. Curriculum content can be managed via the admin panel.
                 </p>
               </div>
             </motion.div>
@@ -384,7 +387,7 @@ export default function HomePage() {
         videos={videos}
       />
 
-      {/* ── Section 04: Cara Belajar di GLS FIK ── */}
+      {/* ── Section 04: How to Learn on GLS FIK ── */}
       <section id="cara-belajar" className="py-20 bg-[#1F2A2E] border-b border-[#2D3A3F] relative overflow-hidden text-white scroll-mt-16">
         <div className="absolute top-10 right-10 w-[500px] h-[350px] bg-[radial-gradient(circle,rgba(193,255,114,0.12)_0%,transparent_70%)] pointer-events-none blur-3xl -z-0" />
         <div className="absolute bottom-10 left-10 w-[400px] h-[300px] bg-[radial-gradient(circle,rgba(193,255,114,0.06)_0%,transparent_70%)] pointer-events-none blur-3xl -z-0" />
@@ -403,15 +406,15 @@ export default function HomePage() {
               </div>
               <div className="w-8 h-[1px] bg-white/20" />
               <div className="px-3.5 py-1 rounded-full bg-white/10 border border-white/15 text-[#C1FF72] text-xs font-bold shadow-sm">
-                Cara Menggunakan
+                How It Works
               </div>
             </div>
 
             <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-              Cara Belajar di GLS FIK
+              Learning with GLS FIK
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 mt-1.5 max-w-xl">
-              Empat langkah untuk mulai belajar senam artistik melalui platform ini.
+              Four simple steps to start learning artistic gymnastics with this platform.
             </p>
           </motion.div>
 
@@ -419,27 +422,27 @@ export default function HomePage() {
             {[
               {
                 num: '01',
-                title: 'Pilih Kategori Video',
-                desc: 'Telusuri 6 kategori alat senam artistik putra yang tersedia di beranda. Pilih alat yang ingin dipelajari melalui menu navigasi atau katalog video.',
-                sub: 'Senam Lantai, Kuda Pelana, Meja Lompat, dll.',
+                title: 'Choose an Apparatus',
+                desc: 'Browse the 6 men’s artistic gymnastics apparatus categories available on the homepage. Pick the event you want to learn.',
+                sub: 'Floor Exercise, Pommel Horse, Vault, etc.',
               },
               {
                 num: '02',
-                title: 'Tonton Video Gratis',
-                desc: 'Beberapa video ditandai GRATIS dan bisa ditonton langsung tanpa login. Cari badge hijau pada kartu video untuk menemukan materi yang terbuka untuk umum.',
-                sub: 'Akses langsung tanpa mendaftar',
+                title: 'Watch Free Videos',
+                desc: 'Select episodes are labeled FREE and can be played directly without signing in. Look for the green badge to preview.',
+                sub: 'Instant access without signing in',
               },
               {
                 num: '03',
-                title: 'Masuk untuk Akses Penuh',
-                desc: 'Login dengan akun yang telah didaftarkan oleh admin untuk membuka seluruh koleksi video pembelajaran termasuk materi lanjutan dan drill spesifik.',
-                sub: 'Video premium terkunci sampai login',
+                title: 'Sign In for Full Access',
+                desc: 'Sign in with your Google account to unlock all lessons, progression drills, and full curriculum modules.',
+                sub: 'Full curriculum unlocked upon sign in',
               },
               {
                 num: '04',
-                title: 'Putar dan Pelajari',
-                desc: 'Buka halaman pemutar video untuk menonton peragaan teknik. Gunakan sidebar playlist untuk berpindah antar episode dalam satu kategori alat.',
-                sub: 'Player video dengan daftar episode',
+                title: 'Practice & Master',
+                desc: 'Open the video player to study form and landing execution. Use the episode sidebar to navigate through lessons.',
+                sub: 'HD player with episode playlist',
               },
             ].map((step, idx) => (
               <motion.div
@@ -467,7 +470,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Section 05: Katalog materi video ── */}
+      {/* ── Section 05: Video Catalog ── */}
       <section id="katalog-video" className="bg-[#F4F8FA] border-b border-slate-200/90 relative overflow-hidden scroll-mt-16">
         <div id="kategori-senam" className="scroll-mt-16" />
         {/* Soft ambient lighting blend */}
@@ -484,22 +487,21 @@ export default function HomePage() {
             className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 pb-5"
           >
             <div>
-              {/* Signature Motif: [04] --- [Katalog Video] */}
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 rounded-full bg-[#C1FF72] flex items-center justify-center text-[#1F2A2E] font-black text-xs shadow-sm">
                   05
                 </div>
                 <div className="w-8 h-[1px] bg-slate-300" />
                 <div className="px-3.5 py-1 rounded-full bg-[#1F2A2E] text-white text-xs font-bold shadow-sm">
-                  Katalog Video
+                  Video Catalog
                 </div>
               </div>
 
               <h2 className="text-2xl sm:text-4xl font-black text-[#1F2A2E] tracking-tight">
-                Katalog Materi Video Lengkap
+                Complete Learning Videos
               </h2>
               <p className="text-xs sm:text-sm text-[#52636A] mt-1">
-                Geser ke samping untuk melihat seluruh episode peraga gerak per kategori.
+                Scroll horizontally to browse all instructional episodes across categories.
               </p>
             </div>
 
@@ -513,7 +515,7 @@ export default function HomePage() {
                     : 'bg-white text-[#1F2A2E] hover:bg-slate-50 border border-slate-200 shadow-xs'
                   }`}
               >
-                Semua Kategori
+                All Categories
               </button>
               {categories.map((cat) => (
                 <button
@@ -570,10 +572,10 @@ export default function HomePage() {
             <span className="font-semibold text-xs text-slate-400">Gymnastics Learning System</span>
           </div>
           <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-            Platform kurikulum senam digital untuk pelatih, atlet, dan mahasiswa Fakultas Ilmu Keolahragaan dalam mempelajari berbagai kategori senam artistik.
+            Digital gymnastics curriculum platform for coaches, athletes, and students of the Faculty of Sports Science.
           </p>
           <p className="text-[11px] text-slate-500 pt-2">
-            &copy; {new Date().getFullYear()} GLS FIK. Seluruh hak cipta dilindungi undang-undang.
+            &copy; {new Date().getFullYear()} GLS FIK. All rights reserved.
           </p>
         </div>
       </footer>

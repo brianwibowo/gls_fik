@@ -80,9 +80,9 @@ export function Navbar() {
   // Build primary category links with first video URL
   const primaryLinks = useMemo(() => {
     const items = [
-      { id: 'cat-fx', label: 'Senam Lantai' },
-      { id: 'cat-ph', label: 'Kuda-Kuda Pelana' },
-      { id: 'cat-vt', label: 'Meja Lompat' },
+      { id: 'cat-fx', label: 'Floor Exercise' },
+      { id: 'cat-ph', label: 'Pommel Horse' },
+      { id: 'cat-vt', label: 'Vault' },
     ];
     return items.map((item) => {
       const firstVid = getFirstVideoForCategory(item.id);
@@ -165,7 +165,7 @@ export function Navbar() {
           {/* Desktop nav */}
           <div className="hidden lg:flex items-center gap-5">
             <Link href="/" className={linkClass(isHome)}>
-              Beranda
+              Home
             </Link>
 
             {primaryLinks.map((item) => (
@@ -174,7 +174,7 @@ export function Navbar() {
               </Link>
             ))}
 
-            {/* Dynamic "Lainnya" dropdown */}
+            {/* Dynamic "More" dropdown */}
             {extraCategories.length > 0 && (
               <div className="relative" ref={moreRef}>
                 <button
@@ -186,7 +186,7 @@ export function Navbar() {
                       : 'text-slate-300 hover:text-white'
                   }`}
                 >
-                  <span>Lainnya</span>
+                  <span>More</span>
                   <ChevronDown
                     className={`w-3.5 h-3.5 transition-transform ${moreOpen ? 'rotate-180' : ''}`}
                   />
@@ -278,7 +278,7 @@ export function Navbar() {
                           className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 cursor-pointer font-bold"
                         >
                           <LogOut className="w-4 h-4" />
-                          <span>Keluar Akun</span>
+                          <span>Sign Out</span>
                         </button>
                       </div>
                     )}
@@ -293,7 +293,7 @@ export function Navbar() {
                     }`}
                   >
                     <LogIn className="w-4 h-4 stroke-[2.5]" />
-                    <span>Login</span>
+                    <span>Sign In</span>
                   </Link>
                 )}
               </>
@@ -312,7 +312,7 @@ export function Navbar() {
                 }`}
               >
                 <LogIn className="w-3.5 h-3.5" />
-                <span>Login</span>
+                <span>Sign In</span>
               </Link>
             )}
             <button
@@ -323,7 +323,7 @@ export function Navbar() {
                   ? 'text-[#1f2a2e] hover:bg-black/10 border border-[#1f2a2e]/20'
                   : 'text-white hover:bg-white/15 border border-white/25 bg-black/30 backdrop-blur-xs'
               }`}
-              aria-label={menuOpen ? 'Tutup Menu Navigasi' : 'Buka Menu Navigasi'}
+              aria-label={menuOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
               aria-expanded={menuOpen}
             >
               {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -340,7 +340,7 @@ export function Navbar() {
             onClick={() => setMenuOpen(false)}
             className="min-h-[44px] px-3.5 py-2.5 rounded-xl text-sm font-black text-[#1f2a2e] hover:bg-black/10 flex items-center transition-colors"
           >
-            Beranda
+            Home
           </Link>
           {primaryLinks.map((item) => (
             <Link
@@ -357,7 +357,7 @@ export function Navbar() {
           {extraCategories.length > 0 && (
             <div className="pt-2 border-t border-black/10 space-y-1">
               <p className="px-3.5 pt-1 pb-0.5 text-[11px] font-bold text-[#1f2a2e]/60 uppercase tracking-wider">
-                Alat Lainnya
+                More Apparatus
               </p>
               {extraCategories.map((item) => (
                 <Link
@@ -382,7 +382,7 @@ export function Navbar() {
               className="min-h-[44px] px-3.5 py-2.5 rounded-xl text-sm font-black text-white bg-[#1f2a2e] hover:bg-black flex items-center gap-2 transition-colors"
             >
               <Shield className="w-4 h-4 text-[#c1ff72]" />
-              <span>Panel Admin</span>
+              <span>Admin Panel</span>
             </Link>
           ) : !isLoggedIn ? (
             <Link
@@ -391,7 +391,7 @@ export function Navbar() {
               className="min-h-[44px] px-3.5 py-2.5 rounded-xl text-sm font-black text-white bg-[#1f2a2e] hover:bg-black flex items-center gap-2 transition-colors"
             >
               <LogIn className="w-4 h-4 text-[#c1ff72]" />
-              <span>Login</span>
+              <span>Sign In</span>
             </Link>
           ) : null}
 
@@ -399,7 +399,7 @@ export function Navbar() {
           {isLoggedIn && (
             <div className="pt-3 border-t border-black/10 mt-2 space-y-2">
               <div className="px-3.5 py-1.5 text-xs text-[#1f2a2e]/80">
-                Masuk sebagai <span className="font-bold text-[#1f2a2e]">{user?.name}</span> ({user?.role})
+                Signed in as <span className="font-bold text-[#1f2a2e]">{user?.name}</span> ({user?.role})
               </div>
               <button
                 type="button"
@@ -410,7 +410,7 @@ export function Navbar() {
                 className="w-full min-h-[44px] px-3.5 py-2.5 text-left text-sm text-red-800 font-bold hover:bg-red-500/10 rounded-xl flex items-center gap-2 cursor-pointer transition-colors"
               >
                 <LogOut className="w-4 h-4" />
-                <span>Keluar Akun</span>
+                <span>Sign Out</span>
               </button>
             </div>
           )}

@@ -17,7 +17,7 @@ export interface ApparatusInfo {
   id: string;
   code: string;
   name: string;
-  categoryTag: 'Khusus Putra (MAG)' | 'Khusus Putri (WAG)' | 'Putra & Putri';
+  categoryTag: string;
   dimensions: string;
   image: string;
   drillSummary: string;
@@ -30,97 +30,97 @@ export const APPARATUS_DATA: ApparatusInfo[] = [
   {
     id: 'cat-fx',
     code: 'FX',
-    name: 'FX (Lantai)',
-    categoryTag: 'Khusus Putra (MAG)',
-    dimensions: 'Matras pegas 12 × 12 m',
+    name: 'Floor Exercise (FX)',
+    categoryTag: "Men's Artistic Gymnastics (MAG)",
+    dimensions: 'Spring Floor 12 × 12 m',
     image: '/images/apparatus-floor.webp',
-    drillSummary: 'Rangkaian akrobatik gerak awalan, variasi salto, tumpuan keseimbangan, dan stick landing di atas matras.',
+    drillSummary: 'Acrobatic tumble passes, saltos, balance holds, and stick landings on the floor mat.',
     keyDrills: [
       'Single Leg Balance, Forward Roll & Handstand (Level 1)',
       'Cartwheel, Bridge, Backward to Handstand & Round-off (Level 2)',
       'Press Handstand, Tiger Jump & Back Handspring (Level 3)',
     ],
-    safetyTip: 'Gunakan matras bantu pendaratan busa tambahan untuk latihan salto rotasi baru.',
+    safetyTip: 'Use supplementary soft landing mats when introducing new rotational saltos.',
     isPrimary: true,
   },
   {
     id: 'cat-ph',
     code: 'PH',
-    name: 'PH (Jamur / Kuda Pelana)',
-    categoryTag: 'Khusus Putra (MAG)',
-    dimensions: 'Tinggi 1.15 m | 2 Pelana',
+    name: 'Pommel Horse (PH)',
+    categoryTag: "Men's Artistic Gymnastics (MAG)",
+    dimensions: 'Height 1.15 m | 2 Pommels',
     image: '/images/apparatus-pommel.webp',
-    drillSummary: 'Putaran melingkar kontinyu double leg circle bertumpu pada kedua tangan di atas alat jamur dan pelana.',
+    drillSummary: 'Continuous double leg circular rotations supported on hands over mushroom and pommels.',
     keyDrills: [
-      'Double leg circle – 5 kali diulang bertahap (Level 1)',
-      'Double leg circle – 5 kali langsung kontinyu (Level 2)',
-      'Double leg circle – 10 kali langsung kontinyu (Level 3)',
+      'Double leg circle – 5 progressive reps (Level 1)',
+      'Double leg circle – 5 continuous reps (Level 2)',
+      'Double leg circle – 10 continuous reps (Level 3)',
     ],
-    safetyTip: 'Lakukan penguatan pergelangan tangan (wrist conditioning) secara teratur untuk mencegah cedera.',
+    safetyTip: 'Perform systematic wrist conditioning and warm-ups before training circles.',
     isPrimary: true,
   },
   {
     id: 'cat-vt',
     code: 'VT',
-    name: 'Meja Lompat',
-    categoryTag: 'Khusus Putra (MAG)',
-    dimensions: 'Tinggi meja 1.35 m (MAG)',
+    name: 'Vault (VT)',
+    categoryTag: "Men's Artistic Gymnastics (MAG)",
+    dimensions: 'Table Height 1.35 m (MAG)',
     image: '/images/apparatus-vault.webp',
-    drillSummary: 'Akselerasi sprint 25 meter, entri papan pegas (springboard), dan tolakan bahu instan.',
+    drillSummary: '25-meter sprint acceleration, springboard entry, instant shoulder block, and stick landing.',
     keyDrills: [
       'Controlled Run, Hurdle, Take-off & Handstand to Flat Back (Level 1)',
       'Board Contact, Hand Contact & Handstand Flat-back (Level 2)',
       'Block, Flight phase & Handspring Vault (Level 3)',
     ],
-    safetyTip: 'Sesuaikan jarak papan pegas dan jumlah per pegas dengan berat serta power atlet.',
+    safetyTip: 'Calibrate springboard distance and spring count according to athlete weight and power.',
     isPrimary: true,
   },
   {
     id: 'cat-sr',
     code: 'SR',
-    name: 'SR (Gelang-Gelang)',
-    categoryTag: 'Khusus Putra (MAG)',
-    dimensions: 'Tinggi 2.8 m dari matras',
+    name: 'Still Rings (SR)',
+    categoryTag: "Men's Artistic Gymnastics (MAG)",
+    dimensions: 'Height 2.8 m from floor',
     image: '/images/apparatus-rings.webp',
-    drillSummary: 'Ujian kekuatan statis bahu (hold position) diselingi ayunan tanpa goyangan tali kabel.',
+    drillSummary: 'Static shoulder holds combined with controlled swings minimizing cable swing.',
     keyDrills: [
       'Hang Position, Tuck Hang & Swing Forward-Backward (Level 1)',
       'Inverted Hang, Inlocate & Straight Jump Dismount (Level 2)',
-      'Support Hold (Assistant by coach), Inlocate & Swing (Level 3)',
+      'Support Hold (Assisted by coach), Inlocate & Swing (Level 3)',
     ],
-    safetyTip: 'Lakukan pemanasan sendi rotator cuff bahu secara menyeluruh sebelum melatih hold statis.',
+    safetyTip: 'Warm up rotator cuff and shoulder girdle muscles thoroughly before static holds.',
     isPrimary: false,
   },
   {
     id: 'cat-pb',
     code: 'PB',
-    name: 'Palang Sejajar',
-    categoryTag: 'Khusus Putra (MAG)',
-    dimensions: 'Tinggi 2.0 m | Panjang 3.5 m',
+    name: 'Parallel Bars (PB)',
+    categoryTag: "Men's Artistic Gymnastics (MAG)",
+    dimensions: 'Height 2.0 m | Length 3.5 m',
     image: '/images/apparatus-bars.webp',
-    drillSummary: 'Kombinasi ayunan, tumpuan tangan, gerakan di bawah palang, dan dismount salto pendaratan.',
+    drillSummary: 'Combinations of swings, hand supports, under-bar skills, and controlled dismounts.',
     keyDrills: [
-      'Mount from box, Tuck Support & L-Sit 2 detik (Level 1)',
+      'Mount from box, Tuck Support & L-Sit 2 sec (Level 1)',
       'Upper arm support to straddle & Swing to handstand (Level 2)',
       'Mount without box, Kip & Swing to handstand (Level 3)',
     ],
-    safetyTip: 'Pastikan lebar jarak kedua palang diatur tepat sesuai lebar bahu atlet.',
+    safetyTip: 'Verify that bar width is precisely adjusted to the athlete’s shoulder width.',
     isPrimary: false,
   },
   {
     id: 'cat-hb',
     code: 'HB',
-    name: 'Palang Tunggal',
-    categoryTag: 'Khusus Putra (MAG)',
-    dimensions: 'Tinggi 2.8 m | Palang baja elastis',
+    name: 'Horizontal Bar (HB)',
+    categoryTag: "Men's Artistic Gymnastics (MAG)",
+    dimensions: 'Height 2.8 m | Steel bar',
     image: '/images/apparatus-highbar.jpg',
-    drillSummary: 'Gerakan ayunan dinamis kecepatan tinggi, giant swing terus-menerus, dan pelepasan pegangan salto spektakuler.',
+    drillSummary: 'Dynamic high-velocity swings, continuous giant circles, and dismount releases.',
     keyDrills: [
-      'Safe Mount, Tuck Hang & L-Hang 2 detik (Level 1)',
-      'Pull over (Assistant by coach) & Glide to basic swing (Level 2)',
+      'Safe Mount, Tuck Hang & L-Hang 2 sec (Level 1)',
+      'Pull over (Assisted by coach) & Glide to basic swing (Level 2)',
       'Kip, Glide to basic swing & Swing Forward turn 180 (Level 3)',
     ],
-    safetyTip: 'Wajib gunakan handgrip pelindung kulit telapak tangan dan chalk sebelum naik palang.',
+    safetyTip: 'Always inspect gymnastic handgrips and apply chalk before mounting the bar.',
     isPrimary: false,
   },
 ];
@@ -164,22 +164,21 @@ export function ApparatusSection({ activeId, onSelectApparatus, videos = [] }: A
         {/* Section Header with Reference Motif */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 sm:mb-8 gap-4">
           <div>
-            {/* Signature Motif: [03] --- [Kategori Senam] */}
             <div className="flex items-center gap-3 mb-3">
               <div className="w-8 h-8 rounded-full bg-[#C1FF72] flex items-center justify-center text-[#1F2A2E] font-black text-xs shadow-sm">
                 03
               </div>
               <div className="w-8 h-[1px] bg-slate-300" />
               <div className="px-3.5 py-1 rounded-full bg-[#1F2A2E] text-white text-xs font-bold shadow-sm">
-                Kategori Senam
+                Gymnastics Events
               </div>
             </div>
 
             <h2 className="text-2xl sm:text-4xl font-black text-[#1F2A2E] tracking-tight">
-              Kategori Senam Terpilih
+              Featured Apparatus
             </h2>
             <p className="text-xs sm:text-sm text-[#52636A] mt-1.5 max-w-xl">
-              Menampilkan 3 kategori materi inti perkuliahan: Senam Lantai, Kuda-Kuda Pelana, dan Meja Lompat.
+              Focusing on the 3 core university curriculum events: Floor Exercise, Pommel Horse, and Vault.
             </p>
           </div>
 
@@ -191,14 +190,14 @@ export function ApparatusSection({ activeId, onSelectApparatus, videos = [] }: A
               className="min-h-[40px] inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-[#1F2A2E] transition-all cursor-pointer shadow-sm active:scale-95"
             >
               <Layers className="w-4 h-4 text-emerald-700" />
-              <span>{showAllApparatus ? 'Tampilkan 3 Alat Inti' : 'Tampilkan Semua 6 Alat (+3)'}</span>
+              <span>{showAllApparatus ? 'Show 3 Core Events' : 'Show All 6 Events (+3)'}</span>
             </button>
 
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => scroll('left')}
-                aria-label="Geser kiri"
+                aria-label="Scroll left"
                 className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-[#1F2A2E] flex items-center justify-center transition-colors cursor-pointer shadow-sm active:scale-95"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -206,7 +205,7 @@ export function ApparatusSection({ activeId, onSelectApparatus, videos = [] }: A
               <button
                 type="button"
                 onClick={() => scroll('right')}
-                aria-label="Geser kanan"
+                aria-label="Scroll right"
                 className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-[#1F2A2E] flex items-center justify-center transition-colors cursor-pointer shadow-sm active:scale-95"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -275,7 +274,7 @@ export function ApparatusSection({ activeId, onSelectApparatus, videos = [] }: A
                   {selectedApparatus.code}
                 </span>
                 <h3 className="text-lg sm:text-xl font-black text-[#1F2A2E]">
-                  Panduan Latihan: {selectedApparatus.name}
+                  Training Guide: {selectedApparatus.name}
                 </h3>
                 <span className="text-xs text-[#1F2A2E] font-bold bg-white border border-slate-200 px-3 py-1 rounded-lg">
                   {selectedApparatus.dimensions}
@@ -286,7 +285,7 @@ export function ApparatusSection({ activeId, onSelectApparatus, videos = [] }: A
               <div className="space-y-2 pt-1">
                 <p className="text-xs font-black text-[#1F2A2E] uppercase tracking-wider flex items-center gap-2">
                   <Target className="w-4 h-4 text-emerald-700" />
-                  <span>Drill Teknik Utama:</span>
+                  <span>Key Technique Drills:</span>
                 </p>
                 <ul className="space-y-1.5 text-xs sm:text-sm text-[#1F2A2E]">
                   {selectedApparatus.keyDrills.map((drill, idx) => (
@@ -302,7 +301,7 @@ export function ApparatusSection({ activeId, onSelectApparatus, videos = [] }: A
               <div className="flex items-start gap-3 p-3.5 sm:p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-950">
                 <ShieldCheck className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-amber-900 block font-bold mb-0.5">Protokol Keselamatan:</strong>
+                  <strong className="text-amber-900 block font-bold mb-0.5">Safety Protocol:</strong>
                   <span>{selectedApparatus.safetyTip}</span>
                 </div>
               </div>
@@ -317,7 +316,7 @@ export function ApparatusSection({ activeId, onSelectApparatus, videos = [] }: A
                     href={firstVid ? `/watch/${firstVid.id}` : `#section-${selectedApparatus.id}`}
                     className="w-full min-h-[48px] inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 rounded-full bg-[#C1FF72] hover:bg-[#b0f555] text-[#1F2A2E] font-black text-sm transition-all cursor-pointer shadow-md hover:scale-[1.02] active:scale-95 border border-[#a8ed4b]"
                   >
-                    <span>Putar Video {selectedApparatus.code}</span>
+                    <span>Watch {selectedApparatus.code} Videos</span>
                     <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
                   </Link>
                 );

@@ -52,13 +52,13 @@ export default function AdminLayout({
 
   const navItems = [
     {
-      name: 'Video Materi',
+      name: 'Video Lessons',
       href: '/admin',
       icon: Video,
       isActive: pathname === '/admin' || pathname.startsWith('/admin/videos') || pathname.startsWith('/admin/categories'),
     },
     {
-      name: 'Data Pengguna',
+      name: 'Users & Roles',
       href: '/admin/users',
       icon: Users,
       isActive: pathname.startsWith('/admin/users'),
@@ -101,8 +101,8 @@ export default function AdminLayout({
                 type="button"
                 onClick={() => setIsCollapsed(true)}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                title="Kecilkan Sidebar (Collapse)"
-                aria-label="Kecilkan Sidebar"
+                title="Collapse Sidebar"
+                aria-label="Collapse Sidebar"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -116,8 +116,8 @@ export default function AdminLayout({
                 type="button"
                 onClick={() => setIsCollapsed(false)}
                 className="p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
-                title="Perlebar Sidebar (Expand)"
-                aria-label="Perlebar Sidebar"
+                title="Expand Sidebar"
+                aria-label="Expand Sidebar"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -128,7 +128,7 @@ export default function AdminLayout({
           <div className="mt-6 space-y-1.5">
             {!isCollapsed && (
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">
-                Menu Pengelola
+                Management
               </p>
             )}
             {navItems.map((item) => {
@@ -169,7 +169,7 @@ export default function AdminLayout({
                 <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">{user?.name}</p>
                 <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600">
                   <Shield className="w-3 h-3" />
-                  <span>Admin Pengelola</span>
+                  <span>Administrator</span>
                 </span>
               </div>
             )}
@@ -182,9 +182,9 @@ export default function AdminLayout({
             className={`flex items-center rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors ${
               isCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'
             }`}
-            title="Buka Website Utama (Tab Baru)"
+            title="Open Main Site (New Tab)"
           >
-            {!isCollapsed && <span>Lihat Web Utama</span>}
+            {!isCollapsed && <span>View Main Site</span>}
             <ExternalLink className="w-4 h-4 text-slate-400 shrink-0" />
           </Link>
 
@@ -195,10 +195,10 @@ export default function AdminLayout({
             className={`w-full flex items-center rounded-lg text-xs font-bold text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors cursor-pointer ${
               isCollapsed ? 'justify-center p-2.5' : 'gap-2 px-3 py-2'
             }`}
-            title="Keluar Akun (Logout)"
+            title="Sign Out"
           >
             <LogOut className="w-4 h-4 shrink-0" />
-            {!isCollapsed && <span>Keluar Akun</span>}
+            {!isCollapsed && <span>Sign Out</span>}
           </button>
         </div>
       </aside>
@@ -218,7 +218,7 @@ export default function AdminLayout({
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
           className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 active:scale-95 flex items-center justify-center cursor-pointer transition-all border border-slate-200"
-          aria-label={mobileOpen ? 'Tutup Menu Admin' : 'Buka Menu Admin'}
+          aria-label={mobileOpen ? 'Close Admin Menu' : 'Open Admin Menu'}
           aria-expanded={mobileOpen}
         >
           {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -245,7 +245,7 @@ export default function AdminLayout({
           ))}
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs px-1">
             <Link href="/" target="_blank" className="min-h-[40px] px-2 py-1 text-slate-600 font-semibold flex items-center gap-1.5 hover:text-slate-900">
-              <span>Web Utama</span>
+              <span>Main Site</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </Link>
             <button
@@ -256,7 +256,7 @@ export default function AdminLayout({
               }}
               className="min-h-[40px] px-3 py-1 text-red-600 font-bold hover:bg-red-50 rounded-lg cursor-pointer transition-colors"
             >
-              Keluar Akun
+              Sign Out
             </button>
           </div>
         </div>
@@ -267,7 +267,7 @@ export default function AdminLayout({
         {children}
       </div>
 
-      {/* Pop-up Peringatan Konfirmasi Keluar Akun */}
+      {/* Pop-up Logout Confirmation */}
       {showLogoutConfirm && (
         <div
           role="dialog"
@@ -285,11 +285,11 @@ export default function AdminLayout({
             </div>
 
             <h3 id="logout-confirm-title" className="text-base font-black text-slate-900 leading-tight">
-              Konfirmasi Keluar Akun
+              Confirm Sign Out
             </h3>
 
             <p id="logout-confirm-desc" className="text-xs text-slate-600 mt-2 leading-relaxed">
-              Apakah Anda yakin ingin keluar dari sesi Admin GLS FIK? Pastikan semua perubahan data materi atau pengguna telah disimpan sebelum keluar.
+              Are you sure you want to sign out of the GLS FIK admin session? Make sure all changes to videos or users have been saved.
             </p>
 
             <div className="flex items-center justify-end gap-2.5 mt-6 pt-4 border-t border-slate-100">
@@ -298,7 +298,7 @@ export default function AdminLayout({
                 onClick={() => setShowLogoutConfirm(false)}
                 className="min-h-[40px] px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-bold text-xs cursor-pointer transition-all"
               >
-                Batal
+                Cancel
               </button>
               <button
                 type="button"
@@ -310,7 +310,7 @@ export default function AdminLayout({
                 className="min-h-[40px] inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-xs cursor-pointer shadow-sm transition-all"
               >
                 <LogOut className="w-3.5 h-3.5" />
-                <span>Ya, Keluar Akun</span>
+                <span>Sign Out</span>
               </button>
             </div>
           </div>

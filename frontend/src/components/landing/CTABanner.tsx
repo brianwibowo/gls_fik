@@ -25,18 +25,17 @@ export function CTABanner() {
         >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/15 text-[#C1FF72] text-xs font-bold">
             <span className="w-1.5 h-1.5 rounded-full bg-[#C1FF72] animate-pulse" />
-            Platform Aktif &amp; Siap Digunakan
+            Active Learning Platform
           </div>
 
           <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
-            Siap Mempelajari{' '}
-            <span className="text-[#C1FF72]">Teknik Senam Artistik?</span>
+            Ready to Master{' '}
+            <span className="text-[#C1FF72]">Artistic Gymnastics?</span>
           </h2>
 
           <p className="text-sm sm:text-base text-slate-300 max-w-xl mx-auto leading-relaxed">
-            Akses koleksi video peragaan gerak dari 6 kategori alat MAG. Mulai
-            dari video gratis, atau login untuk membuka seluruh materi
-            pembelajaran.
+            Access technique videos across all 6 MAG apparatus events. Watch free video lessons
+            or sign in to unlock the full training curriculum.
           </p>
 
           <motion.div
@@ -50,7 +49,7 @@ export function CTABanner() {
               href="#katalog-video"
               className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full bg-[#C1FF72] hover:bg-[#b0f555] text-[#1F2A2E] font-black text-sm transition-all min-h-[48px] shadow-lg hover:shadow-xl hover:scale-[1.03] active:scale-95 border border-[#a8ed4b]"
             >
-              <span>Jelajahi Katalog Video</span>
+              <span>Explore Video Catalog</span>
               <ArrowRight className="w-4 h-4 stroke-[2.5]" />
             </a>
 
@@ -60,7 +59,7 @@ export function CTABanner() {
                 className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-bold text-sm transition-all min-h-[48px] hover:scale-[1.02] active:scale-95"
               >
                 <LogIn className="w-4 h-4" />
-                <span>Masuk ke Akun</span>
+                <span>Sign In</span>
               </Link>
             )}
           </motion.div>

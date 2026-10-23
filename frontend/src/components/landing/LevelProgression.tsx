@@ -15,38 +15,38 @@ interface LevelStep {
 const LEVELS: LevelStep[] = [
   {
     level: 'Level 1',
-    label: 'Dasar / Fondasi',
+    label: 'Beginner / Fundamentals',
     description:
-      'Pengenalan posisi siap, tumpuan aman, keseimbangan statis, dan elemen gerak dasar alat senam artistik.',
+      'Ready stance, secure body support, static balance, and foundational elements on apparatus.',
     color: '#22c55e',
     skills: [
-      'Posisi awal, tumpuan, dan keseimbangan (Single Leg, Tuck/L-Hang 2 detik)',
-      'Gulingan dasar (Forward & Backward Roll) dan kayang bridge',
-      'Mount bantuan boks, ayunan dasar ritmis & controlled dismount',
+      'Starting position, body support, and balance (Single Leg, Tuck/L-Hang 2 sec)',
+      'Basic rolls (Forward & Backward Roll) and bridge',
+      'Box-assisted mount, rhythmic basic swing & controlled dismount',
     ],
   },
   {
     level: 'Level 2',
-    label: 'Menengah / Transisi',
+    label: 'Intermediate / Transition',
     description:
-      'Penguasaan teknik inti alat dengan penekanan pada kestabilan bentuk tubuh, kontinuitas sirkel, dan awalan dinamis.',
+      'Core technical mastery emphasizing body tension, circle continuity, and dynamic approaches.',
     color: '#eab308',
     skills: [
-      'Handstand vertikal, cartwheel bertenaga, round-off & tiger jump',
-      'Double leg circle 5x langsung kontinyu & inlocate gelang-gelang',
-      'Glide to basic swing 3x, pull-over pelatih & swing to handstand',
+      'Vertical handstand, cartwheel, round-off & tiger jump',
+      'Double leg circle 5x continuous & still rings inlocate',
+      'Glide to basic swing 3x, assisted pull-over & swing to handstand',
     ],
   },
   {
     level: 'Level 3',
-    label: 'Lanjutan / Kompetisi',
+    label: 'Advanced / Performance',
     description:
-      'Kombinasi elemen teknik sulit, rotasi cepat, kip mandiri, dan rangkaian gerak standar kompetisi artistik.',
+      'Higher difficulty elements, rapid rotations, independent kip, and competition routines.',
     color: '#ef4444',
     skills: [
       'Backward roll to handstand, press handstand & back handspring',
-      'Double leg circle 10x kontinyu & support hold gelang-gelang',
-      'Handspring vault, kip palang mandiri & swing forward turn 180',
+      'Double leg circle 10x continuous & still rings support hold',
+      'Handspring vault, independent bar kip & forward swing with 180 turn',
     ],
   },
 ];
@@ -69,20 +69,19 @@ export function LevelProgression() {
         >
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-[#C1FF72] flex items-center justify-center text-[#1F2A2E] font-black text-xs shadow-sm">
-              05
+              06
             </div>
             <div className="w-8 h-[1px] bg-white/20" />
             <div className="px-3.5 py-1 rounded-full bg-white/10 border border-white/15 text-[#C1FF72] text-xs font-bold shadow-sm">
-              Alur Belajar
+              Progression Path
             </div>
           </div>
 
           <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-            Progression Path Tiap Alat
+            Apparatus Learning Pathway
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 mt-1.5 max-w-xl">
-            Setiap kategori alat memiliki 3 tingkat kesulitan. Mulai dari dasar, naik ke
-            menengah, hingga level lanjutan.
+            Each apparatus event is structured into 3 clear progression levels: beginner foundations, intermediate transitions, and advanced routines.
           </p>
         </motion.div>
 
@@ -141,9 +140,9 @@ export function LevelProgression() {
               {/* Progress bar visual */}
               <div className="mt-6 pt-4 border-t border-white/10">
                 <div className="flex items-center justify-between text-[11px] mb-2">
-                  <span className="font-bold text-slate-400">Tingkat Kesulitan</span>
+                  <span className="font-bold text-slate-400">Difficulty Level</span>
                   <span className="font-black" style={{ color: level.color }}>
-                    {idx === 0 ? 'Rendah' : idx === 1 ? 'Sedang' : 'Tinggi'}
+                    {idx === 0 ? 'Low' : idx === 1 ? 'Medium' : 'High'}
                   </span>
                 </div>
                 <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
@@ -163,7 +162,7 @@ export function LevelProgression() {
 
         {/* Connector line between cards (desktop only) */}
         <div className="hidden lg:flex items-center justify-center mt-8 gap-4">
-          {['Level 1 (Dasar)', '', 'Level 2 (Menengah)', '', 'Level 3 (Lanjutan)'].map((label, i) =>
+          {['Level 1 (Beginner)', '', 'Level 2 (Intermediate)', '', 'Level 3 (Advanced)'].map((label, i) =>
             label ? (
               <span
                 key={label}

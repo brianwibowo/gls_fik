@@ -73,10 +73,10 @@ export default function WatchPage() {
       <div className="min-h-screen bg-[#0a0a0a] text-white">
         <Navbar />
         <div className="flex flex-col items-center justify-center py-32 px-4">
-          <h1 className="text-2xl font-bold text-white mb-2">Video Tidak Ditemukan</h1>
-          <p className="text-sm text-slate-400 mb-6">Video yang kamu cari mungkin telah dihapus atau ID tidak valid.</p>
+          <h1 className="text-2xl font-bold text-white mb-2">Video Not Found</h1>
+          <p className="text-sm text-slate-400 mb-6">The video you are looking for may have been removed or the link is invalid.</p>
           <Link href="/" className="px-5 py-2.5 rounded-xl bg-[#c1ff72] text-[#1f2a2e] text-sm font-bold hover:bg-[#b0f555] transition-colors">
-            Kembali ke Katalog
+            Back to Catalog
           </Link>
         </div>
       </div>
@@ -101,7 +101,7 @@ export default function WatchPage() {
     const result = await loginWithGoogle(credential);
     setAuthLoading(false);
     if (!result.success) {
-      setAuthError(result.error || 'Login dengan Google gagal.');
+      setAuthError(result.error || 'Google sign-in failed. Please try again.');
     }
   };
 
@@ -110,7 +110,7 @@ export default function WatchPage() {
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-20">
-        {/* Top bar: Back link + Judul Video (Berlaku untuk semua video) */}
+        {/* Top bar: Back link + Video Title */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 bg-[#121721] border border-[#243044] rounded-2xl px-3.5 sm:px-4 py-3 shadow-lg">
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
             <Link
@@ -118,7 +118,7 @@ export default function WatchPage() {
               className="inline-flex items-center gap-2 text-xs sm:text-sm text-slate-200 hover:text-white font-bold group transition-all shrink-0 bg-white/5 hover:bg-white/10 px-3.5 py-2 min-h-[40px] rounded-xl border border-white/10 hover:border-[#c1ff72]/40 active:scale-95"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform text-[#c1ff72]" />
-              <span>Kembali ke Katalog</span>
+              <span>Back to Catalog</span>
             </Link>
 
             <span className="text-slate-600 hidden sm:inline font-bold">|</span>
@@ -163,15 +163,15 @@ export default function WatchPage() {
             </div>
 
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#c1ff72]/10 border border-[#c1ff72]/30 text-[#c1ff72] text-[11px] sm:text-xs font-bold mb-2.5 sm:mb-3">
-              <span>Materi Khusus Pengguna Terdaftar</span>
+              <span>Members Only Content</span>
             </div>
 
             <h2 className="text-xl sm:text-2xl font-black text-white max-w-lg mb-2 leading-tight">
-              Akses Video Episode Ini Terkunci
+              This Video Lesson is Locked
             </h2>
 
             <p className="text-xs sm:text-sm text-slate-300 max-w-md mb-6 leading-relaxed">
-              Masuk langsung dengan akun Google Anda untuk membuka dan memutar seluruh materi kurikulum latihan ini.
+              Sign in with your Google account to instantly unlock and watch this training curriculum video.
             </p>
 
             {authError && (
@@ -185,7 +185,7 @@ export default function WatchPage() {
                   onSuccess={(res) => {
                     if (res.credential) handleGoogleDirect(res.credential);
                   }}
-                  onError={() => setAuthError('Gagal melakukan login dengan Google.')}
+                  onError={() => setAuthError('Failed to sign in with Google.')}
                   theme="filled_black"
                   shape="pill"
                   size="large"
@@ -195,12 +195,12 @@ export default function WatchPage() {
 
               {authLoading ? (
                 <p className="text-xs text-[#c1ff72] font-semibold animate-pulse">
-                  Memverifikasi akun Google & membuka video...
+                  Verifying Google account & unlocking video...
                 </p>
               ) : (
                 <div className="flex items-center gap-1.5 text-slate-400 text-[11px]">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#c1ff72]" />
-                  <span>Akses instan & gratis dengan akun Google</span>
+                  <span>Instant free access with your Google account</span>
                 </div>
               )}
             </div>
@@ -240,7 +240,7 @@ export default function WatchPage() {
           <div className="lg:w-96 shrink-0">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
               <Play className="w-4 h-4 text-[#c1ff72] fill-[#c1ff72]" />
-              Episode Lainnya
+              Other Episodes
             </h3>
 
             <div className="space-y-3">
@@ -293,11 +293,11 @@ export default function WatchPage() {
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-[10px] text-slate-500">{ep.duration}</span>
                         {ep.isFree && (
-                          <span className="text-[10px] font-bold text-[#c1ff72]">GRATIS</span>
+                          <span className="text-[10px] font-bold text-[#c1ff72]">FREE</span>
                         )}
                         {!ep.isFree && !isLoggedIn && (
                           <span className="text-[10px] text-slate-500 flex items-center gap-0.5">
-                            <Lock className="w-2.5 h-2.5" /> Login
+                            <Lock className="w-2.5 h-2.5" /> Sign In
                           </span>
                         )}
                       </div>
@@ -314,8 +314,8 @@ export default function WatchPage() {
       <LoginModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
-        title="Akses Video Terkunci"
-        subtitle={`Episode "${video.title}" dikhususkan untuk atlet, pelatih, atau mahasiswa yang telah masuk akun GLS FIK.`}
+        title="Access Locked Video"
+        subtitle={`Episode "${video.title}" is reserved for registered students, coaches, or members.`}
       />
     </div>
   );

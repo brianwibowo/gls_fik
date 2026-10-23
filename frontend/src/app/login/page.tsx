@@ -29,7 +29,7 @@ function LoginForm() {
       const redirect = searchParams.get('redirect') || '/';
       router.push(redirect);
     } else {
-      setError(result.error || 'Login dengan Google gagal. Silakan coba kembali.');
+      setError(result.error || 'Google sign-in failed. Please try again.');
       setIsLoading(false);
     }
   };
@@ -42,7 +42,7 @@ function LoginForm() {
         {/* Background Image */}
         <Image
           src="/images/feature-video.webp"
-          alt="Evaluasi Video Pembelajaran Senam FIK"
+          alt="Instructional Gymnastics Training"
           fill
           priority
           className="object-cover object-center filter brightness-95"
@@ -71,16 +71,16 @@ function LoginForm() {
         {/* Bottom Editorial Content */}
         <div className="relative z-10 space-y-4 max-w-lg">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#c1ff72]/20 border border-[#c1ff72]/40 text-xs font-bold text-[#c1ff72]">
-            <span>Kurikulum Pembelajaran Senam</span>
+            <span>Gymnastics Curriculum</span>
           </div>
 
           <h2 className="text-3xl xl:text-4xl font-black text-white leading-tight tracking-tight">
-            Peragaan Teknik Gerak & Evaluasi Pendaratan.
+            Movement Techniques & Landing Evaluation.
           </h2>
 
           <p className="text-sm text-slate-300 leading-relaxed">
-            Platform kurikulum senam digital terintegrasi untuk pelatih, atlet, dan mahasiswa
-            Fakultas Ilmu Keolahragaan dalam mempelajari berbagai kategori senam artistik.
+            Integrated digital gymnastics curriculum for coaches, athletes, and students of the
+            Faculty of Sports Science across all artistic gymnastics apparatuses.
           </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-300">
@@ -101,11 +101,11 @@ function LoginForm() {
               className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-colors group"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              <span>Kembali ke Beranda</span>
+              <span>Back to Home</span>
             </Link>
 
             <span className="text-[11px] font-bold text-[#c1ff72] bg-[#c1ff72]/10 border border-[#c1ff72]/20 px-2.5 py-0.5 rounded-full">
-              Portal Akses
+              Access Portal
             </span>
           </div>
 
@@ -115,10 +115,10 @@ function LoginForm() {
               <Activity className="w-5 h-5 stroke-[3]" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Masuk ke GLS FIK
+              Sign in to GLS FIK
             </h1>
             <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
-              Gunakan akun Google Anda untuk langsung mengakses seluruh kurikulum video latihan dan panel pengelolaan.
+              Use your Google account to access instructional video lessons and the management panel.
             </p>
           </div>
 
@@ -136,7 +136,7 @@ function LoginForm() {
               <div className="w-7 h-7 rounded-lg bg-[#c1ff72]/15 flex items-center justify-center text-[#c1ff72] shrink-0 font-bold">
                 <Lock className="w-3.5 h-3.5" />
               </div>
-              <span>Satu akun untuk seluruh akses video dan materi latihan</span>
+              <span>One account for all videos and training materials</span>
             </div>
 
             <div className="w-full flex justify-center [&>div]:!w-full [&>div>iframe]:!w-full [&>div>div]:!w-full shadow-lg rounded-full overflow-hidden">
@@ -144,7 +144,7 @@ function LoginForm() {
                 onSuccess={(res) => {
                   if (res.credential) handleGoogleSuccess(res.credential);
                 }}
-                onError={() => setError('Gagal melakukan login dengan Google.')}
+                onError={() => setError('Failed to sign in with Google.')}
                 theme="filled_black"
                 shape="pill"
                 size="large"
@@ -155,13 +155,13 @@ function LoginForm() {
 
             {isLoading && (
               <p className="text-center text-xs text-[#c1ff72] font-semibold animate-pulse">
-                Memverifikasi kredensial Google & menyiapkan sesi...
+                Verifying Google account & setting up session...
               </p>
             )}
 
             <div className="pt-3 border-t border-white/5 flex items-center justify-center gap-2 text-slate-400 text-[11px]">
               <ShieldCheck className="w-3.5 h-3.5 text-[#c1ff72]" />
-              <span>Otentikasi resmi Google OAuth 2.0 (Tanpa Kata Sandi)</span>
+              <span>Official Google OAuth 2.0 (Passwordless)</span>
             </div>
           </div>
 

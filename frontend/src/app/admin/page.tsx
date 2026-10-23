@@ -95,7 +95,7 @@ function AdminVideoManagementContent() {
       setCategories(cats);
       setVideos(vids);
     } catch (err) {
-      console.error('Gagal mengambil data:', err);
+      console.error('Failed to fetch data:', err);
     }
   }, []);
 
@@ -175,7 +175,7 @@ function AdminVideoManagementContent() {
   const handleResetVideoForm = () => {
     if (initialVideoForm) {
       setVideoForm(initialVideoForm);
-      showToast('Form berhasil dikembalikan ke nilai awal.');
+      showToast('Form has been reset to initial values.');
     }
   };
 
@@ -248,7 +248,7 @@ function AdminVideoManagementContent() {
   const handleSaveVideo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!detectedDriveId) {
-      alert('Mohon masukkan Link atau File ID Google Drive yang valid.');
+      alert('Please enter a valid Google Drive link or File ID.');
       return;
     }
 
@@ -259,7 +259,7 @@ function AdminVideoManagementContent() {
     const payload = {
       categoryId: videoForm.categoryId,
       title: videoForm.title.trim(),
-      description: videoForm.description.trim() || 'Drill latihan teknik gerakan.',
+      description: videoForm.description.trim() || 'Technique practice drill.',
       driveFileId: detectedDriveId,
       driveLink: videoForm.driveLink.startsWith('http')
         ? videoForm.driveLink
@@ -274,27 +274,27 @@ function AdminVideoManagementContent() {
     try {
       if (editingVideoId) {
         await apiUpdateVideo(editingVideoId, payload);
-        showToast(`Episode "${payload.title}" berhasil diperbarui.`);
+        showToast(`Episode "${payload.title}" updated successfully.`);
       } else {
         await apiCreateVideo(payload);
-        showToast(`Episode "${payload.title}" berhasil ditambahkan.`);
+        showToast(`Episode "${payload.title}" added successfully.`);
       }
       await refreshData();
       setShowVideoModal(false);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Gagal menyimpan video';
+      const msg = err instanceof Error ? err.message : 'Failed to save video';
       alert(msg);
     }
   };
 
   const handleDeleteVideo = async (id: string, title: string) => {
-    if (!confirm(`Hapus episode "${title}"? Tindakan ini tidak dapat dibatalkan.`)) return;
+    if (!confirm(`Delete episode "${title}"? This action cannot be undone.`)) return;
     try {
       await apiDeleteVideo(id);
       await refreshData();
-      showToast(`Episode "${title}" telah dihapus.`);
+      showToast(`Episode "${title}" has been deleted.`);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Gagal menghapus video';
+      const msg = err instanceof Error ? err.message : 'Failed to delete video';
       alert(msg);
     }
   };
@@ -306,10 +306,10 @@ function AdminVideoManagementContent() {
       await apiUpdateVideo(video.id, { isFree: nextState });
       await refreshData();
       showToast(
-        `Akses video "${video.title}" diubah: ${nextState ? 'GRATIS (Semua Orang)' : 'BUTUH LOGIN (Khusus Akun)'}.`
+        `Access for "${video.title}" updated to: ${nextState ? 'FREE (Public)' : 'LOGIN REQUIRED (Members)'}.`
       );
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Gagal mengubah status akses';
+      const msg = err instanceof Error ? err.message : 'Failed to update access status';
       alert(msg);
     }
   };
@@ -343,20 +343,20 @@ function AdminVideoManagementContent() {
           name: categoryForm.name.trim(),
           description: categoryForm.description.trim(),
         });
-        showToast(`Kategori "${categoryForm.name}" berhasil diperbarui.`);
+        showToast(`Category "${categoryForm.name}" updated successfully.`);
       } else {
         await apiCreateCategory({
           name: categoryForm.name.trim(),
-          description: categoryForm.description.trim() || `Materi dan drill teknik ${categoryForm.name.trim()}.`,
+          description: categoryForm.description.trim() || `Technique drills and lessons for ${categoryForm.name.trim()}.`,
           thumbnail: '/images/apparatus-floor.webp',
           order: categories.length + 1,
         });
-        showToast(`Kategori baru "${categoryForm.name}" berhasil ditambahkan.`);
+        showToast(`New category "${categoryForm.name}" added successfully.`);
       }
       await refreshData();
       setShowCategoryModal(false);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Gagal menyimpan kategori';
+      const msg = err instanceof Error ? err.message : 'Failed to save category';
       alert(msg);
     }
   };
@@ -365,16 +365,16 @@ function AdminVideoManagementContent() {
     const count = videos.filter((v) => v.categoryId === cat.id).length;
     const confirmMsg =
       count > 0
-        ? `Hapus kategori "${cat.name}" beserta ${count} episode video di dalamnya? Tindakan ini tidak dapat dibatalkan!`
-        : `Hapus kategori "${cat.name}"?`;
+        ? `Delete category "${cat.name}" along with ${count} video episode(s) inside? This action cannot be undone!`
+        : `Delete category "${cat.name}"?`;
 
     if (!confirm(confirmMsg)) return;
     try {
       await apiDeleteCategory(cat.id);
       await refreshData();
-      showToast(`Kategori "${cat.name}" telah dihapus.`);
+      showToast(`Category "${cat.name}" has been deleted.`);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Gagal menghapus kategori';
+      const msg = err instanceof Error ? err.message : 'Failed to delete category';
       alert(msg);
     }
   };
@@ -474,14 +474,13 @@ function AdminVideoManagementContent() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-5 sm:pb-6 mb-5 sm:mb-6 border-b border-slate-200 gap-4">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#c1ff72]/30 border border-[#a8ed4b]/80 text-[#1f2a2e] text-xs font-black uppercase tracking-wider mb-2">
-            <span>Kurikulum Terpadu</span>
+            <span>Curriculum Management</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            Video Materi Per Kategori
+            Video Lessons by Apparatus
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl">
-            Semua episode dikelompokkan rapi dalam kategori materi senam masing-masing. Tambah episode baru,
-            tentukan urutan latihan, dan atur akses gratis atau butuh login secara instan.
+            All episodes organized by gymnastics events. Add new episodes, manage lesson sequence, and set free or members-only access instantly.
           </p>
         </div>
 
@@ -492,7 +491,7 @@ function AdminVideoManagementContent() {
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#1F2A2E] hover:bg-black text-white text-xs sm:text-sm font-black shadow-sm transition-all cursor-pointer hover:shadow-md min-h-[42px] active:scale-95"
           >
             <Plus className="w-4 h-4 text-[#C1FF72] stroke-[2.5]" />
-            <span>Tambah Kategori</span>
+            <span>Add Category</span>
           </button>
         </div>
       </div>
@@ -501,7 +500,7 @@ function AdminVideoManagementContent() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 mb-5 sm:mb-6">
         <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wider">Total Kategori</p>
+            <p className="text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wider">Total Categories</p>
             <p className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">{categories.length}</p>
           </div>
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
@@ -511,7 +510,7 @@ function AdminVideoManagementContent() {
 
         <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wider">Total Episode</p>
+            <p className="text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wider">Total Episodes</p>
             <p className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">{videos.length}</p>
           </div>
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#c1ff72]/40 flex items-center justify-center text-[#1f2a2e] shrink-0">
@@ -521,7 +520,7 @@ function AdminVideoManagementContent() {
 
         <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wider">Akses Gratis</p>
+            <p className="text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wider">Free Access</p>
             <p className="text-xl sm:text-2xl font-black text-emerald-600 mt-0.5">{totalFreeCount}</p>
           </div>
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0">
@@ -531,7 +530,7 @@ function AdminVideoManagementContent() {
 
         <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wider">Butuh Login</p>
+            <p className="text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wider">Members Only</p>
             <p className="text-xl sm:text-2xl font-black text-amber-700 mt-0.5">{totalLockedCount}</p>
           </div>
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 shrink-0">
@@ -553,14 +552,14 @@ function AdminVideoManagementContent() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder="Cari kategori atau judul episode video..."
+              placeholder="Search category or episode title..."
               className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-base sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-800 transition-colors"
             />
           </div>
 
           {/* Filter Controls */}
           <div className="flex flex-wrap items-center gap-2">
-            {/* 1. Filter Akses: Semua / Gratis / Butuh Login */}
+            {/* 1. Filter Akses: All / Free / Members */}
             <div className="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200/80 w-full sm:w-auto">
               <button
                 type="button"
@@ -574,7 +573,7 @@ function AdminVideoManagementContent() {
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Semua ({categories.length})
+                All ({categories.length})
               </button>
               <button
                 type="button"
@@ -588,7 +587,7 @@ function AdminVideoManagementContent() {
                     : 'text-slate-600 hover:text-emerald-700'
                 }`}
               >
-                Gratis ({totalFreeCount})
+                Free ({totalFreeCount})
               </button>
               <button
                 type="button"
@@ -602,7 +601,7 @@ function AdminVideoManagementContent() {
                     : 'text-slate-600 hover:text-amber-700'
                 }`}
               >
-                Login ({totalLockedCount})
+                Members ({totalLockedCount})
               </button>
             </div>
 
@@ -613,13 +612,13 @@ function AdminVideoManagementContent() {
                 setLevelFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              aria-label="Filter Level Materi"
+              aria-label="Filter Difficulty Level"
               className="flex-1 sm:flex-initial min-h-[38px] px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-base sm:text-xs font-bold text-slate-700 focus:outline-none focus:border-slate-800 cursor-pointer shadow-xs"
             >
-              <option value="all">Semua Level</option>
-              <option value="Dasar">Level Dasar</option>
-              <option value="Menengah">Level Menengah</option>
-              <option value="Mahir">Level Mahir</option>
+              <option value="all">All Levels</option>
+              <option value="Dasar">Beginner Level</option>
+              <option value="Menengah">Intermediate Level</option>
+              <option value="Mahir">Advanced Level</option>
             </select>
 
             {/* 3. Urutkan (Sort) */}
@@ -629,23 +628,23 @@ function AdminVideoManagementContent() {
                 setSortBy(e.target.value as 'default' | 'name-asc' | 'episodes-desc');
                 setCurrentPage(1);
               }}
-              aria-label="Urutkan Kategori"
+              aria-label="Sort Categories"
               className="flex-1 sm:flex-initial min-h-[38px] px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-base sm:text-xs font-bold text-slate-700 focus:outline-none focus:border-slate-800 cursor-pointer shadow-xs"
             >
-              <option value="default">Urutan Kurikulum (FIG)</option>
-              <option value="name-asc">Nama Kategori (A-Z)</option>
-              <option value="episodes-desc">Episode Terbanyak</option>
+              <option value="default">Curriculum Order (FIG)</option>
+              <option value="name-asc">Category Name (A-Z)</option>
+              <option value="episodes-desc">Most Episodes</option>
             </select>
 
-            {/* 4. Tombol Reset Filter */}
+            {/* 4. Reset Filters Button */}
             {isFilterActive && (
               <button
                 type="button"
                 onClick={resetAllFilters}
                 className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 text-xs font-bold transition-colors cursor-pointer"
-                title="Reset filter"
+                title="Reset filters"
               >
-                Reset Filter
+                Reset Filters
               </button>
             )}
           </div>
@@ -654,11 +653,11 @@ function AdminVideoManagementContent() {
         {/* Filter Summary Bar */}
         <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
           <p>
-            Ditemukan <span className="font-bold text-slate-800">{totalItems}</span> kategori materi
-            {isFilterActive && ' (dengan filter aktif)'}
+            Found <span className="font-bold text-slate-800">{totalItems}</span> apparatus categories
+            {isFilterActive && ' (filtered)'}
           </p>
           <p className="font-medium">
-            Halaman {validCurrentPage} dari {totalPages}
+            Page {validCurrentPage} of {totalPages}
           </p>
         </div>
       </div>
@@ -707,16 +706,16 @@ function AdminVideoManagementContent() {
                         {getCategoryTitle(cat.name)}
                       </h2>
                       <span className="px-2 py-0.5 rounded-full bg-white/90 border border-black/10 text-[#1F2A2E] text-[11px] sm:text-xs font-bold shadow-xs">
-                        {catVideos.length} Episode
+                        {catVideos.length} {catVideos.length === 1 ? 'Episode' : 'Episodes'}
                       </span>
                       {freeCount > 0 && (
                         <span className="px-2 py-0.5 rounded-full bg-[#1F2A2E] text-[#C1FF72] text-[10px] sm:text-[11px] font-black shadow-xs">
-                          {freeCount} Gratis
+                          {freeCount} Free
                         </span>
                       )}
                       {lockedCount > 0 && (
                         <span className="px-2 py-0.5 rounded-full bg-white/90 border border-amber-300 text-amber-900 text-[10px] sm:text-[11px] font-bold shadow-xs">
-                          {lockedCount} Login
+                          {lockedCount} Members
                         </span>
                       )}
                     </div>
@@ -732,10 +731,10 @@ function AdminVideoManagementContent() {
                     type="button"
                     onClick={() => openAddEpisodeModal(cat.id)}
                     className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#1F2A2E] hover:bg-black text-white hover:text-[#C1FF72] font-black text-xs sm:text-sm border border-[#1F2A2E] shadow-sm transition-all cursor-pointer hover:shadow-md min-h-[40px] active:scale-95"
-                    title={`Tambah episode baru untuk ${cat.name}`}
+                    title={`Add new episode to ${cat.name}`}
                   >
                     <Plus className="w-4 h-4 text-[#C1FF72] stroke-[2.5]" />
-                    <span>Tambah Episode</span>
+                    <span>Add Episode</span>
                   </button>
 
                   <div className="flex items-center gap-1.5">
@@ -743,8 +742,8 @@ function AdminVideoManagementContent() {
                       type="button"
                       onClick={() => openEditCategoryModal(cat)}
                       className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-white/90 hover:bg-white text-[#1F2A2E] border border-black/10 text-xs font-bold transition-colors cursor-pointer shadow-xs flex items-center justify-center active:scale-95"
-                      title="Edit judul atau deskripsi kategori ini"
-                      aria-label={`Edit kategori ${cat.name}`}
+                      title="Edit category name or description"
+                      aria-label={`Edit category ${cat.name}`}
                     >
                       <Pencil className="w-4 h-4" />
                     </button>
@@ -755,8 +754,8 @@ function AdminVideoManagementContent() {
                         type="button"
                         onClick={() => handleDeleteCategory(cat)}
                         className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-white/90 hover:bg-red-50 text-red-600 border border-red-200 text-xs font-bold transition-colors cursor-pointer shadow-xs flex items-center justify-center active:scale-95"
-                        title="Hapus kategori ini"
-                        aria-label={`Hapus kategori ${cat.name}`}
+                        title="Delete this category"
+                        aria-label={`Delete category ${cat.name}`}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -766,8 +765,8 @@ function AdminVideoManagementContent() {
                       type="button"
                       onClick={() => toggleCategoryCollapse(cat.id)}
                       className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-white/90 hover:bg-white text-[#1F2A2E] border border-black/10 transition-colors cursor-pointer shadow-xs flex items-center justify-center active:scale-95"
-                      title={isCollapsed ? 'Buka daftar episode' : 'Tutup daftar episode'}
-                      aria-label={isCollapsed ? 'Buka daftar episode' : 'Tutup daftar episode'}
+                      title={isCollapsed ? 'Expand episode list' : 'Collapse episode list'}
+                      aria-label={isCollapsed ? 'Expand episode list' : 'Collapse episode list'}
                     >
                       {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
                     </button>
@@ -782,10 +781,10 @@ function AdminVideoManagementContent() {
                     <div className="p-8 text-center text-slate-500">
                       <VideoIcon className="w-8 h-8 mx-auto mb-2 text-slate-300" />
                       <p className="text-sm font-semibold text-slate-700">
-                        Belum ada episode di kategori ini.
+                        No episodes in this category yet.
                       </p>
                       <p className="text-xs text-slate-500 mt-1 mb-4">
-                        Tambahkan video latihan dari Google Drive untuk mulai menyusun materi.
+                        Add a training video from Google Drive to get started.
                       </p>
                       <button
                         type="button"
@@ -793,7 +792,7 @@ function AdminVideoManagementContent() {
                         className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#c1ff72] hover:bg-[#b0f555] text-[#1f2a2e] font-black text-xs border border-[#a8ed4b] shadow-sm cursor-pointer"
                       >
                         <Plus className="w-4 h-4" />
-                        <span>Tambah Episode Pertama</span>
+                        <span>Add First Episode</span>
                       </button>
                     </div>
                   ) : (
@@ -829,7 +828,7 @@ function AdminVideoManagementContent() {
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
                               <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] sm:text-[11px] font-bold border border-slate-200">
-                                Level {video.level}
+                                {video.level === 'Dasar' ? 'Beginner' : video.level === 'Menengah' ? 'Intermediate' : 'Advanced'}
                               </span>
 
                               <span className="text-[10px] sm:text-[11px] text-slate-400 font-mono">
@@ -858,22 +857,22 @@ function AdminVideoManagementContent() {
                                 ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300 ring-1 ring-emerald-400/30'
                                 : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300 ring-1 ring-amber-400/30'
                             }`}
-                            title="Klik untuk mengubah hak akses video ini"
+                            title="Click to toggle access permissions"
                           >
                             {video.isFree ? (
                               <>
                                 <Unlock className="w-3.5 h-3.5 text-emerald-600" />
-                                <span>GRATIS</span>
+                                <span>FREE</span>
                                 <span className="text-[10px] text-emerald-700/80 font-normal hidden sm:inline">
-                                  (Publik)
+                                  (Public)
                                 </span>
                               </>
                             ) : (
                               <>
                                 <Lock className="w-3.5 h-3.5 text-amber-600" />
-                                <span>BUTUH LOGIN</span>
+                                <span>MEMBERS ONLY</span>
                                 <span className="text-[10px] text-amber-800/80 font-normal hidden sm:inline">
-                                  (Atlet)
+                                  (Sign In)
                                 </span>
                               </>
                             )}
@@ -885,8 +884,8 @@ function AdminVideoManagementContent() {
                               href={`/watch/${video.id}`}
                               target="_blank"
                               className="w-10 h-10 min-w-[38px] min-h-[38px] rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors flex items-center justify-center active:scale-95"
-                              title="Tonton Pratinjau Video (Tab Baru)"
-                              aria-label={`Pratinjau video ${video.title}`}
+                              title="Watch Video Preview (New Tab)"
+                              aria-label={`Preview video ${video.title}`}
                             >
                               <Eye className="w-4 h-4" />
                             </Link>
@@ -908,7 +907,7 @@ function AdminVideoManagementContent() {
                               className="min-h-[38px] inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold transition-colors cursor-pointer active:scale-95"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
-                              <span>Hapus</span>
+                              <span>Delete</span>
                             </button>
                           </div>
                         </div>
@@ -925,17 +924,17 @@ function AdminVideoManagementContent() {
           <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 text-slate-500">
             <Search className="w-8 h-8 mx-auto mb-2 text-slate-400 opacity-60" />
             <p className="text-base font-bold text-slate-800">
-              Tidak ada kategori yang sesuai dengan filter atau pencarian Anda.
+              No categories match your filters or search.
             </p>
             <p className="text-xs text-slate-500 mt-1 mb-4">
-              Coba gunakan kata kunci lain atau setel ulang filter pencarian.
+              Try different keywords or reset your filters.
             </p>
             <button
               type="button"
               onClick={resetAllFilters}
               className="px-5 py-2.5 rounded-xl bg-[#1F2A2E] hover:bg-black text-white text-xs font-black cursor-pointer transition-all shadow-sm"
             >
-              Reset Semua Filter
+              Reset All Filters
             </button>
           </div>
         )}
@@ -946,24 +945,24 @@ function AdminVideoManagementContent() {
         <div className="mt-6 sm:mt-8 bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3.5 sm:gap-4">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 sm:gap-3 text-xs text-slate-600 w-full sm:w-auto">
             <span className="font-bold text-slate-800">
-              Menampilkan {totalItems === 0 ? 0 : startIndex + 1}–{endIndex} dari {totalItems} Kategori
+              Showing {totalItems === 0 ? 0 : startIndex + 1}–{endIndex} of {totalItems} Categories
             </span>
             <span className="text-slate-300 hidden sm:inline">•</span>
             <div className="flex items-center gap-1.5">
-              <span>Tampilkan:</span>
+              <span>Show:</span>
               <select
                 value={itemsPerPage}
                 onChange={(e) => {
                   setItemsPerPage(Number(e.target.value));
                   setCurrentPage(1);
                 }}
-                aria-label="Pilih jumlah item per halaman"
+                aria-label="Select items per page"
                 className="min-h-[36px] px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 cursor-pointer shadow-xs focus:outline-none focus:border-slate-800"
               >
-                <option value={4}>4 per halaman</option>
-                <option value={6}>6 per halaman</option>
-                <option value={8}>8 per halaman</option>
-                <option value={12}>12 per halaman</option>
+                <option value={4}>4 per page</option>
+                <option value={6}>6 per page</option>
+                <option value={8}>8 per page</option>
+                <option value={12}>12 per page</option>
               </select>
             </div>
           </div>
@@ -976,7 +975,7 @@ function AdminVideoManagementContent() {
               className="min-h-[38px] inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-xs active:scale-95"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
-              <span>Sebelumnya</span>
+              <span>Previous</span>
             </button>
 
             <div className="flex items-center gap-1">
@@ -1002,7 +1001,7 @@ function AdminVideoManagementContent() {
               disabled={validCurrentPage >= totalPages}
               className="min-h-[38px] inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-xs active:scale-95"
             >
-              <span>Selanjutnya</span>
+              <span>Next</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -1027,25 +1026,25 @@ function AdminVideoManagementContent() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-base sm:text-lg font-black text-slate-900 truncate">
-                      {editingVideoId ? 'Edit Episode Video' : 'Tambah Episode Video Baru'}
+                      {editingVideoId ? 'Edit Video Episode' : 'Add New Video Episode'}
                     </h2>
                     {/* Dirty State Indicator Badge */}
                     {isVideoDirty ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[10px] sm:text-[11px] font-bold shrink-0 animate-pulse">
                         <AlertTriangle className="w-3 h-3 text-amber-600" />
-                        <span>Ada Perubahan Belum Disimpan</span>
+                        <span>Unsaved Changes</span>
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 text-[10px] sm:text-[11px] font-semibold shrink-0">
                         <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                        <span>Form Bersih & Tersinkron</span>
+                        <span>Form Synced</span>
                       </span>
                     )}
                   </div>
                   <p className="text-[11px] sm:text-xs text-slate-500 truncate mt-0.5">
                     {editingVideoId
-                      ? `Memperbarui materi episode #${videoForm.episodeNum} • Pantau pratinjau langsung di sebelah kanan`
-                      : 'Lengkapi data latihan senam dan uji pemutaran Google Drive secara langsung sebelum disimpan.'}
+                      ? `Editing episode #${videoForm.episodeNum} • Live preview updated on the right`
+                      : 'Fill in the gymnastics drill details and test Google Drive playback before saving.'}
                   </p>
                 </div>
               </div>
@@ -1054,7 +1053,7 @@ function AdminVideoManagementContent() {
                 type="button"
                 onClick={handleRequestCloseVideoModal}
                 className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors flex items-center justify-center cursor-pointer active:scale-95"
-                aria-label="Tutup dialog"
+                aria-label="Close dialog"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1066,15 +1065,15 @@ function AdminVideoManagementContent() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
                   {/* Left Column: Form Fields (7 cols) */}
                   <div className="lg:col-span-7 space-y-4 sm:space-y-5">
-                    {/* Field Group 1: Kategori & Nomor Episode */}
+                    {/* Field Group 1: Category & Episode Number */}
                     <div className="bg-slate-50/70 p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 space-y-3">
                       <div className="flex items-center justify-between">
                         <label className="block text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                           <Layers className="w-3.5 h-3.5 text-slate-600" />
-                          <span>Kategori & Urutan Episode</span>
+                          <span>Category & Episode Order</span>
                         </label>
                         <span className="text-[11px] text-slate-500 font-medium">
-                          Otomatis menyinkronkan nomor urut
+                          Automatically syncs sequence number
                         </span>
                       </div>
 
@@ -1083,14 +1082,14 @@ function AdminVideoManagementContent() {
                           <select
                             value={videoForm.categoryId}
                             onChange={(e) => handleCategoryChange(e.target.value)}
-                            aria-label="Pilih Kategori Senam"
+                            aria-label="Select Gymnastics Event"
                             className="w-full min-h-[42px] px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-base sm:text-xs font-bold focus:outline-none focus:border-slate-800 shadow-xs"
                           >
                             {categories.map((c) => {
                               const count = videos.filter((v) => v.categoryId === c.id).length;
                               return (
                                 <option key={c.id} value={c.id}>
-                                  {c.name} ({count} Episode)
+                                  {c.name} ({count} {count === 1 ? 'Episode' : 'Episodes'})
                                 </option>
                               );
                             })}
@@ -1108,7 +1107,7 @@ function AdminVideoManagementContent() {
                                 }))
                               }
                               className="absolute left-1 w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center cursor-pointer active:scale-90"
-                              title="Kurangi nomor episode"
+                              title="Decrease episode number"
                             >
                               -
                             </button>
@@ -1121,7 +1120,7 @@ function AdminVideoManagementContent() {
                                 setVideoForm({ ...videoForm, episodeNum: Number(e.target.value) })
                               }
                               placeholder="Episode"
-                              aria-label="Nomor Episode"
+                              aria-label="Episode Number"
                               className="w-full min-h-[42px] px-8 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-center text-base sm:text-xs font-black focus:outline-none focus:border-slate-800 shadow-xs"
                             />
                             <button
@@ -1133,7 +1132,7 @@ function AdminVideoManagementContent() {
                                 }))
                               }
                               className="absolute right-1 w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center cursor-pointer active:scale-90"
-                              title="Tambah nomor episode"
+                              title="Increase episode number"
                             >
                               +
                             </button>
@@ -1142,14 +1141,14 @@ function AdminVideoManagementContent() {
                       </div>
                     </div>
 
-                    {/* Field Group 2: Judul Episode */}
+                    {/* Field Group 2: Episode Title */}
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
                         <label className="block text-xs font-black text-slate-800 uppercase tracking-wider">
-                          Judul Materi Episode
+                          Episode Title
                         </label>
                         <span className="text-[11px] text-slate-400">
-                          Gunakan judul yang jelas dan spesifik
+                          Use a clear and specific title
                         </span>
                       </div>
                       <input
@@ -1157,14 +1156,14 @@ function AdminVideoManagementContent() {
                         required
                         value={videoForm.title}
                         onChange={(e) => setVideoForm({ ...videoForm, title: e.target.value })}
-                        placeholder="Contoh: Postur, Tumpuan Kaki & Awalan Senam Lantai"
+                        placeholder="Example: Posture, Footwork & Floor Exercise Run-up"
                         className="w-full min-h-[42px] px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-base sm:text-sm font-semibold focus:outline-none focus:bg-white focus:border-slate-800 shadow-xs"
                       />
 
                       {/* Quick Title Suggestion Chips */}
                       <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                        <span className="text-[11px] font-bold text-slate-400">Saran Cepat:</span>
-                        {['Postur & Awalan', 'Drill Tolakan & Repetisi', 'Transisi & Salto', 'Stick Landing & Evaluasi'].map(
+                        <span className="text-[11px] font-bold text-slate-400">Quick Suggestions:</span>
+                        {['Posture & Approach', 'Takeoff & Drill Repetitions', 'Transitions & Somersaults', 'Stick Landing & Form'].map(
                           (suggestion) => (
                             <button
                               type="button"
@@ -1179,11 +1178,11 @@ function AdminVideoManagementContent() {
                       </div>
                     </div>
 
-                    {/* Field Group 3: Link Google Drive */}
+                    {/* Field Group 3: Google Drive Link */}
                     <div className="bg-slate-50/70 p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 space-y-2">
                       <div className="flex items-center justify-between">
                         <label className="block text-xs font-black text-slate-800 uppercase tracking-wider">
-                          Link Berbagi Google Drive / File ID
+                          Google Drive Share Link / File ID
                         </label>
                         {detectedDriveId && (
                           <a
@@ -1192,7 +1191,7 @@ function AdminVideoManagementContent() {
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 text-[11px] text-emerald-700 hover:text-emerald-800 font-bold"
                           >
-                            <span>Buka di Google Drive</span>
+                            <span>Open in Google Drive</span>
                             <ExternalLink className="w-3 h-3" />
                           </a>
                         )}
@@ -1203,7 +1202,7 @@ function AdminVideoManagementContent() {
                         required
                         value={videoForm.driveLink}
                         onChange={(e) => setVideoForm({ ...videoForm, driveLink: e.target.value })}
-                        placeholder="Tempel link: https://drive.google.com/file/d/12JG_YaH6ADE4xVqgsk.../view"
+                        placeholder="Paste link: https://drive.google.com/file/d/.../view"
                         className="w-full min-h-[42px] px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-base sm:text-xs font-mono focus:outline-none focus:border-slate-800 shadow-xs"
                       />
 
@@ -1213,10 +1212,10 @@ function AdminVideoManagementContent() {
                           <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
                           <div className="min-w-0">
                             <p className="font-bold">
-                              ID File Terdeteksi: <code className="font-mono bg-emerald-100/80 px-1 rounded">{detectedDriveId}</code>
+                              Detected File ID: <code className="font-mono bg-emerald-100/80 px-1 rounded">{detectedDriveId}</code>
                             </p>
                             <p className="text-[11px] text-emerald-800 mt-0.5">
-                              Pastikan akses Google Drive diatur ke: <strong>&quot;Siapa saja yang memiliki link dapat melihat&quot;</strong>.
+                              Ensure Google Drive general access is set to: <strong>&quot;Anyone with the link can view&quot;</strong>.
                             </p>
                           </div>
                         </div>
@@ -1224,19 +1223,19 @@ function AdminVideoManagementContent() {
                         <div className="flex items-start gap-2 p-2.5 rounded-xl bg-amber-50/70 border border-amber-200 text-amber-900 text-xs">
                           <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                           <p className="text-[11px] text-amber-800 leading-relaxed">
-                            Buka video di Google Drive &gt; Klik <strong>Bagikan (Share)</strong> &gt; Ubah Akses Umum ke <strong>Siapa saja yang memiliki link</strong> &gt; Salin tautan dan tempel di sini.
+                            Open video in Google Drive &gt; Click <strong>Share</strong> &gt; Set General access to <strong>Anyone with the link</strong> &gt; Copy link and paste here.
                           </p>
                         </div>
                       )}
                     </div>
 
-                    {/* Field Group 4: Hak Akses Episode (Interactive Explanatory Cards) */}
+                    {/* Field Group 4: Access Rights (Interactive Explanatory Cards) */}
                     <div>
                       <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-2">
-                        Hak Akses Episode
+                        Access Permission
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        {/* Option 1: Gratis */}
+                        {/* Option 1: Free */}
                         <button
                           type="button"
                           onClick={() => setVideoForm({ ...videoForm, isFree: true })}
@@ -1257,20 +1256,20 @@ function AdminVideoManagementContent() {
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-xs font-black text-slate-900">GRATIS (Publik)</span>
+                              <span className="text-xs font-black text-slate-900">FREE (Public)</span>
                               {videoForm.isFree && (
                                 <span className="px-1.5 py-0.2 rounded bg-emerald-200 text-emerald-800 text-[9px] font-black">
-                                  AKTIF
+                                  ACTIVE
                                 </span>
                               )}
                             </div>
                             <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
-                              Bisa ditonton langsung oleh siapa saja tanpa perlu masuk akun. Direkomendasikan untuk Episode 1.
+                              Can be watched by anyone without signing in. Recommended for Episode 1.
                             </p>
                           </div>
                         </button>
 
-                        {/* Option 2: Butuh Login */}
+                        {/* Option 2: Members Only */}
                         <button
                           type="button"
                           onClick={() => setVideoForm({ ...videoForm, isFree: false })}
@@ -1291,33 +1290,33 @@ function AdminVideoManagementContent() {
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-xs font-black text-slate-900">BUTUH LOGIN</span>
+                              <span className="text-xs font-black text-slate-900">MEMBERS ONLY</span>
                               {!videoForm.isFree && (
                                 <span className="px-1.5 py-0.2 rounded bg-amber-200 text-amber-800 text-[9px] font-black">
-                                  AKTIF
+                                  ACTIVE
                                 </span>
                               )}
                             </div>
                             <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
-                              Khusus atlet, pelatih, atau mahasiswa FIK yang telah memiliki akun terdaftar di GLS.
+                              Exclusive to athletes, coaches, and registered FIK members with a GLS account.
                             </p>
                           </div>
                         </button>
                       </div>
                     </div>
 
-                    {/* Field Group 5: Tingkat Latihan & Durasi Video */}
+                    {/* Field Group 5: Difficulty Level & Video Duration */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      {/* Tingkat Latihan Selector */}
+                      {/* Difficulty Level Selector */}
                       <div>
                         <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1.5">
-                          Tingkat Latihan
+                          Difficulty Level
                         </label>
                         <div className="grid grid-cols-3 gap-1.5">
                           {[
-                            { key: 'Dasar', label: 'Dasar', sub: 'Pemula' },
-                            { key: 'Menengah', label: 'Menengah', sub: 'Teknik' },
-                            { key: 'Mahir', label: 'Mahir', sub: 'FIG/Salto' },
+                            { key: 'Dasar', label: 'Beginner', sub: 'Fundamentals' },
+                            { key: 'Menengah', label: 'Intermediate', sub: 'Technique' },
+                            { key: 'Mahir', label: 'Advanced', sub: 'FIG / High Skill' },
                           ].map((lvl) => (
                             <button
                               type="button"
@@ -1342,10 +1341,10 @@ function AdminVideoManagementContent() {
                         </div>
                       </div>
 
-                      {/* Durasi Video with Quick Presets */}
+                      {/* Video Duration with Quick Presets */}
                       <div>
                         <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1.5">
-                          Durasi Video (MM:SS)
+                          Video Duration (MM:SS)
                         </label>
                         <input
                           type="text"
@@ -1355,7 +1354,7 @@ function AdminVideoManagementContent() {
                           className="w-full min-h-[42px] px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-base sm:text-sm font-bold focus:outline-none focus:bg-white focus:border-slate-800 shadow-xs"
                         />
                         <div className="flex items-center gap-1 mt-1.5">
-                          <span className="text-[10px] text-slate-400 font-medium">Preset:</span>
+                          <span className="text-[10px] text-slate-400 font-medium">Presets:</span>
                           {['03:00', '03:45', '04:15', '05:00'].map((preset) => (
                             <button
                               type="button"
@@ -1370,19 +1369,19 @@ function AdminVideoManagementContent() {
                       </div>
                     </div>
 
-                    {/* Field Group 6: Catatan Gerakan */}
+                    {/* Field Group 6: Coaching Notes */}
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
                         <label className="block text-xs font-black text-slate-800 uppercase tracking-wider">
-                          Catatan Gerakan & Panduan Latihan
+                          Technique Notes & Coaching Points
                         </label>
-                        <span className="text-[11px] text-slate-400">Instruksi untuk atlet</span>
+                        <span className="text-[11px] text-slate-400">Instructions for athletes</span>
                       </div>
                       <textarea
                         rows={3}
                         value={videoForm.description}
                         onChange={(e) => setVideoForm({ ...videoForm, description: e.target.value })}
-                        placeholder="Contoh: Fokuskan pandangan ke depan, dorong panggul ke atas, kunci siku saat tumpuan, serta lenturkan lutut saat stick landing untuk meredam beban pendaratan..."
+                        placeholder="Example: Keep eyes forward, drive hips upward, lock elbows during support, and bend knees on stick landing to absorb impact..."
                         className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-base sm:text-xs leading-relaxed focus:outline-none focus:bg-white focus:border-slate-800 shadow-xs"
                       />
                     </div>
@@ -1413,7 +1412,7 @@ function AdminVideoManagementContent() {
                                 : 'text-slate-300 hover:text-white'
                             }`}
                           >
-                            Kartu
+                            Card
                           </button>
                           <button
                             type="button"
@@ -1424,7 +1423,7 @@ function AdminVideoManagementContent() {
                                 : 'text-slate-300 hover:text-white'
                             }`}
                           >
-                            Uji Putar
+                            Test Play
                           </button>
                         </div>
                       </div>
@@ -1453,7 +1452,7 @@ function AdminVideoManagementContent() {
                                   EP {videoForm.episodeNum}
                                 </span>
                                 <span className="px-2 py-0.5 rounded-md bg-white/20 backdrop-blur-md text-[10px] font-bold text-white">
-                                  Level {videoForm.level}
+                                  {videoForm.level === 'Dasar' ? 'Beginner' : videoForm.level === 'Menengah' ? 'Intermediate' : 'Advanced'}
                                 </span>
                               </div>
 
@@ -1476,32 +1475,32 @@ function AdminVideoManagementContent() {
                               <div className="flex items-center justify-between">
                                 <span className="text-[10px] font-bold text-[#c1ff72] uppercase tracking-wider">
                                   {categories.find((c) => c.id === videoForm.categoryId)?.name.split(' ')[0] ||
-                                    'SENAM'}
+                                    'GYMNASTICS'}
                                 </span>
                                 {videoForm.isFree ? (
                                   <span className="inline-flex items-center gap-1 text-[10px] font-black text-[#c1ff72]">
-                                    <Unlock className="w-3 h-3" /> GRATIS
+                                    <Unlock className="w-3 h-3" /> FREE
                                   </span>
                                 ) : (
                                   <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-400">
-                                    <Lock className="w-3 h-3" /> LOGIN KHUSUS
+                                    <Lock className="w-3 h-3" /> MEMBERS ONLY
                                   </span>
                                 )}
                               </div>
 
                               <h4 className="text-sm font-bold text-white leading-snug line-clamp-2">
-                                {videoForm.title.trim() || 'Judul Episode Latihan Akan Muncul Di Sini'}
+                                {videoForm.title.trim() || 'Episode Title Will Appear Here'}
                               </h4>
 
                               <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
                                 {videoForm.description.trim() ||
-                                  'Catatan gerakan dan panduan teknik akan ditampilkan kepada siswa dan atlet.'}
+                                  'Technique cues and coaching notes will be displayed to athletes.'}
                               </p>
                             </div>
                           </div>
 
                           <p className="text-[11px] text-slate-400 text-center">
-                            Pratinjau tampilan kartu di katalog materi web depan.
+                            Preview of the video card in the main catalog.
                           </p>
                         </div>
                       )}
@@ -1517,16 +1516,16 @@ function AdminVideoManagementContent() {
                                   className="w-full h-full border-0"
                                   allow="autoplay; fullscreen"
                                   allowFullScreen
-                                  title="Uji Putar Google Drive"
+                                  title="Google Drive Test Playback"
                                 />
                               </div>
                               <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-xs space-y-1">
                                 <div className="flex items-center gap-1.5 text-[#c1ff72] font-bold">
                                   <CheckCircle2 className="w-3.5 h-3.5" />
-                                  <span>Pemutar Iframe Google Drive Aktif</span>
+                                  <span>Google Drive Embed Player Active</span>
                                 </div>
                                 <p className="text-[11px] text-slate-300">
-                                  Klik tombol play di atas untuk memastikan izin video Anda dapat diputar oleh publik tanpa eror akses.
+                                  Click play above to verify that your video plays without permission errors.
                                 </p>
                               </div>
                             </div>
@@ -1534,10 +1533,10 @@ function AdminVideoManagementContent() {
                             <div className="py-12 px-4 rounded-2xl bg-white/5 border border-white/10 text-center space-y-2">
                               <VideoIcon className="w-8 h-8 text-slate-500 mx-auto" />
                               <p className="text-xs font-bold text-slate-300">
-                                Link Google Drive Belum Diisi
+                                Google Drive Link Not Provided
                               </p>
                               <p className="text-[11px] text-slate-500 max-w-xs mx-auto">
-                                Masukkan link berbagi Google Drive di kolom sebelah kiri untuk menguji pemutar video di sini.
+                                Enter a Google Drive sharing link on the left to test playback here.
                               </p>
                             </div>
                           )}
@@ -1547,16 +1546,16 @@ function AdminVideoManagementContent() {
                       {/* Quick specs pill */}
                       <div className="pt-2 border-t border-slate-800 grid grid-cols-2 gap-2 text-[11px]">
                         <div className="p-2 rounded-xl bg-white/5 border border-white/5">
-                          <span className="text-slate-400 block">Durasi:</span>
+                          <span className="text-slate-400 block">Duration:</span>
                           <span className="font-bold text-white flex items-center gap-1 mt-0.5">
                             <Clock className="w-3 h-3 text-[#c1ff72]" />
                             {videoForm.duration}
                           </span>
                         </div>
                         <div className="p-2 rounded-xl bg-white/5 border border-white/5">
-                          <span className="text-slate-400 block">Tingkat:</span>
+                          <span className="text-slate-400 block">Level:</span>
                           <span className="font-bold text-white mt-0.5 block">
-                            Level {videoForm.level}
+                            {videoForm.level === 'Dasar' ? 'Beginner' : videoForm.level === 'Menengah' ? 'Intermediate' : 'Advanced'}
                           </span>
                         </div>
                       </div>
@@ -1574,15 +1573,15 @@ function AdminVideoManagementContent() {
                       type="button"
                       onClick={handleResetVideoForm}
                       className="min-h-[38px] inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
-                      title="Kembalikan semua nilai ke kondisi awal"
+                      title="Reset all values to initial state"
                     >
                       <RotateCcw className="w-3.5 h-3.5 text-amber-700" />
-                      <span>Kembalikan Data Semula</span>
+                      <span>Reset to Initial</span>
                     </button>
                   ) : (
                     <span className="text-xs text-slate-400 flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                      <span>Semua perubahan tersinkron</span>
+                      <span>All changes saved</span>
                     </span>
                   )}
                 </div>
@@ -1594,14 +1593,14 @@ function AdminVideoManagementContent() {
                     onClick={handleRequestCloseVideoModal}
                     className="min-h-[42px] px-5 py-2 rounded-xl bg-slate-200/80 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm transition-colors cursor-pointer active:scale-95"
                   >
-                    Batal
+                    Cancel
                   </button>
                   <button
                     type="submit"
                     className="min-h-[42px] inline-flex items-center justify-center gap-2 px-6 py-2 rounded-xl bg-[#c1ff72] hover:bg-[#b0f555] text-[#1f2a2e] font-black text-xs sm:text-sm border border-[#a8ed4b] shadow-md transition-all cursor-pointer active:scale-95"
                   >
                     <Save className="w-4 h-4 stroke-[2.5]" />
-                    <span>{editingVideoId ? 'Simpan Perubahan Episode' : 'Simpan Episode Baru'}</span>
+                    <span>{editingVideoId ? 'Save Episode Changes' : 'Save New Episode'}</span>
                   </button>
                 </div>
               </div>
@@ -1618,10 +1617,10 @@ function AdminVideoManagementContent() {
               <AlertTriangle className="w-6 h-6 stroke-[2.5]" />
             </div>
             <h3 className="text-base font-black text-slate-900 leading-tight">
-              Buang Perubahan yang Belum Disimpan?
+              Discard Unsaved Changes?
             </h3>
             <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-              Anda telah mengubah data episode video ini. Jika Anda menutup form sekarang, seluruh input yang baru saja dimasukkan akan dibatalkan.
+              You have modified this video episode. If you close now, any changes you just made will be discarded.
             </p>
             <div className="flex items-center justify-end gap-2.5 mt-5 pt-3.5 border-t border-slate-100">
               <button
@@ -1629,7 +1628,7 @@ function AdminVideoManagementContent() {
                 onClick={() => setShowDirtyConfirm(false)}
                 className="min-h-[38px] px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer active:scale-95"
               >
-                Lanjut Mengedit
+                Continue Editing
               </button>
               <button
                 type="button"
@@ -1637,7 +1636,7 @@ function AdminVideoManagementContent() {
                 className="min-h-[38px] inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs cursor-pointer shadow-sm active:scale-95"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Ya, Buang Perubahan</span>
+                <span>Yes, Discard</span>
               </button>
             </div>
           </div>
@@ -1655,10 +1654,10 @@ function AdminVideoManagementContent() {
                 </div>
                 <div>
                   <h2 className="text-base font-black text-slate-900 leading-tight">
-                    {editingCategoryId ? 'Edit Kategori Senam' : 'Tambah Kategori Baru'}
+                    {editingCategoryId ? 'Edit Apparatus Category' : 'Add New Category'}
                   </h2>
                   <p className="text-[11px] text-slate-500">
-                    Wadah pengelompokan episode latihan.
+                    Group training episodes by apparatus event.
                   </p>
                 </div>
               </div>
@@ -1666,7 +1665,7 @@ function AdminVideoManagementContent() {
                 type="button"
                 onClick={() => setShowCategoryModal(false)}
                 className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors flex items-center justify-center cursor-pointer active:scale-95"
-                aria-label="Tutup dialog"
+                aria-label="Close dialog"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1675,27 +1674,27 @@ function AdminVideoManagementContent() {
             <form onSubmit={handleSaveCategory} className="space-y-3">
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                  Nama Kategori Senam
+                  Category Name
                 </label>
                 <input
                   type="text"
                   required
                   value={categoryForm.name}
                   onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
-                  placeholder="Contoh: Balok Keseimbangan (Balance Beam)"
+                  placeholder="Example: Balance Beam (BB)"
                   className="w-full min-h-[40px] px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-base sm:text-sm font-semibold focus:outline-none focus:bg-white focus:border-slate-800"
                 />
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                  Deskripsi Kategori
+                  Category Description
                 </label>
                 <textarea
                   rows={2}
                   value={categoryForm.description}
                   onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
-                  placeholder="Contoh: Rangkaian manuver keseimbangan, putaran..."
+                  placeholder="Example: Acrobatic series, balance holds, turns, and dismounts..."
                   className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-base sm:text-xs focus:outline-none focus:bg-white focus:border-slate-800"
                 />
               </div>
@@ -1706,14 +1705,14 @@ function AdminVideoManagementContent() {
                   onClick={() => setShowCategoryModal(false)}
                   className="min-h-[42px] px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm transition-colors cursor-pointer flex items-center justify-center active:scale-95"
                 >
-                  Batal
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   className="min-h-[42px] inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#c1ff72] hover:bg-[#b0f555] text-[#1f2a2e] font-black text-xs sm:text-sm border border-[#a8ed4b] shadow-xs transition-all cursor-pointer active:scale-95"
                 >
                   <Save className="w-4 h-4" />
-                  <span>Simpan Kategori</span>
+                  <span>Save Category</span>
                 </button>
               </div>
             </form>
@@ -1740,7 +1739,7 @@ export default function AdminPage() {
       fallback={
         <div className="p-8 text-center text-slate-500">
           <div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm font-semibold">Memuat kurikulum video...</p>
+          <p className="text-sm font-semibold">Loading video curriculum...</p>
         </div>
       }
     >
