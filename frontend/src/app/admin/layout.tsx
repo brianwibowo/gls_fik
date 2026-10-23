@@ -79,7 +79,7 @@ export default function AdminLayout({
             <Link
               href="/admin"
               className={`flex items-center gap-3 overflow-hidden ${isCollapsed ? 'justify-center w-full' : ''}`}
-              title="GLS FIK Admin"
+              title="GCL Admin"
             >
               <div className="w-10 h-10 rounded-xl bg-[#c1ff72] flex items-center justify-center text-[#1f2a2e] font-black text-base shadow-sm shrink-0">
                 <Activity className="w-5 h-5 stroke-[2.5]" />
@@ -87,7 +87,7 @@ export default function AdminLayout({
               {!isCollapsed && (
                 <div className="min-w-0">
                   <span className="text-base font-black text-slate-900 tracking-tight block leading-tight">
-                    GLS FIK
+                    GCL
                   </span>
                   <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">
                     Admin Panel
@@ -210,7 +210,7 @@ export default function AdminLayout({
             <Activity className="w-4 h-4 stroke-[2.5]" />
           </div>
           <div>
-            <span className="font-black text-slate-900 text-base leading-none block">GLS FIK</span>
+            <span className="font-black text-slate-900 text-base leading-none block">GCL</span>
             <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Admin Panel</span>
           </div>
         </Link>
@@ -289,7 +289,7 @@ export default function AdminLayout({
             </h3>
 
             <p id="logout-confirm-desc" className="text-xs text-slate-600 mt-2 leading-relaxed">
-              Are you sure you want to sign out of the GLS FIK admin session? Make sure all changes to videos or users have been saved.
+              Are you sure you want to sign out of the GCL admin session? Make sure all changes to videos or users have been saved.
             </p>
 
             <div className="flex items-center justify-end gap-2.5 mt-6 pt-4 border-t border-slate-100">

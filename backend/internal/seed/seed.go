@@ -6,86 +6,15 @@ import (
 
 	"gls_fik/backend/internal/model"
 
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func SeedData(db *gorm.DB) {
-	seedUsers(db)
 	seedCategories(db)
 	seedVideos(db)
 	seedTechniques(db)
-}
-
-func hashPassword(password string) string {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		log.Fatalf("Failed to hash password: %v", err)
-	}
-	return string(bytes)
-}
-
-func seedUsers(db *gorm.DB) {
-	users := []model.User{
-		{
-			ID:        "admin-gcl",
-			Name:      "GCL Administrator",
-			Email:     "admin@gymnasticcomplevel.com",
-			Password:  hashPassword("admin123"),
-			Role:      "admin",
-			Avatar:    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80",
-			Bio:       "Head of Technical Curriculum & Competition Standards at GCL.",
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		},
-		{
-			ID:        "coach-david",
-			Name:      "Coach David Chen",
-			Email:     "coach@gymnasticcomplevel.com",
-			Password:  hashPassword("coach123"),
-			Role:      "coach",
-			Avatar:    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-			Bio:       "National MAG Coach & FIG Certified Technical Evaluator with 14 years of coaching.",
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		},
-		{
-			ID:        "athlete-marcus",
-			Name:      "Marcus Vance",
-			Email:     "athlete@gymnasticcomplevel.com",
-			Password:  hashPassword("athlete123"),
-			Role:      "athlete",
-			Avatar:    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
-			Bio:       "Senior Men's Artistic Gymnastics competitor specializing in Floor and Still Rings.",
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		},
-		{
-			ID:        "athlete-liam",
-			Name:      "Liam Parker",
-			Email:     "athlete2@gymnasticcomplevel.com",
-			Password:  hashPassword("athlete123"),
-			Role:      "athlete",
-			Avatar:    "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
-			Bio:       "Junior All-Around artistic gymnast currently mastering Level 2 apparatus routines.",
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		},
-	}
-
-	for _, u := range users {
-		var existing model.User
-		if err := db.First(&existing, "email = ?", u.Email).Error; err != nil {
-			db.Create(&u)
-		} else {
-			db.Model(&existing).Updates(map[string]interface{}{
-				"role":   u.Role,
-				"bio":    u.Bio,
-				"avatar": u.Avatar,
-			})
-		}
-	}
-	log.Println("[SEED] User accounts (admin, coach, athletes) synchronized.")
+	seedVideoChecklists(db)
 }
 
 func seedCategories(db *gorm.DB) {
@@ -147,16 +76,8 @@ func seedCategories(db *gorm.DB) {
 	}
 
 	for _, c := range categories {
-		var existing model.Category
-		if err := db.First(&existing, "id = ?", c.ID).Error; err != nil {
-			db.Create(&c)
-		} else {
-			db.Model(&existing).Updates(map[string]interface{}{
-				"name":        c.Name,
-				"description": c.Description,
-				"thumbnail":   c.Thumbnail,
-				"order":       c.Order,
-			})
+		if err := db.Clauses(clause.OnConflict{DoNothing: true}).Create(&c).Error; err != nil {
+			log.Fatalf("Gagal menyiapkan kategori: %v", err)
 		}
 	}
 	log.Println("[SEED] 6 apparatus categories synchronized.")
@@ -443,15 +364,8 @@ func seedVideos(db *gorm.DB) {
 	}
 
 	for _, v := range videos {
-		var existing model.Video
-		if err := db.First(&existing, "id = ?", v.ID).Error; err != nil {
-			db.Create(&v)
-		} else {
-			db.Model(&existing).Updates(map[string]interface{}{
-				"title":       v.Title,
-				"description": v.Description,
-				"level":       v.Level,
-			})
+		if err := db.Clauses(clause.OnConflict{DoNothing: true}).Create(&v).Error; err != nil {
+			log.Fatalf("Gagal menyiapkan video: %v", err)
 		}
 	}
 	log.Println("[SEED] 18 curriculum videos synchronized.")
@@ -541,8 +455,8 @@ func seedTechniques(db *gorm.DB) {
 		{ID: "tech-vt-1-3", CategoryID: "cat-vt", Level: 1, Name: "Hurdle", Description: "Lompatan hurdle pendek bertenaga menuju papan pegas (springboard).", Order: 3},
 		{ID: "tech-vt-1-4", CategoryID: "cat-vt", Level: 1, Name: "Two-foot Take-off", Description: "Hantaman serentak dua telapak kaki di papan pegas menghasilkan tolakan vertikal.", Order: 4},
 		{ID: "tech-vt-1-5", CategoryID: "cat-vt", Level: 1, Name: "Jump to Mat", Description: "Lompatan eksplosif ke atas tumpukan matras pendaratan.", Order: 5},
-		{ID: "tech-vt-1-6", CategoryID: "cat-vt", Level: 1, Name: "Handstand to Flat Back", Description: "Dorongan handstand ke punggung rata di atas matras (Skill 2).", Order: 6},
-		{ID: "tech-vt-1-7", CategoryID: "cat-vt", Level: 1, Name: "Controlled Landing", Description: "Meredam hentakan pendaratan dengan lutut fleksibel dan dada tegap.", Order: 7},
+		{ID: "tech-vt-1-6", CategoryID: "cat-vt", Level: 1, Name: "Handstand to Flat Back", Description: "Dorongan handstand ke punggung rata di atas matras (Skill 2).", Order: 7},
+		{ID: "tech-vt-1-7", CategoryID: "cat-vt", Level: 1, Name: "Controlled Landing", Description: "Meredam hentakan pendaratan dengan lutut fleksibel dan dada tegap.", Order: 6},
 
 		// Vault (VT) - Level 2
 		{ID: "tech-vt-2-1", CategoryID: "cat-vt", Level: 2, Name: "Starting Position", Description: "Pengecekan jarak awalan dan fokus di garis start.", Order: 1},
@@ -612,17 +526,8 @@ func seedTechniques(db *gorm.DB) {
 	}
 
 	for _, t := range techniques {
-		var existing model.Technique
-		if err := db.First(&existing, "id = ?", t.ID).Error; err != nil {
-			db.Create(&t)
-		} else {
-			db.Model(&existing).Updates(map[string]interface{}{
-				"name":        t.Name,
-				"description": t.Description,
-				"order":       t.Order,
-				"level":       t.Level,
-				"category_id": t.CategoryID,
-			})
+		if err := db.Clauses(clause.OnConflict{DoNothing: true}).Create(&t).Error; err != nil {
+			log.Fatalf("Gagal menyiapkan kurikulum: %v", err)
 		}
 	}
 	log.Println("[SEED] All 6 apparatus curriculum technique checklist items synchronized.")

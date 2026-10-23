@@ -1,4 +1,4 @@
-// Shared TypeScript interfaces for GLS FIK data layer.
+// Shared GCL data contracts.
 
 export interface User {
   id: string;
@@ -32,6 +32,35 @@ export interface Video {
   episodeNum: number;
   isFree: boolean;     // true = watchable without login
   createdAt: string;
+  checklistItems?: ChecklistDefinition[];
+}
+
+export interface ChecklistDefinition {
+  id: string;
+  name: string;
+}
+
+export type LearningStatus = 'pending' | 'review' | 'understood';
+
+export interface LearningItem extends ChecklistDefinition {
+  status: LearningStatus;
+  note: string;
+}
+
+export interface LearningTrackerData {
+  videoId: string;
+  items: LearningItem[];
+  personalNote: string;
+  totalCount: number;
+  understoodCount: number;
+  reviewCount: number;
+  pendingCount: number;
+  percentage: number;
+}
+
+export interface VideoPlayback {
+  driveFileId: string;
+  driveLink: string;
 }
 
 export interface AuthSession {

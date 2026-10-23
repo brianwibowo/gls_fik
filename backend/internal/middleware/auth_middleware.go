@@ -1,26 +1,20 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
+	"gls_fik/backend/internal/config"
 	"gls_fik/backend/internal/model"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"gorm.io/gorm"
 )
 
-func getJWTSecret() []byte {
-	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		secret = "gls_fik_super_secret_jwt_key_2026"
-	}
-	return []byte(secret)
-}
-
-// Custom Claims untuk JWT token
 type Claims struct {
 	UserID string `json:"userId"`
 	Email  string `json:"email"`
@@ -28,84 +22,78 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// GenerateToken membuat token JWT baru dengan masa aktif 7 hari
 func GenerateToken(user model.User) (string, error) {
-	expirationTime := time.Now().Add(7 * 24 * time.Hour)
-	claims := &Claims{
-		UserID: user.ID,
-		Email:  user.Email,
-		Role:   user.Role,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			Issuer:    "gls-fik-backend",
-		},
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		return "", errors.New("JWT_SECRET belum dikonfigurasi")
 	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(getJWTSecret())
+	claims := &Claims{UserID: user.ID, Email: user.Email, Role: user.Role, RegisteredClaims: jwt.RegisteredClaims{
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
+		IssuedAt:  jwt.NewNumericDate(time.Now()), Issuer: "gls-fik-backend",
+	}}
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(secret))
 }
 
-// AuthMiddleware memvalidasi Authorization header: Bearer <token>
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware() gin.HandlerFunc { return authenticate(false) }
+func OptionalAuth() gin.HandlerFunc   { return authenticate(true) }
+
+func authenticate(optional bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Header Authorization diperlukan"})
-			c.Abort()
+		header := c.GetHeader("Authorization")
+		if optional && header == "" {
+			c.Next()
 			return
 		}
-
-		parts := strings.SplitN(authHeader, " ", 2)
-		if !(len(parts) == 2 && parts[0] == "Bearer") {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Format token harus: Bearer <token>"})
-			c.Abort()
+		parts := strings.Fields(header)
+		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Silakan masuk untuk mengakses materi ini"})
 			return
 		}
-
-		tokenString := parts[1]
+		secret := os.Getenv("JWT_SECRET")
+		if secret == "" || config.DB == nil {
+			c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"error": "Layanan autentikasi belum tersedia"})
+			return
+		}
 		claims := &Claims{}
-
-		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			return getJWTSecret(), nil
-		})
-
-		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token tidak valid atau sudah kedaluwarsa"})
-			c.Abort()
+		token, err := jwt.ParseWithClaims(parts[1], claims, func(token *jwt.Token) (any, error) { return []byte(secret), nil },
+			jwt.WithValidMethods([]string{"HS256"}), jwt.WithExpirationRequired(), jwt.WithIssuer("gls-fik-backend"))
+		if err != nil || !token.Valid || claims.UserID == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Sesi berakhir. Silakan masuk kembali"})
 			return
 		}
-
-		// Simpan data user ke dalam context agar handler berikutnya bisa mengaksesnya
-		c.Set("userId", claims.UserID)
-		c.Set("userEmail", claims.Email)
-		c.Set("userRole", claims.Role)
-		c.Set("role", claims.Role)
-
+		var user model.User
+		if err := config.DB.First(&user, "id = ?", claims.UserID).Error; err != nil {
+			status, message := http.StatusInternalServerError, "Gagal memeriksa akun"
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status, message = http.StatusUnauthorized, "Akun tidak ditemukan. Silakan masuk kembali"
+			}
+			c.AbortWithStatusJSON(status, gin.H{"error": message})
+			return
+		}
+		// Role changes take effect on the next request, including existing sessions.
+		c.Set("userId", user.ID)
+		c.Set("userEmail", user.Email)
+		c.Set("userRole", user.Role)
+		c.Set("role", user.Role)
 		c.Next()
 	}
 }
 
-// AdminOnly memeriksa apakah role user adalah 'admin'
 func AdminOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		role, exists := c.Get("userRole")
-		if !exists || role != "admin" {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Access denied: Administrator role required"})
-			c.Abort()
+		if c.GetString("userRole") != "admin" {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Akses admin diperlukan"})
 			return
 		}
 		c.Next()
 	}
 }
 
-// CoachOrAdminOnly checks if user is a coach or admin
 func CoachOrAdminOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		role, exists := c.Get("userRole")
-		if !exists || (role != "admin" && role != "coach") {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Access denied: Coach or Administrator role required"})
-			c.Abort()
+		role := c.GetString("userRole")
+		if role != "admin" && role != "coach" {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Akses pelatih atau admin diperlukan"})
 			return
 		}
 		c.Next()

@@ -33,6 +33,7 @@ export function Navbar() {
   const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!isReady) return;
     let isMounted = true;
     async function loadData() {
       try {
@@ -49,7 +50,7 @@ export function Navbar() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [isReady, isLoggedIn, user?.role]);
 
   useEffect(() => {
     if (!isHome) return;
@@ -65,8 +66,18 @@ export function Navbar() {
       if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false);
     };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setMoreOpen(false);
+      setProfileOpen(false);
+      setMenuOpen(false);
+    };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
   }, []);
 
   // Helper untuk mencari episode pertama suatu kategori
@@ -134,7 +145,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Brand */}
-          <Link href="/" className="flex items-center gap-2.5 sm:gap-3">
+          <Link href="/" aria-label="Gymnastics Competition Level (GCL)" className="flex items-center gap-2.5 sm:gap-3">
             <div
               className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm transition-all shadow-xs ${
                 isSolid
@@ -150,14 +161,14 @@ export function Navbar() {
                   isSolid ? 'text-[#1f2a2e]' : 'text-white drop-shadow-xs'
                 }`}
               >
-                GLS FIK
+                GCL
               </span>
               <span
-                className={`text-[10px] font-bold transition-colors ${
+                className={`hidden min-[380px]:block text-[10px] font-bold transition-colors ${
                   isSolid ? 'text-[#1f2a2e]/70' : 'text-slate-300'
                 }`}
               >
-                Gymnastics Learning System
+                Gymnastics Competition Level
               </span>
             </div>
           </Link>
@@ -180,6 +191,8 @@ export function Navbar() {
                 <button
                   type="button"
                   onClick={() => setMoreOpen(!moreOpen)}
+                  aria-expanded={moreOpen}
+                  aria-controls="more-navigation"
                   className={`flex items-center gap-1 text-sm font-bold transition-colors cursor-pointer ${
                     isSolid
                       ? 'text-[#1f2a2e]/80 hover:text-[#1f2a2e]'
@@ -193,7 +206,7 @@ export function Navbar() {
                 </button>
 
                 {moreOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden z-50">
+                  <div id="more-navigation" className="absolute top-full left-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden z-50">
                     {extraCategories.map((item) => (
                       <Link
                         key={item.id}
@@ -234,6 +247,9 @@ export function Navbar() {
                     <button
                       type="button"
                       onClick={() => setProfileOpen(!profileOpen)}
+                      aria-label="Menu akun"
+                      aria-expanded={profileOpen}
+                      aria-controls="account-navigation"
                       className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer ${
                         isSolid
                           ? 'bg-[#1f2a2e] text-white hover:bg-black border border-[#1f2a2e]'
@@ -261,7 +277,7 @@ export function Navbar() {
                     </button>
 
                     {profileOpen && (
-                      <div className="absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden z-50">
+                      <div id="account-navigation" className="absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden z-50">
                         <div className="px-4 py-3 border-b border-slate-100">
                           <p className="text-sm font-bold text-slate-900">{user?.name}</p>
                           <p className="text-xs text-slate-500 truncate">{user?.email}</p>

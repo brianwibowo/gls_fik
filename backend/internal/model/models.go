@@ -9,7 +9,7 @@ type User struct {
 	ID        string    `gorm:"primaryKey;type:varchar(64)" json:"id"`
 	Name      string    `gorm:"type:varchar(128);not null" json:"name"`
 	Email     string    `gorm:"uniqueIndex;type:varchar(128);not null" json:"email"`
-	Password  string    `gorm:"type:varchar(255)" json:"-"` // Omitted in JSON responses
+	Password  string    `gorm:"type:varchar(255)" json:"-"`                  // Omitted in JSON responses
 	Role      string    `gorm:"type:varchar(32);default:'user'" json:"role"` // 'user' or 'admin'
 	Avatar    string    `gorm:"type:varchar(255)" json:"avatar,omitempty"`
 	Bio       string    `gorm:"type:text" json:"bio,omitempty"`
@@ -22,7 +22,7 @@ type Category struct {
 	ID          string    `gorm:"primaryKey;type:varchar(64)" json:"id"` // e.g., 'cat-fx'
 	Name        string    `gorm:"type:varchar(128);not null" json:"name"`
 	Description string    `gorm:"type:text" json:"description"`
-	Thumbnail   string    `gorm:"type:varchar(255)" json:"thumbnail"`
+	Thumbnail   string    `gorm:"type:text" json:"thumbnail"`
 	Order       int       `gorm:"not null;default:0" json:"order"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
@@ -31,19 +31,21 @@ type Category struct {
 
 // Video represents an apparatus technique demonstration video
 type Video struct {
-	ID          string    `gorm:"primaryKey;type:varchar(64)" json:"id"` // e.g., 'vid-fx-1'
-	CategoryID  string    `gorm:"type:varchar(64);index;not null" json:"categoryId"`
-	Title       string    `gorm:"type:varchar(255);not null" json:"title"`
-	Description string    `gorm:"type:text" json:"description"`
-	DriveFileID string    `gorm:"type:varchar(128)" json:"driveFileId"`
-	DriveLink   string    `gorm:"type:text" json:"driveLink"`
-	Thumbnail   string    `gorm:"type:varchar(255)" json:"thumbnail"`
-	Duration    string    `gorm:"type:varchar(32)" json:"duration"`
-	Level       string    `gorm:"type:varchar(64)" json:"level"` // 'Foundation', 'Intermediate', 'Advanced' (or Level 1/2/3)
-	EpisodeNum  int       `gorm:"default:1" json:"episodeNum"`
-	IsFree      bool      `gorm:"default:false" json:"isFree"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
+	ID                   string               `gorm:"primaryKey;type:varchar(64)" json:"id"` // e.g., 'vid-fx-1'
+	CategoryID           string               `gorm:"type:varchar(64);index;not null" json:"categoryId"`
+	Title                string               `gorm:"type:varchar(255);not null" json:"title"`
+	Description          string               `gorm:"type:text" json:"description"`
+	DriveFileID          string               `gorm:"type:varchar(128)" json:"driveFileId"`
+	DriveLink            string               `gorm:"type:text" json:"driveLink"`
+	Thumbnail            string               `gorm:"type:text" json:"thumbnail"`
+	Duration             string               `gorm:"type:varchar(32)" json:"duration"`
+	Level                string               `gorm:"type:varchar(64)" json:"level"` // 'Foundation', 'Intermediate', 'Advanced' (or Level 1/2/3)
+	EpisodeNum           int                  `gorm:"default:1" json:"episodeNum"`
+	IsFree               bool                 `gorm:"default:false" json:"isFree"`
+	CreatedAt            time.Time            `json:"createdAt"`
+	UpdatedAt            time.Time            `json:"updatedAt"`
+	ChecklistItems       []VideoChecklistItem `gorm:"foreignKey:VideoID;constraint:OnDelete:CASCADE" json:"checklistItems"`
+	ChecklistInitialized bool                 `gorm:"not null;default:false" json:"-"`
 }
 
 // Technique represents a curriculum skill/movement item for an apparatus level
@@ -60,13 +62,13 @@ type Technique struct {
 
 // AthleteProgress records an athlete's completion of a specific technique
 type AthleteProgress struct {
-	ID          string    `gorm:"primaryKey;type:varchar(64)" json:"id"`
-	AthleteID   string    `gorm:"type:varchar(64);index;not null" json:"athleteId"`
-	TechniqueID string    `gorm:"type:varchar(64);index;not null" json:"techniqueId"`
-	IsCompleted bool      `gorm:"default:false" json:"isCompleted"`
+	ID          string     `gorm:"primaryKey;type:varchar(64)" json:"id"`
+	AthleteID   string     `gorm:"type:varchar(64);index;not null" json:"athleteId"`
+	TechniqueID string     `gorm:"type:varchar(64);index;not null" json:"techniqueId"`
+	IsCompleted bool       `gorm:"default:false" json:"isCompleted"`
 	CompletedAt *time.Time `json:"completedAt,omitempty"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
 }
 
 // TechniqueEvaluation stores coaching notes and status per technique for an athlete
@@ -80,4 +82,29 @@ type TechniqueEvaluation struct {
 	Score       string    `gorm:"type:varchar(32)" json:"score,omitempty"` // e.g., 'Mastered', 'Needs Work', 'Developing'
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
+}
+
+type VideoChecklistItem struct {
+	VideoID string `gorm:"primaryKey;type:varchar(64)" json:"-"`
+	ID      string `gorm:"primaryKey;type:varchar(64)" json:"id"`
+	Name    string `gorm:"type:varchar(500);not null" json:"name"`
+	Order   int    `gorm:"not null;default:0" json:"-"`
+}
+
+type PersonalVideoProgress struct {
+	UserID    string    `gorm:"primaryKey;type:varchar(64)" json:"-"`
+	VideoID   string    `gorm:"primaryKey;type:varchar(64)" json:"-"`
+	ItemID    string    `gorm:"primaryKey;type:varchar(64)" json:"-"`
+	Status    string    `gorm:"type:varchar(16);not null;default:'pending';check:status IN ('pending','review','understood')" json:"status"`
+	Note      string    `gorm:"type:text" json:"note"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+}
+
+type PersonalVideoNote struct {
+	UserID    string    `gorm:"primaryKey;type:varchar(64)" json:"-"`
+	VideoID   string    `gorm:"primaryKey;type:varchar(64)" json:"-"`
+	Note      string    `gorm:"type:text" json:"note"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
 }

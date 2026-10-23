@@ -46,9 +46,15 @@ func MigrateDatabase(db *gorm.DB) {
 		&model.Technique{},
 		&model.AthleteProgress{},
 		&model.TechniqueEvaluation{},
+		&model.VideoChecklistItem{},
+		&model.PersonalVideoProgress{},
+		&model.PersonalVideoNote{},
 	)
 	if err != nil {
 		log.Fatalf("Gagal auto-migrate tabel: %v", err)
+	}
+	if err := db.Exec("UPDATE users SET email = lower(trim(email)) WHERE email <> lower(trim(email))").Error; err != nil {
+		log.Fatalf("Gagal menormalkan email pengguna: %v", err)
 	}
 	log.Println("Berhasil migrasi tabel: users, categories, videos, techniques, athlete_progress, technique_evaluations")
 }

@@ -7,7 +7,6 @@ import { Navbar } from '@/components/Navbar';
 import { VideoCard } from '@/components/VideoCard';
 import { ApparatusSection } from '@/components/landing/ApparatusSection';
 import { LevelProgression } from '@/components/landing/LevelProgression';
-import { TestimoniSection } from '@/components/landing/TestimoniSection';
 import { FAQSection } from '@/components/landing/FAQSection';
 import { CTABanner } from '@/components/landing/CTABanner';
 import { useAuth } from '@/lib/auth';
@@ -108,15 +107,21 @@ function CategoryVideoRow({
 
 // Main homepage component
 export default function HomePage() {
-  const { isReady } = useAuth();
+  const { isReady, isLoggedIn } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [videos, setVideos] = useState<Video[]>([]);
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [activeApparatus, setActiveApparatus] = useState<string>('cat-fx');
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [catalogError, setCatalogError] = useState('');
+  const [catalogRetry, setCatalogRetry] = useState(0);
 
   useEffect(() => {
+    if (!isReady) return;
     let isMounted = true;
     async function loadData() {
+      setCatalogLoading(true);
+      setCatalogError('');
       try {
         const [cats, vids] = await Promise.all([apiGetCategories(), apiGetVideos()]);
         if (isMounted) {
@@ -124,14 +129,16 @@ export default function HomePage() {
           setVideos(vids);
         }
       } catch (err) {
-        console.error('Failed to load data:', err);
+        if (isMounted) setCatalogError(err instanceof Error ? err.message : 'Katalog gagal dimuat. Coba lagi.');
+      } finally {
+        if (isMounted) setCatalogLoading(false);
       }
     }
     loadData();
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [isReady, isLoggedIn, catalogRetry]);
 
   const videosByCategory = useMemo(() => {
     const map: Record<string, Video[]> = {};
@@ -207,9 +214,7 @@ export default function HomePage() {
                   <path d="M12 2L13.8 8.2L20 6.5L16.2 12L20 17.5L13.8 15.8L12 22L10.2 15.8L4 17.5L7.8 12L4 6.5L10.2 8.2L12 2Z" />
                 </svg>
                 <p className="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed max-w-md">
-                  Artistic Gymnastics Learning System{' '}
-                  <span className="text-[#c1ff72] font-bold">Faculty of Sports Science</span> for
-                  movement technique, vault routines, and stick landings.
+                  Gymnastics Competition Level (GCL). Video materi senam artistik menurut alat dan level, dengan checklist pemahaman pribadi.
                 </p>
               </motion.div>
 
@@ -221,7 +226,7 @@ export default function HomePage() {
                 className="flex flex-wrap items-baseline gap-2.5 sm:gap-5 pt-1"
               >
                 <h1 className="text-5xl xs:text-6xl sm:text-8xl md:text-9xl font-black text-white tracking-tighter leading-none select-none">
-                  GLS FIK.
+                  GCL.
                 </h1>
                 <motion.a
                   whileHover={{ scale: 1.08 }}
@@ -262,10 +267,10 @@ export default function HomePage() {
             </div>
 
             <h2 className="text-2xl sm:text-4xl font-black text-[#1F2A2E] tracking-tight">
-              What is GLS FIK?
+              What is GCL?
             </h2>
             <p className="text-xs sm:text-sm text-[#52636A] mt-2 leading-relaxed">
-              Gymnastics Learning System (GLS) is a digital learning platform developed by the Faculty of Sports Science. Designed to help students, coaches, and athletes master artistic gymnastics techniques through high-quality instructional videos organized systematically by apparatus.
+              Gymnastics Competition Level (GCL) is a digital learning platform for artistic gymnastics. Watch instructional videos organized by apparatus and level, then use a personal checklist to record what you understand and what needs another review.
             </p>
           </motion.div>
 
@@ -358,7 +363,7 @@ export default function HomePage() {
         videos={videos}
       />
 
-      {/* ── Section 04: How to Learn on GLS FIK ── */}
+      {/* ── Section 04: How to Learn on GCL ── */}
       <section id="cara-belajar" className="py-20 bg-[#1F2A2E] border-b border-[#2D3A3F] relative overflow-hidden text-white scroll-mt-16">
         <div className="absolute top-10 right-10 w-[500px] h-[350px] bg-[radial-gradient(circle,rgba(193,255,114,0.12)_0%,transparent_70%)] pointer-events-none blur-3xl -z-0" />
         <div className="absolute bottom-10 left-10 w-[400px] h-[300px] bg-[radial-gradient(circle,rgba(193,255,114,0.06)_0%,transparent_70%)] pointer-events-none blur-3xl -z-0" />
@@ -382,7 +387,7 @@ export default function HomePage() {
             </div>
 
             <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-              Learning with GLS FIK
+              Learning with GCL
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 mt-1.5 max-w-xl">
               Four simple steps to start learning artistic gymnastics with this platform.
@@ -411,9 +416,9 @@ export default function HomePage() {
               },
               {
                 num: '04',
-                title: 'Practice & Master',
-                desc: 'Open the video player to study form and landing execution. Use the episode sidebar to navigate through lessons.',
-                sub: 'HD player with episode playlist',
+                title: 'Track Your Understanding',
+                desc: 'Use the checklist beside each video to record what you understand, flag points to review, and save your own notes.',
+                sub: 'Progress saved privately to your account',
               },
             ].map((step, idx) => (
               <motion.div
@@ -508,7 +513,10 @@ export default function HomePage() {
 
           {/* Video Rows */}
           <div className="space-y-14">
-            {filteredCategories.map((cat) => (
+            {catalogLoading && <p role="status" className="text-sm text-slate-600">Memuat katalog video…</p>}
+            {catalogError && <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-800"><p>Katalog video belum dapat dimuat. {catalogError}</p><button type="button" onClick={() => setCatalogRetry((value) => value + 1)} className="mt-3 min-h-11 rounded-xl bg-red-800 px-4 py-2 font-bold text-white">Coba lagi</button></div>}
+            {!catalogLoading && !catalogError && videos.length === 0 && <p className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">Belum ada video yang diterbitkan. Materi baru akan muncul di katalog ini setelah ditambahkan oleh admin.</p>}
+            {!catalogLoading && !catalogError && videos.length > 0 && filteredCategories.map((cat) => (
               <CategoryVideoRow
                 key={cat.id}
                 category={cat}
@@ -522,31 +530,28 @@ export default function HomePage() {
       {/* ── Section 06: Level Progression ── */}
       <LevelProgression />
 
-      {/* ── Section 07: Testimoni ── */}
-      <TestimoniSection />
-
-      {/* ── Section 08: FAQ ── */}
+      {/* ── Section 07: FAQ ── */}
       <FAQSection />
 
-      {/* ── Section 09: CTA Banner ── */}
+      {/* ── Section 08: CTA Banner ── */}
       <CTABanner />
 
       {/* Footer (Dark Anchoring Footer) */}
       <footer className="border-t border-[#29363B] bg-[#172124] py-12 text-center text-xs text-slate-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
-          <div className="flex items-center justify-center gap-2.5">
+          <div className="flex flex-wrap items-center justify-center gap-2.5">
             <div className="w-7 h-7 rounded-xl bg-[#C1FF72] flex items-center justify-center text-[#1F2A2E] shadow-sm">
               <Activity className="w-4 h-4 stroke-[3]" />
             </div>
-            <span className="font-black text-sm text-white">GLS FIK</span>
+            <span className="font-black text-sm text-white">GCL</span>
             <span className="text-slate-600">•</span>
-            <span className="font-semibold text-xs text-slate-400">Gymnastics Learning System</span>
+            <span className="font-semibold text-xs text-slate-400">Gymnastics Competition Level</span>
           </div>
           <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
             Digital gymnastics curriculum platform for coaches, athletes, and students of the Faculty of Sports Science.
           </p>
           <p className="text-[11px] text-slate-500 pt-2">
-            &copy; {new Date().getFullYear()} GLS FIK. All rights reserved.
+            &copy; {new Date().getFullYear()} Gymnastics Competition Level (GCL). All rights reserved.
           </p>
         </div>
       </footer>

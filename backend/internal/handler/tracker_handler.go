@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -10,6 +11,7 @@ import (
 	"gls_fik/backend/internal/model"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // GetTechniques retrieves techniques with optional categoryId and level query parameters
@@ -45,6 +47,10 @@ type ProgressItem struct {
 // GetAthleteTechniqueTracker returns all techniques for an apparatus & level with an athlete's progress & notes
 func GetAthleteTechniqueTracker(c *gin.Context) {
 	athleteID := c.Query("athleteId")
+	if athleteID != "" && athleteID != c.GetString("userId") {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Progres hanya dapat diakses pemilik akun"})
+		return
+	}
 	if athleteID == "" {
 		// Default to authenticated user ID from token
 		if currentUserID, exists := c.Get("userId"); exists {
@@ -70,11 +76,17 @@ func GetAthleteTechniqueTracker(c *gin.Context) {
 			tQuery = tQuery.Where("level = ?", lvl)
 		}
 	}
-	tQuery.Find(&techniques)
+	if err := tQuery.Find(&techniques).Error; err != nil {
+		trackerError(c)
+		return
+	}
 
 	// Fetch athlete progress records
 	var progressList []model.AthleteProgress
-	config.DB.Where("athlete_id = ?", athleteID).Find(&progressList)
+	if err := config.DB.Where("athlete_id = ?", athleteID).Find(&progressList).Error; err != nil {
+		trackerError(c)
+		return
+	}
 	progressMap := make(map[string]bool)
 	for _, p := range progressList {
 		progressMap[p.TechniqueID] = p.IsCompleted
@@ -82,7 +94,10 @@ func GetAthleteTechniqueTracker(c *gin.Context) {
 
 	// Fetch athlete evaluation notes
 	var evalList []model.TechniqueEvaluation
-	config.DB.Where("athlete_id = ?", athleteID).Find(&evalList)
+	if err := config.DB.Where("athlete_id = ?", athleteID).Find(&evalList).Error; err != nil {
+		trackerError(c)
+		return
+	}
 	evalMap := make(map[string]model.TechniqueEvaluation)
 	for _, e := range evalList {
 		evalMap[e.TechniqueID] = e
@@ -132,7 +147,6 @@ type ToggleProgressRequest struct {
 // ToggleAthleteProgress allows an athlete or coach to mark a technique completed/uncompleted
 func ToggleAthleteProgress(c *gin.Context) {
 	currentUserID, _ := c.Get("userId")
-	currentUserRole, _ := c.Get("role")
 
 	var req ToggleProgressRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -141,12 +155,20 @@ func ToggleAthleteProgress(c *gin.Context) {
 	}
 
 	targetAthleteID := req.AthleteID
-	if targetAthleteID == "" || currentUserRole == "athlete" {
+	if targetAthleteID != "" && targetAthleteID != currentUserID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Progres hanya dapat diubah pemilik akun"})
+		return
+	}
+	if targetAthleteID == "" {
 		targetAthleteID = currentUserID.(string)
 	}
 
 	var progress model.AthleteProgress
 	err := config.DB.Where("athlete_id = ? AND technique_id = ?", targetAthleteID, req.TechniqueID).First(&progress).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		trackerError(c)
+		return
+	}
 
 	now := time.Now()
 	if err != nil {
@@ -201,9 +223,17 @@ func SaveTechniqueEvaluation(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if req.AthleteID != c.GetString("userId") {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Catatan hanya dapat diubah pemilik akun"})
+		return
+	}
 
 	var evaluation model.TechniqueEvaluation
 	err := config.DB.Where("athlete_id = ? AND technique_id = ?", req.AthleteID, req.TechniqueID).First(&evaluation).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		trackerError(c)
+		return
+	}
 
 	now := time.Now()
 	if err != nil {

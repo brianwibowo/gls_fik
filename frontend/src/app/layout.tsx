@@ -13,20 +13,20 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "GLS - Gymnastics Learning System | Artistic Gymnastics Video Platform",
+  title: "Gymnastics Competition Level (GCL)",
   description:
     "Digital gymnastics learning platform for coaches, athletes, and students. Learn gymnastics techniques with structured curriculum and high-quality instructional videos.",
   keywords: [
-    "Gymnastics Learning System",
-    "GLS",
+    "Gymnastics Competition Level",
+    "GCL",
     "Artistic Gymnastics",
     "Gymnastics Coaching",
     "Gymnastics Videos",
     "Sports Science",
   ],
-  authors: [{ name: "Gymnastics Learning System" }],
+  authors: [{ name: "Gymnastics Competition Level" }],
   openGraph: {
-    title: "GLS - Gymnastics Learning System",
+    title: "Gymnastics Competition Level (GCL)",
     description:
       "Digital gymnastics learning platform for coaches and athletes. Structured training with high quality video.",
     type: "website",
@@ -40,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${plusJakartaSans.variable} scroll-smooth`}>
+    <html lang="en" data-scroll-behavior="smooth" className={`${plusJakartaSans.variable} scroll-smooth`}>
       <body className="min-h-screen flex flex-col bg-[#0a0a0a] text-white antialiased">
         <GoogleAuthProvider>
           <AuthProvider>

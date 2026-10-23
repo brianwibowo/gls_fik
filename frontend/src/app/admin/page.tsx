@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -15,6 +15,8 @@ import {
   apiDeleteCategory,
 } from '@/lib/api';
 import { extractDriveFileId } from '@/lib/utils';
+import { videoLevelLabel } from '@/lib/video-level';
+import { VideoThumbnail, getDriveThumbnailUrl, isVideoThumbnailOverride } from '@/components/VideoThumbnail';
 import type { Video, Category } from '@/lib/types';
 import {
   Plus,
@@ -44,6 +46,7 @@ import {
 
 function AdminVideoManagementContent() {
   const searchParams = useSearchParams();
+  const autoOpenHandled = useRef(false);
 
   const [videos, setVideos] = useState<Video[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -55,6 +58,10 @@ function AdminVideoManagementContent() {
   const [itemsPerPage, setItemsPerPage] = useState(4); // Default minimal 4 langsung aktif
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [videoFormError, setVideoFormError] = useState('');
+  const [isSavingVideo, setIsSavingVideo] = useState(false);
 
   // Video Form Modal State
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -67,10 +74,11 @@ function AdminVideoManagementContent() {
     description: '',
     driveLink: '',
     duration: '04:00',
-    level: 'Dasar',
+    level: 'Level 1',
     episodeNum: 1,
     isFree: false,
     thumbnail: '',
+    checklistText: '',
   });
   const [initialVideoForm, setInitialVideoForm] = useState<typeof videoForm | null>(null);
 
@@ -95,12 +103,16 @@ function AdminVideoManagementContent() {
   };
 
   const refreshData = useCallback(async () => {
+    setIsLoading(true);
+    setLoadError('');
     try {
       const [cats, vids] = await Promise.all([apiGetCategories(), apiGetVideos()]);
       setCategories(cats);
       setVideos(vids);
     } catch (err) {
-      console.error('Failed to fetch data:', err);
+      setLoadError(err instanceof Error ? err.message : 'Video dan kategori gagal dimuat. Coba lagi.');
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -116,7 +128,8 @@ function AdminVideoManagementContent() {
       videoForm.level !== initialVideoForm.level ||
       videoForm.episodeNum !== initialVideoForm.episodeNum ||
       videoForm.isFree !== initialVideoForm.isFree ||
-      videoForm.thumbnail !== initialVideoForm.thumbnail
+      videoForm.thumbnail !== initialVideoForm.thumbnail ||
+      videoForm.checklistText !== initialVideoForm.checklistText
     );
   }, [videoForm, initialVideoForm]);
 
@@ -124,10 +137,7 @@ function AdminVideoManagementContent() {
   const openAddEpisodeModal = useCallback((catId?: string) => {
     const targetCatId = catId || categories[0]?.id || 'cat-fx';
     const catVideos = videos.filter((v) => v.categoryId === targetCatId);
-    const nextEpisodeNum = catVideos.length + 1;
-
-    const matchedCat = categories.find((c) => c.id === targetCatId);
-    const defaultThumbnail = matchedCat?.thumbnail || '/images/apparatus-floor.webp';
+    const nextEpisodeNum = Math.max(0, ...catVideos.map((video) => video.episodeNum)) + 1;
 
     const newForm = {
       categoryId: targetCatId,
@@ -135,10 +145,11 @@ function AdminVideoManagementContent() {
       description: '',
       driveLink: '',
       duration: '04:00',
-      level: nextEpisodeNum === 1 ? 'Dasar' : nextEpisodeNum === 2 ? 'Menengah' : 'Mahir',
+      level: `Level ${Math.min(nextEpisodeNum, 3)}`,
       episodeNum: nextEpisodeNum,
       isFree: nextEpisodeNum === 1, // Episode 1 defaults to Free
-      thumbnail: defaultThumbnail,
+      thumbnail: '',
+      checklistText: '',
     };
 
     setEditingVideoId(null);
@@ -147,6 +158,7 @@ function AdminVideoManagementContent() {
     setShowVideoModal(true);
     setShowDirtyConfirm(false);
     setPreviewTab('card');
+    setVideoFormError('');
   }, [categories, videos]);
 
   useEffect(() => {
@@ -154,7 +166,8 @@ function AdminVideoManagementContent() {
   }, [refreshData]);
 
   useEffect(() => {
-    if (searchParams.get('action') === 'new' && categories.length > 0) {
+    if (searchParams.get('action') === 'new' && categories.length > 0 && !autoOpenHandled.current) {
+      autoOpenHandled.current = true;
       openAddEpisodeModal();
     }
   }, [searchParams, categories.length, openAddEpisodeModal]);
@@ -205,19 +218,25 @@ function AdminVideoManagementContent() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showVideoModal, showCategoryModal, isVideoDirty, showDirtyConfirm]);
 
-  const detectedDriveId = extractDriveFileId(videoForm.driveLink);
+  const extractedDriveId = extractDriveFileId(videoForm.driveLink);
+  const detectedDriveId = /^[a-zA-Z0-9_-]{10,}$/.test(extractedDriveId) ? extractedDriveId : '';
 
   const handleEditVideo = (v: Video) => {
+    const isAutomaticThumbnail = v.thumbnail === getDriveThumbnailUrl(v.driveFileId) ||
+      /\/api\/videos\/[^/]+\/thumbnail(?:\?.*)?$/.test(v.thumbnail);
     const editForm = {
       categoryId: v.categoryId,
       title: v.title,
       description: v.description,
       driveLink: v.driveLink,
       duration: v.duration,
-      level: v.level,
+      level: videoLevelLabel(v.level),
       episodeNum: v.episodeNum,
       isFree: v.isFree,
-      thumbnail: v.thumbnail,
+      thumbnail: isVideoThumbnailOverride(v.thumbnail) && !isAutomaticThumbnail
+        ? v.thumbnail
+        : '',
+      checklistText: (v.checklistItems || []).map((item) => item.name).join('\n'),
     };
     setEditingVideoId(v.id);
     setVideoForm(editForm);
@@ -225,46 +244,61 @@ function AdminVideoManagementContent() {
     setShowVideoModal(true);
     setShowDirtyConfirm(false);
     setPreviewTab('card');
+    setVideoFormError('');
   };
 
   // Dynamic category changer with smart defaults
   const handleCategoryChange = (newCatId: string) => {
-    const matchedCat = categories.find((c) => c.id === newCatId);
     const catVideos = videos.filter((v) => v.categoryId === newCatId);
-    const nextEpNum = editingVideoId ? videoForm.episodeNum : catVideos.length + 1;
-    const newThumbnail = matchedCat?.thumbnail || '/images/apparatus-floor.webp';
+    const nextEpNum = editingVideoId ? videoForm.episodeNum : Math.max(0, ...catVideos.map((video) => video.episodeNum)) + 1;
 
     setVideoForm((prev) => ({
       ...prev,
       categoryId: newCatId,
-      thumbnail: newThumbnail,
       episodeNum: nextEpNum,
-      level: !editingVideoId
-        ? nextEpNum === 1
-          ? 'Dasar'
-          : nextEpNum === 2
-          ? 'Menengah'
-          : 'Mahir'
-        : prev.level,
+      level: !editingVideoId ? `Level ${Math.min(nextEpNum, 3)}` : prev.level,
       isFree: !editingVideoId ? nextEpNum === 1 : prev.isFree,
     }));
   };
 
   const handleSaveVideo = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSavingVideo) return;
+    setVideoFormError('');
     if (!detectedDriveId) {
-      alert('Please enter a valid Google Drive link or File ID.');
+      setVideoFormError('Masukkan tautan atau File ID Google Drive yang valid.');
       return;
     }
-
-    const matchedCat = categories.find((c) => c.id === videoForm.categoryId);
-    const chosenThumbnail =
-      videoForm.thumbnail.trim() || matchedCat?.thumbnail || '/images/apparatus-floor.webp';
+    if (!videoForm.title.trim() || !videoForm.description.trim()) {
+      setVideoFormError('Judul dan deskripsi harus menjelaskan video yang ditampilkan.');
+      return;
+    }
+    const thumbnail = videoForm.thumbnail.trim();
+    if (thumbnail && !/^https?:\/\//.test(thumbnail)) {
+      setVideoFormError('Gunakan URL gambar berawalan https:// atau kosongkan untuk thumbnail otomatis.');
+      return;
+    }
+    const checklistNames = videoForm.checklistText.split('\n').map((name) => name.trim()).filter(Boolean);
+    if (checklistNames.length > 100 || checklistNames.some((name) => name.length > 500)) {
+      setVideoFormError('Checklist maksimal 100 poin, masing-masing maksimal 500 karakter.');
+      return;
+    }
+    if (new Set(checklistNames).size !== checklistNames.length) {
+      setVideoFormError('Setiap poin checklist harus berbeda.');
+      return;
+    }
+    const existingItems = editingVideoId
+      ? [...(videos.find((video) => video.id === editingVideoId)?.checklistItems || [])]
+      : [];
+    const checklistItems = checklistNames.map((name) => {
+      const existingIndex = existingItems.findIndex((item) => item.name.trim() === name);
+      return existingIndex >= 0 ? existingItems.splice(existingIndex, 1)[0] : { id: '', name };
+    });
 
     const payload = {
       categoryId: videoForm.categoryId,
       title: videoForm.title.trim(),
-      description: videoForm.description.trim() || 'Technique practice drill.',
+      description: videoForm.description.trim(),
       driveFileId: detectedDriveId,
       driveLink: videoForm.driveLink.startsWith('http')
         ? videoForm.driveLink
@@ -273,10 +307,12 @@ function AdminVideoManagementContent() {
       level: videoForm.level,
       episodeNum: Number(videoForm.episodeNum) || 1,
       isFree: Boolean(videoForm.isFree),
-      thumbnail: chosenThumbnail,
+      thumbnail,
+      checklistItems,
     };
 
     try {
+      setIsSavingVideo(true);
       if (editingVideoId) {
         await apiUpdateVideo(editingVideoId, payload);
         showToast(`Episode "${payload.title}" updated successfully.`);
@@ -288,7 +324,9 @@ function AdminVideoManagementContent() {
       setShowVideoModal(false);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to save video';
-      alert(msg);
+      setVideoFormError(msg);
+    } finally {
+      setIsSavingVideo(false);
     }
   };
 
@@ -308,7 +346,7 @@ function AdminVideoManagementContent() {
   const handleToggleFreeAccess = async (video: Video) => {
     const nextState = !video.isFree;
     try {
-      await apiUpdateVideo(video.id, { isFree: nextState });
+      await apiUpdateVideo(video.id, { ...video, isFree: nextState });
       await refreshData();
       showToast(
         `Access for "${video.title}" updated to: ${nextState ? 'FREE (Public)' : 'LOGIN REQUIRED (Members)'}.`
@@ -323,9 +361,11 @@ function AdminVideoManagementContent() {
   const handleQuickSaveDuration = async (videoId: string, overrideVal?: string) => {
     const val = (overrideVal ?? quickDurationValue).trim();
     if (!val) return;
+    const video = videos.find((item) => item.id === videoId);
+    if (!video) return;
     setIsSavingQuickDuration(true);
     try {
-      await apiUpdateVideo(videoId, { duration: val });
+      await apiUpdateVideo(videoId, { ...video, duration: val });
       await refreshData();
       showToast(`Video duration updated to ${val}`);
       setQuickDurationVideoId(null);
@@ -443,10 +483,10 @@ function AdminVideoManagementContent() {
         if (!hasLocked) return false;
       }
 
-      // 3. Level Filter (Dasar / Menengah / Mahir)
+      // 3. Level Filter
       if (levelFilter !== 'all') {
         const hasLevel = catVideos.some(
-          (v) => v.level.toLowerCase() === levelFilter.toLowerCase()
+          (v) => videoLevelLabel(v.level) === levelFilter
         );
         if (!hasLevel) return false;
       }
@@ -493,6 +533,8 @@ function AdminVideoManagementContent() {
 
   return (
     <div className="p-3.5 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full text-slate-900">
+      {isLoading && <p role="status" className="mb-4 text-sm text-slate-600">Memuat video dan kategori…</p>}
+      {loadError && <div role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"><p>{loadError}</p><button type="button" onClick={refreshData} className="mt-2 min-h-11 rounded-lg bg-red-800 px-4 py-2 font-bold text-white">Coba lagi</button></div>}
       {/* Header panel */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-5 sm:pb-6 mb-5 sm:mb-6 border-b border-slate-200 gap-4">
         <div>
@@ -639,9 +681,9 @@ function AdminVideoManagementContent() {
               className="flex-1 sm:flex-initial min-h-[38px] px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-base sm:text-xs font-bold text-slate-700 focus:outline-none focus:border-slate-800 cursor-pointer shadow-xs"
             >
               <option value="all">All Levels</option>
-              <option value="Dasar">Beginner Level</option>
-              <option value="Menengah">Intermediate Level</option>
-              <option value="Mahir">Advanced Level</option>
+              <option value="Level 1">Level 1</option>
+              <option value="Level 2">Level 2</option>
+              <option value="Level 3">Level 3</option>
             </select>
 
             {/* 3. Urutkan (Sort) */}
@@ -690,6 +732,8 @@ function AdminVideoManagementContent() {
         {paginatedCategories.map((cat) => {
           const catVideos = videos
             .filter((v) => v.categoryId === cat.id)
+            .filter((v) => levelFilter === 'all' || videoLevelLabel(v.level) === levelFilter)
+            .filter((v) => accessFilter === 'all' || (accessFilter === 'free' ? v.isFree : !v.isFree))
             .filter((v) => {
               if (!query) return true;
               return (
@@ -828,10 +872,8 @@ function AdminVideoManagementContent() {
                         <div className="flex items-start gap-3 sm:gap-4 min-w-0">
                           {/* Episode Badge & Thumbnail */}
                           <div className="relative w-22 sm:w-28 h-15 sm:h-18 rounded-xl overflow-hidden bg-slate-900 shrink-0 border border-slate-200 shadow-sm">
-                            <Image
-                              src={video.thumbnail}
-                              alt={video.title}
-                              fill
+                            <VideoThumbnail
+                              video={video}
                               className="object-cover object-center"
                               sizes="112px"
                             />
@@ -860,7 +902,7 @@ function AdminVideoManagementContent() {
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
                               <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] sm:text-[11px] font-bold border border-slate-200">
-                                {video.level === 'Dasar' ? 'Beginner' : video.level === 'Menengah' ? 'Intermediate' : 'Advanced'}
+                                {videoLevelLabel(video.level)}
                               </span>
 
                               <span className="text-[10px] sm:text-[11px] text-slate-400 font-mono">
@@ -1182,6 +1224,7 @@ function AdminVideoManagementContent() {
             {/* Modal Body: Responsive Dual Pane (Form Controls + Live Preview) */}
             <form onSubmit={handleSaveVideo} className="flex-1 flex flex-col overflow-hidden">
               <div className="overflow-y-auto p-4 sm:p-6 lg:p-7 flex-1">
+                {videoFormError && <p role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-800">{videoFormError}</p>}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
                   {/* Left Column: Form Fields (7 cols) */}
                   <div className="lg:col-span-7 space-y-4 sm:space-y-5">
@@ -1349,6 +1392,20 @@ function AdminVideoManagementContent() {
                       )}
                     </div>
 
+                    <div>
+                      <label htmlFor="video-thumbnail" className="mb-1.5 block text-xs font-black uppercase tracking-wider text-slate-800">Thumbnail video (opsional)</label>
+                      <input
+                        id="video-thumbnail"
+                        type="url"
+                        value={videoForm.thumbnail}
+                        onChange={(e) => setVideoForm({ ...videoForm, thumbnail: e.target.value })}
+                        placeholder="https://…"
+                        aria-describedby="video-thumbnail-help"
+                        className="w-full min-h-[44px] rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-base text-slate-900 focus:border-slate-800 focus:outline-none sm:text-sm"
+                      />
+                      <p id="video-thumbnail-help" className="mt-1.5 text-xs leading-relaxed text-slate-600">Kosongkan untuk mengambil cuplikan dari video Google Drive ini. Jika cuplikan tidak tersedia, isi URL gambar yang diambil dari video yang sama. Pergantian kategori tidak mengubah thumbnail video.</p>
+                    </div>
+
                     {/* Field Group 4: Access Rights (Interactive Explanatory Cards) */}
                     <div>
                       <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-2">
@@ -1418,7 +1475,7 @@ function AdminVideoManagementContent() {
                               )}
                             </div>
                             <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
-                              Exclusive to athletes, coaches, and registered FIK members with a GLS account.
+                              Available to every user signed in with a GCL account.
                             </p>
                           </div>
                         </button>
@@ -1434,9 +1491,9 @@ function AdminVideoManagementContent() {
                         </label>
                         <div className="grid grid-cols-3 gap-1.5">
                           {[
-                            { key: 'Dasar', label: 'Beginner', sub: 'Fundamentals' },
-                            { key: 'Menengah', label: 'Intermediate', sub: 'Technique' },
-                            { key: 'Mahir', label: 'Advanced', sub: 'FIG / High Skill' },
+                            { key: 'Level 1', label: 'Level 1' },
+                            { key: 'Level 2', label: 'Level 2' },
+                            { key: 'Level 3', label: 'Level 3' },
                           ].map((lvl) => (
                             <button
                               type="button"
@@ -1449,13 +1506,6 @@ function AdminVideoManagementContent() {
                               }`}
                             >
                               <div className="text-xs font-black">{lvl.label}</div>
-                              <div
-                                className={`text-[10px] ${
-                                  videoForm.level === lvl.key ? 'text-[#c1ff72]' : 'text-slate-400'
-                                }`}
-                              >
-                                {lvl.sub}
-                              </div>
                             </button>
                           ))}
                         </div>
@@ -1500,18 +1550,33 @@ function AdminVideoManagementContent() {
                     {/* Field Group 6: Coaching Notes */}
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
-                        <label className="block text-xs font-black text-slate-800 uppercase tracking-wider">
-                          Technique Notes & Coaching Points
+                        <label htmlFor="video-description" className="block text-xs font-black text-slate-800 uppercase tracking-wider">
+                          Deskripsi video *
                         </label>
                         <span className="text-[11px] text-slate-400">Instructions for athletes</span>
                       </div>
                       <textarea
+                        id="video-description"
+                        required
                         rows={3}
                         value={videoForm.description}
                         onChange={(e) => setVideoForm({ ...videoForm, description: e.target.value })}
-                        placeholder="Example: Keep eyes forward, drive hips upward, lock elbows during support, and bend knees on stick landing to absorb impact..."
+                        placeholder="Jelaskan gerakan, tahapan, dan poin teknik yang benar-benar ada di video ini."
                         className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-base sm:text-xs leading-relaxed focus:outline-none focus:bg-white focus:border-slate-800 shadow-xs"
                       />
+                    </div>
+                    <div>
+                      <label htmlFor="video-checklist" className="mb-1.5 block text-xs font-black uppercase tracking-wider text-slate-800">Checklist materi</label>
+                      <textarea
+                        id="video-checklist"
+                        rows={5}
+                        value={videoForm.checklistText}
+                        onChange={(e) => setVideoForm({ ...videoForm, checklistText: e.target.value })}
+                        placeholder="Tulis satu poin pembelajaran dari video per baris"
+                        aria-describedby="video-checklist-help"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-base leading-relaxed text-slate-900 focus:border-slate-800 focus:bg-white focus:outline-none sm:text-sm"
+                      />
+                      <p id="video-checklist-help" className="mt-1.5 text-xs leading-relaxed text-slate-600">Satu poin per baris, maksimal 100 poin. User menandai pemahaman dan menyimpan catatan pribadi. Poin yang teksnya tetap sama mempertahankan progres, termasuk saat diurutkan ulang. Mengubah teks membuat poin baru.</p>
                     </div>
                   </div>
 
@@ -1562,14 +1627,8 @@ function AdminVideoManagementContent() {
                           <div className="relative rounded-2xl overflow-hidden bg-slate-950 border border-white/10 shadow-lg">
                             {/* Thumbnail */}
                             <div className="relative w-full aspect-video bg-slate-900">
-                              <Image
-                                src={
-                                  videoForm.thumbnail ||
-                                  categories.find((c) => c.id === videoForm.categoryId)?.thumbnail ||
-                                  '/images/apparatus-floor.webp'
-                                }
-                                alt="Thumbnail Preview"
-                                fill
+                              <VideoThumbnail
+                                video={{ title: videoForm.title || 'Video baru', thumbnail: videoForm.thumbnail, driveFileId: detectedDriveId }}
                                 className="object-cover"
                                 sizes="360px"
                               />
@@ -1580,7 +1639,7 @@ function AdminVideoManagementContent() {
                                   EP {videoForm.episodeNum}
                                 </span>
                                 <span className="px-2 py-0.5 rounded-md bg-white/20 backdrop-blur-md text-[10px] font-bold text-white">
-                                  {videoForm.level === 'Dasar' ? 'Beginner' : videoForm.level === 'Menengah' ? 'Intermediate' : 'Advanced'}
+                                  {videoLevelLabel(videoForm.level)}
                                 </span>
                               </div>
 
@@ -1622,7 +1681,7 @@ function AdminVideoManagementContent() {
 
                               <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
                                 {videoForm.description.trim() ||
-                                  'Technique cues and coaching notes will be displayed to athletes.'}
+                                  'Deskripsi video akan tampil di sini.'}
                               </p>
                             </div>
                           </div>
@@ -1683,7 +1742,7 @@ function AdminVideoManagementContent() {
                         <div className="p-2 rounded-xl bg-white/5 border border-white/5">
                           <span className="text-slate-400 block">Level:</span>
                           <span className="font-bold text-white mt-0.5 block">
-                            {videoForm.level === 'Dasar' ? 'Beginner' : videoForm.level === 'Menengah' ? 'Intermediate' : 'Advanced'}
+                            {videoLevelLabel(videoForm.level)}
                           </span>
                         </div>
                       </div>
@@ -1725,10 +1784,11 @@ function AdminVideoManagementContent() {
                   </button>
                   <button
                     type="submit"
-                    className="min-h-[42px] inline-flex items-center justify-center gap-2 px-6 py-2 rounded-xl bg-[#c1ff72] hover:bg-[#b0f555] text-[#1f2a2e] font-black text-xs sm:text-sm border border-[#a8ed4b] shadow-md transition-all cursor-pointer active:scale-95"
+                    disabled={isSavingVideo}
+                    className="min-h-[42px] inline-flex items-center justify-center gap-2 px-6 py-2 rounded-xl bg-[#c1ff72] hover:bg-[#b0f555] text-[#1f2a2e] font-black text-xs sm:text-sm border border-[#a8ed4b] shadow-md transition-all cursor-pointer active:scale-95 disabled:opacity-60 disabled:cursor-wait"
                   >
                     <Save className="w-4 h-4 stroke-[2.5]" />
-                    <span>{editingVideoId ? 'Save Episode Changes' : 'Save New Episode'}</span>
+                    <span>{isSavingVideo ? 'Menyimpan…' : editingVideoId ? 'Save Episode Changes' : 'Save New Episode'}</span>
                   </button>
                 </div>
               </div>

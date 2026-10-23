@@ -46,7 +46,7 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{
 			"status":   "ok",
 			"database": "PostgreSQL Connected",
-			"message":  "GLS FIK Backend API is ready!",
+			"message":  "Gymnastics Competition Level (GCL) API is ready!",
 		})
 	})
 
@@ -54,8 +54,10 @@ func main() {
 	r.POST("/api/auth/login", handler.Login)
 	r.POST("/api/auth/google", handler.GoogleLogin)
 	r.GET("/api/categories", handler.GetCategories)
-	r.GET("/api/videos", handler.GetVideos)
-	r.GET("/api/videos/:id", handler.GetVideoByID)
+	r.GET("/api/videos", middleware.OptionalAuth(), handler.GetVideos)
+	r.GET("/api/videos/:id", middleware.OptionalAuth(), handler.GetVideoByID)
+	r.GET("/api/videos/:id/playback", middleware.OptionalAuth(), handler.GetVideoPlayback)
+	r.GET("/api/videos/:id/thumbnail", handler.GetVideoThumbnail)
 	r.GET("/api/techniques", handler.GetTechniques)
 	r.GET("/api/profiles", handler.GetProfiles)
 
@@ -66,6 +68,9 @@ func main() {
 		authGroup.PUT("/auth/profile", handler.UpdateMyProfile)
 		authGroup.GET("/tracker", handler.GetAthleteTechniqueTracker)
 		authGroup.POST("/tracker/toggle", handler.ToggleAthleteProgress)
+		authGroup.GET("/videos/:id/tracker", handler.GetPersonalVideoTracker)
+		authGroup.PUT("/videos/:id/tracker/items/:itemId", handler.UpdatePersonalVideoItem)
+		authGroup.PUT("/videos/:id/tracker/note", handler.UpdatePersonalVideoNote)
 	}
 
 	// Coach or Admin Routes (Evaluations & feedback)
@@ -94,5 +99,9 @@ func main() {
 		adminGroup.DELETE("/users/:id", handler.DeleteUser)
 	}
 
-	r.Run(":8080")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	r.Run(":" + port)
 }

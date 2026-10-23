@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"net/http"
+	"net/mail"
 	"net/url"
 	"os"
 	"strings"
@@ -15,6 +18,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type LoginRequest struct {
@@ -27,53 +32,63 @@ type AuthResponse struct {
 	User  model.User `json:"user"`
 }
 
-// Login menangani POST /api/auth/login
+func newID(prefix string) string {
+	var random [16]byte
+	if _, err := rand.Read(random[:]); err != nil {
+		panic(err)
+	}
+	return prefix + hex.EncodeToString(random[:])
+}
+
+func normalizedEmail(email string) string { return strings.ToLower(strings.TrimSpace(email)) }
+
+func isLegacySeedCredential(userID, password string) bool {
+	// Existing installations may still contain these formerly seeded password hashes.
+	switch userID {
+	case "admin-gcl":
+		return password == "admin123"
+	case "coach-david":
+		return password == "coach123"
+	case "athlete-marcus", "athlete-liam":
+		return password == "athlete123"
+	}
+	return false
+}
+
 func Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Format email atau password tidak valid"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Format email atau kata sandi tidak valid"})
 		return
 	}
-
 	var user model.User
-	if err := config.DB.Where("email = ?", req.Email).First(&user).Error; err != nil {
+	err := config.DB.Where("email = ?", normalizedEmail(req.Email)).First(&user).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memeriksa akun"})
+		return
+	}
+	if err != nil || isLegacySeedCredential(user.ID, req.Password) || bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)) != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Email atau kata sandi salah"})
 		return
 	}
-
-	// Verifikasi hash password dengan bcrypt
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Email atau kata sandi salah"})
-		return
-	}
-
-	// Generate JWT Token
-	token, err := middleware.GenerateToken(user)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal membuat token autentikasi"})
-		return
-	}
-
-	c.JSON(http.StatusOK, AuthResponse{
-		Token: token,
-		User:  user,
-	})
+	respondWithSession(c, user)
 }
 
-// Me menangani GET /api/auth/me (Protected Endpoint)
+func respondWithSession(c *gin.Context, user model.User) {
+	token, err := middleware.GenerateToken(user)
+	if err != nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Layanan autentikasi belum dikonfigurasi"})
+		return
+	}
+	c.JSON(http.StatusOK, AuthResponse{Token: token, User: user})
+}
+
 func Me(c *gin.Context) {
-	userID, exists := c.Get("userId")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tidak terautentikasi"})
-		return
-	}
-
 	var user model.User
-	if err := config.DB.First(&user, "id = ?", userID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Pengguna tidak ditemukan"})
+	if err := config.DB.First(&user, "id = ?", c.GetString("userId")).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil akun"})
 		return
 	}
-
 	c.JSON(http.StatusOK, user)
 }
 
@@ -84,122 +99,72 @@ type GoogleLoginRequest struct {
 type GoogleTokenInfo struct {
 	Sub           string `json:"sub"`
 	Aud           string `json:"aud"`
-	Azp           string `json:"azp"`
 	Email         string `json:"email"`
 	EmailVerified any    `json:"email_verified"`
 	Name          string `json:"name"`
 	Picture       string `json:"picture"`
-	GivenName     string `json:"given_name"`
-	FamilyName    string `json:"family_name"`
-	Error         string `json:"error"`
-	ErrorDesc     string `json:"error_description"`
 }
 
-// GoogleLogin menangani autentikasi via Google OAuth (ID Token / Credential)
+var googleHTTPClient = &http.Client{Timeout: 10 * time.Second}
+
+func verifiedGoogleIdentity(info GoogleTokenInfo, clientID string) bool {
+	verified := info.EmailVerified == true || info.EmailVerified == "true"
+	email := normalizedEmail(info.Email)
+	parsed, err := mail.ParseAddress(email)
+	return clientID != "" && info.Aud == clientID && info.Sub != "" && verified && err == nil && parsed.Address == email
+}
+
+func initialGoogleRole(email string) string {
+	for _, adminEmail := range strings.Split(os.Getenv("ADMIN_EMAILS"), ",") {
+		if normalizedEmail(adminEmail) == email {
+			return "admin"
+		}
+	}
+	return "user"
+}
+
 func GoogleLogin(c *gin.Context) {
 	var req GoogleLoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Credential token Google diperlukan"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Credential Google diperlukan"})
 		return
 	}
-
-	// Verifikasi token ke endpoint tokeninfo resmi Google
-	tokenURL := "https://oauth2.googleapis.com/tokeninfo?id_token=" + url.QueryEscape(req.Credential)
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Get(tokenURL)
+	clientID := strings.TrimSpace(os.Getenv("GOOGLE_CLIENT_ID"))
+	if clientID == "" || os.Getenv("JWT_SECRET") == "" {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Layanan login Google belum dikonfigurasi"})
+		return
+	}
+	request, err := http.NewRequestWithContext(c.Request.Context(), http.MethodGet, "https://oauth2.googleapis.com/tokeninfo?id_token="+url.QueryEscape(req.Credential), nil)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menghubungi server verifikasi Google"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyiapkan verifikasi Google"})
+		return
+	}
+	resp, err := googleHTTPClient.Do(request)
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": "Gagal menghubungi verifikasi Google"})
 		return
 	}
 	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token Google tidak valid atau telah kedaluwarsa"})
+	var info GoogleTokenInfo
+	if resp.StatusCode != http.StatusOK || json.NewDecoder(resp.Body).Decode(&info) != nil || !verifiedGoogleIdentity(info, clientID) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Identitas Google tidak valid atau email belum diverifikasi"})
 		return
 	}
-
-	var tokenInfo GoogleTokenInfo
-	if err := json.NewDecoder(resp.Body).Decode(&tokenInfo); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal membaca respons verifikasi Google"})
-		return
+	email := normalizedEmail(info.Email)
+	name := strings.TrimSpace(info.Name)
+	if name == "" {
+		name = strings.Split(email, "@")[0]
 	}
-
-	if tokenInfo.Email == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Token Google tidak menyertakan email"})
-		return
+	user := model.User{ID: newID("usr-"), Name: name, Email: email, Avatar: info.Picture, Role: initialGoogleRole(email)}
+	// Never overwrite a role assigned by an admin when an account signs in again.
+	err = config.DB.Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "email"}}, DoUpdates: clause.Assignments(map[string]any{"name": name, "avatar": info.Picture, "updated_at": time.Now()})}).Create(&user).Error
+	var stored model.User
+	if err == nil {
+		err = config.DB.Where("email = ?", email).First(&stored).Error
 	}
-
-	// Cek apakah email termasuk dalam daftar admin default (dari ENV ADMIN_EMAILS)
-	adminEmailsEnv := os.Getenv("ADMIN_EMAILS")
-	if adminEmailsEnv == "" {
-		adminEmailsEnv = "admin@gls.id,admin@gymnasticcomplevel.com"
-	}
-	isAdminEmail := false
-	for _, adminEmail := range strings.Split(adminEmailsEnv, ",") {
-		if strings.EqualFold(strings.TrimSpace(adminEmail), strings.TrimSpace(tokenInfo.Email)) {
-			isAdminEmail = true
-			break
-		}
-	}
-
-	var user model.User
-	err = config.DB.Where("email = ?", tokenInfo.Email).First(&user).Error
 	if err != nil {
-		// Pengguna baru -> Otomatis daftarkan akun ke database
-		role := "user"
-		if isAdminEmail {
-			role = "admin"
-		}
-
-		userName := tokenInfo.Name
-		if userName == "" {
-			userName = strings.Split(tokenInfo.Email, "@")[0]
-		}
-
-		user = model.User{
-			ID:        fmt.Sprintf("usr-%d", time.Now().UnixNano()),
-			Name:      userName,
-			Email:     tokenInfo.Email,
-			Password:  "oauth_google_verified",
-			Role:      role,
-			Avatar:    tokenInfo.Picture,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		}
-
-		if err := config.DB.Create(&user).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan akun baru ke database"})
-			return
-		}
-	} else {
-		// Pengguna lama -> Update avatar, nama, atau promosi admin jika terdaftar di ADMIN_EMAILS
-		updates := map[string]interface{}{
-			"updated_at": time.Now(),
-		}
-		if tokenInfo.Picture != "" && user.Avatar != tokenInfo.Picture {
-			updates["avatar"] = tokenInfo.Picture
-			user.Avatar = tokenInfo.Picture
-		}
-		if tokenInfo.Name != "" && user.Name != tokenInfo.Name {
-			updates["name"] = tokenInfo.Name
-			user.Name = tokenInfo.Name
-		}
-		if isAdminEmail && user.Role != "admin" {
-			updates["role"] = "admin"
-			user.Role = "admin"
-		}
-		config.DB.Model(&user).Updates(updates)
-	}
-
-	// Terbitkan JWT Token sistem GLS FIK
-	token, err := middleware.GenerateToken(user)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menerbitkan token autentikasi"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan akun. Silakan coba lagi"})
 		return
 	}
-
-	c.JSON(http.StatusOK, AuthResponse{
-		Token: token,
-		User:  user,
-	})
+	respondWithSession(c, stored)
 }

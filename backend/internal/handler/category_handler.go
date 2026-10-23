@@ -7,6 +7,7 @@ import (
 	"gls_fik/backend/internal/model"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // GetCategories menangani request GET /api/categories
@@ -70,10 +71,19 @@ func UpdateCategory(c *gin.Context) {
 func DeleteCategory(c *gin.Context) {
 	id := c.Param("id")
 
-	// Hapus video yang terkait dengan kategori ini terlebih dahulu
-	config.DB.Where("category_id = ?", id).Delete(&model.Video{})
-
-	if err := config.DB.Delete(&model.Category{}, "id = ?", id).Error; err != nil {
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		var videos []model.Video
+		if err := tx.Where("category_id = ?", id).Find(&videos).Error; err != nil {
+			return err
+		}
+		for _, video := range videos {
+			if err := deleteVideoData(tx, video.ID); err != nil {
+				return err
+			}
+		}
+		return tx.Delete(&model.Category{}, "id = ?", id).Error
+	})
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menghapus kategori"})
 		return
 	}

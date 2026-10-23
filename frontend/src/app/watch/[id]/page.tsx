@@ -1,322 +1,145 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { ArrowLeft, Clock, Lock, Play } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
-import { useAuth } from '@/lib/auth';
-import { apiGetVideoById, apiGetVideos, apiGetCategories } from '@/lib/api';
-import type { Video, Category } from '@/lib/types';
 import { LoginModal } from '@/components/LoginModal';
-import {
-  Play,
-  ArrowLeft,
-  Clock,
-  Lock,
-  Layers,
-  ShieldCheck,
-} from 'lucide-react';
-import { GoogleLogin } from '@react-oauth/google';
+import { LearningTracker } from '@/components/LearningTracker';
+import { VideoThumbnail } from '@/components/VideoThumbnail';
+import { useAuth } from '@/lib/auth';
+import { ApiError, apiGetCategories, apiGetVideoById, apiGetVideoPlayback, apiGetVideos } from '@/lib/api';
+import type { Category, Video, VideoPlayback } from '@/lib/types';
 
-export default function WatchPage() {
-  const params = useParams();
-  const router = useRouter();
-  const { isLoggedIn, isReady, loginWithGoogle } = useAuth();
-  const [video, setVideo] = useState<Video | null>(null);
-  const [category, setCategory] = useState<Category | null>(null);
-  const [siblingVideos, setSiblingVideos] = useState<Video[]>([]);
-  const [notFound, setNotFound] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [authLoading, setAuthLoading] = useState(false);
-  const [authError, setAuthError] = useState('');
+const actionClass = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#c1ff72] px-4 py-2.5 text-sm font-bold text-[#1f2a2e] hover:bg-[#afe963] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c1ff72]';
 
-  const videoId = params.id as string;
+function VideoPlayer({ video, onLogin }: { video: Video; onLogin: () => void }) {
+  const { isLoggedIn } = useAuth();
+  const [playback, setPlayback] = useState<VideoPlayback | null>(null);
+  const [error, setError] = useState('');
+  const [attempt, setAttempt] = useState(0);
+  const canWatch = video.isFree || isLoggedIn;
 
   useEffect(() => {
-    let isMounted = true;
-    async function fetchWatchData() {
-      try {
-        const vid = await apiGetVideoById(videoId);
-        if (!isMounted) return;
-        setVideo(vid);
-        setNotFound(false);
+    if (!canWatch) return;
+    let current = true;
+    apiGetVideoPlayback(video.id).then(data => {
+      if (!data.driveFileId) throw new Error('Video ini belum memiliki sumber pemutaran.');
+      if (current) setPlayback(data);
+    }).catch(reason => {
+      if (current) setError(reason instanceof Error ? reason.message : 'Video belum dapat dimuat.');
+    });
+    return () => { current = false; };
+  }, [video.id, canWatch, attempt]);
 
-        // Fetch category & siblings concurrently
-        const [cats, siblings] = await Promise.all([
-          apiGetCategories(),
-          apiGetVideos(vid.categoryId),
-        ]);
-        if (!isMounted) return;
+  if (!canWatch) return (
+    <section aria-label="Video memerlukan login" className="flex min-h-72 flex-col items-center justify-center gap-4 rounded-2xl border border-white/15 bg-[#141b1e] px-6 py-12 text-center sm:aspect-video">
+      <Lock className="h-7 w-7 text-[#c1ff72]" aria-hidden="true" />
+      <h2 className="text-xl font-bold">Masuk untuk menonton materi ini</h2>
+      <p className="max-w-md text-sm leading-relaxed text-slate-300">Semua video dan checklist belajar pribadi tersedia setelah kamu masuk.</p>
+      <button type="button" onClick={onLogin} className={actionClass}>Masuk ke akun GCL</button>
+    </section>
+  );
 
-        const matchedCat = cats.find((c) => c.id === vid.categoryId);
-        setCategory(matchedCat || null);
-        setSiblingVideos(siblings);
-      } catch (err) {
-        console.error('Video fetch error:', err);
-        if (isMounted) {
-          setNotFound(true);
-        }
-      }
-    }
-    fetchWatchData();
-    return () => {
-      isMounted = false;
-    };
-  }, [videoId]);
+  if (error) return (
+    <section role="alert" className="flex min-h-64 flex-col items-center justify-center gap-4 rounded-2xl border border-white/15 bg-[#141b1e] p-8 text-center">
+      <h2 className="text-lg font-bold">Video belum dapat dimuat</h2>
+      <p className="max-w-lg text-sm text-slate-300">{error}</p>
+      <button type="button" className={actionClass} onClick={() => { setError(''); setAttempt(value => value + 1); }}>Coba lagi</button>
+    </section>
+  );
 
-  // Wait for hydration
-  if (!isReady) return null;
-
-  if (notFound) {
-    return (
-      <div className="min-h-screen bg-[#0a0a0a] text-white">
-        <Navbar />
-        <div className="flex flex-col items-center justify-center py-32 px-4">
-          <h1 className="text-2xl font-bold text-white mb-2">Video Not Found</h1>
-          <p className="text-sm text-slate-400 mb-6">The video you are looking for may have been removed or the link is invalid.</p>
-          <Link href="/" className="px-5 py-2.5 rounded-xl bg-[#c1ff72] text-[#1f2a2e] text-sm font-bold hover:bg-[#b0f555] transition-colors">
-            Back to Catalog
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (!video) return null;
-
-  const handlePlayEpisode = (ep: Video) => {
-    router.push(`/watch/${ep.id}`);
-  };
-
-  const getCategoryBadge = (name?: string) => {
-    if (!name) return '';
-    const match = name.match(/\((.*?)\)/);
-    return match ? match[1] : name;
-  };
-
-  const handleGoogleDirect = async (credential: string) => {
-    setAuthError('');
-    setAuthLoading(true);
-    const result = await loginWithGoogle(credential);
-    setAuthLoading(false);
-    if (!result.success) {
-      setAuthError(result.error || 'Google sign-in failed. Please try again.');
-    }
-  };
+  if (!playback) return (
+    <div role="status" className="flex min-h-64 items-center justify-center rounded-2xl border border-white/15 bg-[#141b1e] text-sm text-slate-300 sm:aspect-video">Memuat video...</div>
+  );
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <section aria-label="Pemutar video materi">
+      <div className="aspect-video overflow-hidden rounded-2xl border border-white/15 bg-black">
+        <iframe src={`https://drive.google.com/file/d/${encodeURIComponent(playback.driveFileId)}/preview`} className="h-full w-full border-0" allow="autoplay; fullscreen" allowFullScreen title={video.title} />
+      </div>
+      {playback.driveLink && <a href={playback.driveLink} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex min-h-11 items-center text-xs text-slate-300 underline underline-offset-4 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c1ff72]">Buka video di Google Drive</a>}
+    </section>
+  );
+}
+
+function WatchContent({ videoId }: { videoId: string }) {
+  const { user, isLoggedIn, isReady } = useAuth();
+  const [video, setVideo] = useState<Video | null>(null);
+  const [category, setCategory] = useState<Category | null>(null);
+  const [siblings, setSiblings] = useState<Video[]>([]);
+  const [error, setError] = useState('');
+  const [notFound, setNotFound] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const [showLogin, setShowLogin] = useState(false);
+
+  useEffect(() => {
+    let current = true;
+    async function load() {
+      try {
+        const selected = await apiGetVideoById(videoId);
+        const [categories, related] = await Promise.all([apiGetCategories(), apiGetVideos(selected.categoryId)]);
+        if (!current) return;
+        setVideo(selected);
+        setCategory(categories.find(item => item.id === selected.categoryId) || null);
+        setSiblings(related);
+      } catch (reason) {
+        if (!current) return;
+        setNotFound(reason instanceof ApiError && reason.status === 404);
+        setError(reason instanceof Error ? reason.message : 'Materi belum dapat dimuat.');
+      }
+    }
+    void load();
+    return () => { current = false; };
+  }, [videoId, attempt]);
+
+  return (
+    <div className="min-h-screen bg-[#0b1012] text-[#f2f6f4]">
       <Navbar />
+      <main lang="id" className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+        <Link href="/#katalog-video" className="mb-5 inline-flex min-h-11 items-center gap-2 text-sm text-slate-300 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c1ff72]"><ArrowLeft className="h-4 w-4" aria-hidden="true" />Kembali ke katalog</Link>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-20">
-        {/* Top bar: Back link + Video Title */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 bg-[#121721] border border-[#243044] rounded-2xl px-3.5 sm:px-4 py-3 shadow-lg">
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-xs sm:text-sm text-slate-200 hover:text-white font-bold group transition-all shrink-0 bg-white/5 hover:bg-white/10 px-3.5 py-2 min-h-[40px] rounded-xl border border-white/10 hover:border-[#c1ff72]/40 active:scale-95"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform text-[#c1ff72]" />
-              <span>Back to Catalog</span>
-            </Link>
-
-            <span className="text-slate-600 hidden sm:inline font-bold">|</span>
-
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              {category && (
-                <span className="px-2 py-0.5 rounded-lg bg-[#c1ff72]/15 border border-[#c1ff72]/30 text-[#c1ff72] text-[11px] sm:text-xs font-black shrink-0 uppercase tracking-wide">
-                  {getCategoryBadge(category.name)}
-                </span>
-              )}
-              <h1 className="text-xs sm:text-base font-bold text-white truncate" title={video.title}>
-                {video.title}
-              </h1>
+        {error ? <div role="alert" className="rounded-xl border border-white/15 bg-[#172023] p-8 text-center">
+          <h1 className="text-xl font-bold">{notFound ? 'Video tidak ditemukan' : 'Materi belum dapat dimuat'}</h1>
+          <p className="mx-auto mt-3 max-w-lg text-sm text-slate-300">{error}</p>
+          {!notFound && <button type="button" className={`${actionClass} mt-5`} onClick={() => { setError(''); setAttempt(value => value + 1); }}>Coba lagi</button>}
+        </div> : !video || !isReady ? <p role="status" className="py-24 text-center text-sm text-slate-300">Memuat materi GCL...</p> : <>
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <div className="min-w-0">
+              {category && <p className="mb-2 text-sm text-slate-300">{category.name}</p>}
+              <h1 className="break-words text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">{video.title}</h1>
             </div>
+            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300"><span>{video.level}</span>{video.duration && <span className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" aria-hidden="true" />{video.duration}</span>}<span>{video.isFree ? 'Materi gratis' : 'Materi akun'}</span></div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0 self-start sm:self-center text-xs">
-            <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-slate-300 font-bold">
-              Episode {video.episodeNum}
-            </span>
-            <span className="px-2.5 py-1 rounded-lg bg-[#c1ff72] text-[#1f2a2e] font-black shadow-sm">
-              {video.level?.toLowerCase().startsWith('level') ? video.level : `Level ${video.level}`}
-            </span>
-          </div>
-        </div>
+          <VideoPlayer key={`${video.id}:${user?.id || 'guest'}`} video={video} onLogin={() => setShowLogin(true)} />
 
-        {/* Video player */}
-        {video.isFree || isLoggedIn ? (
-          <div className="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10 ring-1 ring-white/5">
-            <iframe
-              src={`https://drive.google.com/file/d/${video.driveFileId}/preview`}
-              className="w-full h-full border-0"
-              allow="autoplay; fullscreen"
-              allowFullScreen
-              title={video.title}
-            />
-          </div>
-        ) : (
-          <div className="relative w-full min-h-[380px] sm:min-h-0 sm:aspect-video bg-gradient-to-br from-[#12161f] via-[#0d1017] to-black rounded-2xl overflow-hidden shadow-2xl border border-white/10 ring-1 ring-white/5 flex flex-col items-center justify-center p-6 sm:p-8 text-center">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl bg-[#c1ff72]/15 border border-[#c1ff72]/40 flex items-center justify-center text-[#c1ff72] mb-3 sm:mb-4 shadow-[0_0_20px_rgba(193,255,114,0.15)]">
-              <Lock className="w-7 h-7 sm:w-8 sm:h-8 stroke-[2.5]" />
-            </div>
-
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#c1ff72]/10 border border-[#c1ff72]/30 text-[#c1ff72] text-[11px] sm:text-xs font-bold mb-2.5 sm:mb-3">
-              <span>Members Only Content</span>
-            </div>
-
-            <h2 className="text-xl sm:text-2xl font-black text-white max-w-lg mb-2 leading-tight">
-              This Video Lesson is Locked
-            </h2>
-
-            <p className="text-xs sm:text-sm text-slate-300 max-w-md mb-6 leading-relaxed">
-              Sign in with your Google account to instantly unlock and watch this training curriculum video.
-            </p>
-
-            {authError && (
-              <p className="text-xs text-red-400 mb-3 font-semibold">{authError}</p>
-            )}
-
-            {/* Direct Google Sign-In on Player */}
-            <div className="flex flex-col items-center gap-3">
-              <div className="shadow-lg rounded-full overflow-hidden">
-                <GoogleLogin
-                  onSuccess={(res) => {
-                    if (res.credential) handleGoogleDirect(res.credential);
-                  }}
-                  onError={() => setAuthError('Failed to sign in with Google.')}
-                  theme="filled_black"
-                  shape="pill"
-                  size="large"
-                  text="continue_with"
-                />
+          <div className="mt-5 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+            <section aria-labelledby="video-description-title" className="min-w-0">
+              <h2 id="video-description-title" className="text-base font-bold">Tentang materi</h2>
+              <p className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-300">{video.description || 'Deskripsi materi belum ditambahkan.'}</p>
+            </section>
+            <nav aria-label="Video lain pada alat ini" className="min-w-0">
+              <h2 className="mb-3 text-base font-bold">Materi {category?.name || 'lainnya'}</h2>
+              <div className="space-y-2">
+                {siblings.map(episode => <Link key={episode.id} href={`/watch/${episode.id}`} aria-current={episode.id === video.id ? 'page' : undefined} className={`flex min-h-20 items-center gap-3 rounded-lg border p-2.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c1ff72] ${episode.id === video.id ? 'border-[#c1ff72] bg-[#202c1c]' : 'border-white/20 bg-[#172023] hover:bg-[#253034]'}`}>
+                  <div className="relative aspect-video w-24 shrink-0 overflow-hidden rounded bg-[#263438]"><VideoThumbnail video={episode} className="object-cover" /></div>
+                  <div className="min-w-0"><p className="break-words text-sm font-semibold">{episode.title}</p><p className="mt-1 flex items-center gap-1.5 text-xs text-slate-300">{!episode.isFree && !isLoggedIn ? <><Lock className="h-3 w-3" aria-hidden="true" />Masuk untuk menonton</> : episode.id === video.id ? <><Play className="h-3 w-3" aria-hidden="true" />Sedang dibuka</> : episode.level}</p></div>
+                </Link>)}
               </div>
-
-              {authLoading ? (
-                <p className="text-xs text-[#c1ff72] font-semibold animate-pulse">
-                  Verifying Google account & unlocking video...
-                </p>
-              ) : (
-                <div className="flex items-center gap-1.5 text-slate-400 text-[11px]">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#c1ff72]" />
-                  <span>Instant free access with your Google account</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Video info bar */}
-        <div className="mt-6 flex flex-col lg:flex-row lg:items-start gap-8">
-          {/* Left: video details */}
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-3">
-              {category && (
-                <span className="px-2.5 py-1 rounded-lg bg-[#c1ff72]/15 border border-[#c1ff72]/30 text-[#c1ff72] text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5">
-                  <Layers className="w-3 h-3" />
-                  {category.name}
-                </span>
-              )}
-              <span className="px-2 py-0.5 rounded bg-white/10 text-[11px] font-semibold text-slate-300">
-                {video.level}
-              </span>
-              <span className="text-[11px] text-slate-500 flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                {video.duration}
-              </span>
-            </div>
-
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Episode {video.episodeNum}: {video.title}
-            </h1>
-
-            <p className="mt-3 text-sm text-slate-300 leading-relaxed max-w-3xl whitespace-pre-line">
-              {video.description}
-            </p>
+            </nav>
           </div>
 
-          {/* Right: episode list sidebar */}
-          <div className="lg:w-96 shrink-0">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Play className="w-4 h-4 text-[#c1ff72] fill-[#c1ff72]" />
-              Other Episodes
-            </h3>
-
-            <div className="space-y-3">
-              {siblingVideos.map((ep) => {
-                const isCurrent = ep.id === video.id;
-                const canWatch = ep.isFree || isLoggedIn;
-
-                return (
-                  <button
-                    key={ep.id}
-                    onClick={() => {
-                      if (canWatch) {
-                        handlePlayEpisode(ep);
-                      } else {
-                        setShowLoginModal(true);
-                      }
-                    }}
-                    className={`w-full text-left p-3.5 rounded-xl border transition-all flex items-center gap-4 cursor-pointer ${
-                      isCurrent
-                        ? 'bg-[#c1ff72]/10 border-[#c1ff72]/40 ring-1 ring-[#c1ff72]/20'
-                        : 'bg-[#141414] border-white/5 hover:border-white/20 hover:bg-[#1a1a1a]'
-                    }`}
-                  >
-                    {/* Episode thumbnail */}
-                    <div className="relative w-24 h-14 rounded-lg overflow-hidden bg-[#111] shrink-0">
-                      <Image
-                        src={ep.thumbnail}
-                        alt={ep.title}
-                        fill
-                        className="object-cover object-center"
-                        sizes="96px"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        {canWatch ? (
-                          <Play className={`w-5 h-5 ${isCurrent ? 'text-[#c1ff72] fill-[#c1ff72]' : 'text-white/80 fill-white/80'}`} />
-                        ) : (
-                          <Lock className="w-4 h-4 text-slate-400" />
-                        )}
-                      </div>
-                      {isCurrent && (
-                        <div className="absolute bottom-0 inset-x-0 h-1 bg-[#c1ff72]" />
-                      )}
-                    </div>
-
-                    {/* Episode info */}
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-xs font-bold ${isCurrent ? 'text-[#c1ff72]' : 'text-white'} truncate`}>
-                        EP {ep.episodeNum}. {ep.title}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] text-slate-500">{ep.duration}</span>
-                        {ep.isFree && (
-                          <span className="text-[10px] font-bold text-[#c1ff72]">FREE</span>
-                        )}
-                        {!ep.isFree && !isLoggedIn && (
-                          <span className="text-[10px] text-slate-500 flex items-center gap-0.5">
-                            <Lock className="w-2.5 h-2.5" /> Sign In
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+          <div className="mt-10 border-t border-white/15 pt-8"><LearningTracker videoId={video.id} onLogin={() => setShowLogin(true)} /></div>
+        </>}
       </main>
-
-      {/* Pop-up Login Modal */}
-      <LoginModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        title="Access Locked Video"
-        subtitle={`Episode "${video.title}" is reserved for registered students, coaches, or members.`}
-      />
+      {showLogin && <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />}
     </div>
   );
+}
+
+export default function WatchPage() {
+  const params = useParams<{ id: string }>();
+  return <WatchContent key={params.id} videoId={params.id} />;
 }

@@ -1,11 +1,12 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Play, Lock, Clock, ArrowUpRight } from 'lucide-react';
 import type { Video } from '@/lib/types';
 import { useAuth } from '@/lib/auth';
+import { VideoThumbnail } from '@/components/VideoThumbnail';
+import { videoLevelLabel } from '@/lib/video-level';
 
 interface VideoCardProps {
   video: Video;
@@ -26,10 +27,8 @@ export function VideoCard({ video, categoryName, className = '' }: VideoCardProp
     >
       {/* Thumbnail */}
       <div className="relative aspect-video w-full bg-slate-100 overflow-hidden">
-        <Image
-          src={video.thumbnail}
-          alt={video.title}
-          fill
+        <VideoThumbnail
+          video={video}
           className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 320px"
         />
@@ -84,11 +83,12 @@ export function VideoCard({ video, categoryName, className = '' }: VideoCardProp
           <h3 className="text-sm sm:text-base font-bold text-[#1F2A2E] group-hover:text-slate-700 transition-colors leading-snug line-clamp-2">
             {video.title}
           </h3>
+          {video.description && <p className="mt-2 text-xs leading-relaxed text-slate-600 line-clamp-2">{video.description}</p>}
         </div>
 
         <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-100">
           <span className="px-2.5 py-0.5 rounded-md bg-[#F4F8FA] border border-slate-200 text-[11px] font-bold text-[#1F2A2E]">
-            Level {video.level}
+            {videoLevelLabel(video.level)}
           </span>
 
           <span className="text-xs font-black text-[#1F2A2E] group-hover:text-slate-900 inline-flex items-center gap-1">

@@ -36,10 +36,11 @@ services:
       DB_USER: ${DB_USER:-gls_user}
       DB_PASSWORD: ${DB_PASSWORD:-gls_password_secret}
       DB_NAME: ${DB_NAME:-gls_fik_db}
-      JWT_SECRET: ${JWT_SECRET:-rahasia_jwt_super_aman_2026}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET to a long random secret}
       FRONTEND_URL: ${FRONTEND_URL:-https://gls-fik-unnes.vercel.app}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-304279877283-ac95u738navvg0vqm4e0cce84bvioiaf.apps.googleusercontent.com}
       ADMIN_EMAILS: ${ADMIN_EMAILS:-admin@gls.id}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-}
       GIN_MODE: release
     depends_on:
       db:

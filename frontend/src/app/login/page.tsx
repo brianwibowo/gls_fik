@@ -17,7 +17,7 @@ import {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { loginWithGoogle, isLoggedIn } = useAuth();
+  const { loginWithGoogle } = useAuth();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -26,7 +26,10 @@ function LoginForm() {
     setIsLoading(true);
     const result = await loginWithGoogle(credential);
     if (result.success) {
-      const redirect = searchParams.get('redirect') || '/';
+      const requestedRedirect = searchParams.get('redirect') || '/';
+      const redirect = requestedRedirect.startsWith('/') && !requestedRedirect.startsWith('//') && !requestedRedirect.includes('\\')
+        ? requestedRedirect
+        : '/';
       router.push(redirect);
     } else {
       setError(result.error || 'Google sign-in failed. Please try again.');
@@ -60,10 +63,10 @@ function LoginForm() {
           </div>
           <div>
             <span className="text-lg font-black tracking-tight text-white block leading-none">
-              GLS FIK
+              GCL
             </span>
             <span className="text-xs text-slate-300 font-medium">
-              Gymnastics Learning System
+              Gymnastics Competition Level
             </span>
           </div>
         </div>
@@ -115,16 +118,16 @@ function LoginForm() {
               <Activity className="w-5 h-5 stroke-[3]" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Sign in to GLS FIK
+              Sign in to GCL
             </h1>
             <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
-              Use your Google account to access instructional video lessons and the management panel.
+              Sign in with Google to access all GCL videos and save your personal learning progress.
             </p>
           </div>
 
           {/* Error message */}
           {error && (
-            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 flex items-start gap-3 text-sm text-red-300">
+            <div role="alert" className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 flex items-start gap-3 text-sm text-red-300">
               <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-red-400" />
               <span>{error}</span>
             </div>
@@ -148,7 +151,6 @@ function LoginForm() {
                 theme="filled_black"
                 shape="pill"
                 size="large"
-                width="100%"
                 text="continue_with"
               />
             </div>

@@ -16,9 +16,9 @@ const FAQ_ITEMS: FAQItem[] = [
       'Not all videos require signing in. Videos marked with the "FREE" badge can be watched immediately without an account. To unlock the full curriculum and advanced drills, simply sign in with your Google account.',
   },
   {
-    question: 'How do I get access to GLS FIK?',
+    question: 'How do I get access to GCL?',
     answer:
-      'Access is available instantly via your Google account. Instructors or administrators can assign specific user or admin roles to registered accounts.',
+      'Sign in with Google to create a user account and access all videos. Your account appears in admin user management. An existing admin can grant the admin role.',
   },
   {
     question: 'Can videos be downloaded for offline viewing?',
@@ -28,7 +28,7 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     question: 'Which web browsers are recommended?',
     answer:
-      'GLS FIK works smoothly on modern versions of Google Chrome, Safari, Mozilla Firefox, and Microsoft Edge.',
+      'Use a current version of Google Chrome, Safari, Mozilla Firefox, or Microsoft Edge to watch GCL videos.',
   },
   {
     question: 'How many apparatus categories are covered?',
@@ -38,7 +38,12 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     question: 'Is this platform accessible on mobile devices?',
     answer:
-      'Yes, GLS FIK is fully responsive and optimized for phones, tablets, and laptops.',
+      'GCL can be opened on phones, tablets, and laptops. Your saved checklist is linked to your account.',
+  },
+  {
+    question: 'How is my learning progress recorded?',
+    answer:
+      'Open a video and mark its checklist items as Belum dipelajari, Perlu diulang, or Sudah dipahami. Your notes and progress are saved privately to your account. The summary describes your self-reported understanding of the material.',
   },
 ];
 
@@ -138,7 +143,7 @@ export function FAQSection() {
         >
           <div className="flex items-center justify-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-[#C1FF72] flex items-center justify-center text-[#1F2A2E] font-black text-xs shadow-sm">
-              08
+              07
             </div>
             <div className="w-8 h-[1px] bg-white/20" />
             <div className="px-3.5 py-1 rounded-full bg-white/10 text-white text-xs font-bold shadow-sm border border-white/15">
@@ -150,7 +155,7 @@ export function FAQSection() {
             Frequently Asked Questions
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 mt-1.5 max-w-lg mx-auto">
-            Find answers to common questions about using the GLS FIK learning platform.
+            Find answers to common questions about using Gymnastics Competition Level (GCL).
           </p>
         </motion.div>
 
@@ -177,7 +182,7 @@ export function FAQSection() {
         >
           <HelpCircle className="w-4 h-4 text-[#c1ff72]" />
           <span>
-            Still have questions? Contact your course instructor or GLS FIK administrator.
+            Still have questions? Contact your course instructor or GCL administrator.
           </span>
         </motion.div>
       </div>

@@ -1,105 +1,117 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import type { User } from './types';
-import { apiLogin, apiLoginGoogle, apiGetMe, getAuthToken, removeAuthToken } from './api';
+import { ApiError, apiLogin, apiLoginGoogle, apiGetMe, getAuthToken, removeAuthToken, setAuthToken } from './api';
 
-// Auth context definition
 interface AuthContextValue {
-  user: Omit<User, 'password'> | null;
+  user: User | null;
   isLoggedIn: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: (credential: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  isReady: boolean; // true once hydration complete
+  refreshUser: () => Promise<void>;
+  isReady: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue>({
-  user: null,
-  isLoggedIn: false,
-  isAdmin: false,
+  user: null, isLoggedIn: false, isAdmin: false, isReady: false,
   login: async () => ({ success: false }),
   loginWithGoogle: async () => ({ success: false }),
-  logout: () => {},
-  isReady: false,
+  logout: () => {}, refreshUser: async () => {},
 });
 
-// Auth context provider component
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<Omit<User, 'password'> | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const generation = useRef(0);
+  const refreshSequence = useRef(0);
 
-  // Check token and verify session from backend on mount
-  useEffect(() => {
+  const logout = useCallback(() => {
+    generation.current += 1;
+    removeAuthToken();
+    setUser(null);
+    setIsReady(true);
+  }, []);
+
+  const refreshUser = useCallback(async () => {
     const token = getAuthToken();
+    const currentRefresh = ++refreshSequence.current;
+    const currentGeneration = generation.current;
     if (!token) {
+      setUser(null);
       setIsReady(true);
       return;
     }
+    try {
+      const currentUser = await apiGetMe();
+      if (generation.current === currentGeneration && refreshSequence.current === currentRefresh && getAuthToken() === token) setUser(currentUser);
+    } catch (error) {
+      if (generation.current === currentGeneration && refreshSequence.current === currentRefresh && getAuthToken() === token && error instanceof ApiError && error.status === 401) logout();
+    } finally {
+      if (generation.current === currentGeneration && refreshSequence.current === currentRefresh) setIsReady(true);
+    }
+  }, [logout]);
 
-    apiGetMe()
-      .then((me) => {
-        setUser(me);
-      })
-      .catch(() => {
-        removeAuthToken();
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('gls_user');
-        }
+  useEffect(() => {
+    void refreshUser();
+    const focus = () => { if (document.visibilityState === 'visible') void refreshUser(); };
+    const storage = (event: StorageEvent) => {
+      if (event.key === 'gls_token' || event.key === null) {
+        generation.current += 1;
         setUser(null);
-      })
-      .finally(() => {
-        setIsReady(true);
-      });
-  }, []);
+        void refreshUser();
+      }
+    };
+    window.addEventListener('focus', focus);
+    document.addEventListener('visibilitychange', focus);
+    window.addEventListener('storage', storage);
+    window.addEventListener('gcl:unauthorized', logout);
+    const interval = window.setInterval(focus, 30_000);
+    return () => {
+      generation.current += 1;
+      window.clearInterval(interval);
+      window.removeEventListener('focus', focus);
+      document.removeEventListener('visibilitychange', focus);
+      window.removeEventListener('storage', storage);
+      window.removeEventListener('gcl:unauthorized', logout);
+    };
+  }, [refreshUser, logout]);
 
   const login = useCallback(async (email: string, password: string) => {
+    const currentGeneration = ++generation.current;
     try {
-      const { user: loggedInUser } = await apiLogin(email, password);
-      setUser(loggedInUser);
+      const session = await apiLogin(email, password);
+      if (generation.current !== currentGeneration) return { success: false, error: 'Sesi berubah. Silakan masuk kembali.' };
+      setAuthToken(session.token);
+      setUser(session.user);
+      setIsReady(true);
       return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err.message || 'Email atau kata sandi salah.' };
+    } catch (error) {
+      if (generation.current === currentGeneration) setIsReady(true);
+      return { success: false, error: error instanceof Error ? error.message : 'Login gagal.' };
     }
   }, []);
 
   const loginWithGoogle = useCallback(async (credential: string) => {
+    const currentGeneration = ++generation.current;
     try {
-      const { user: loggedInUser } = await apiLoginGoogle(credential);
-      setUser(loggedInUser);
+      const session = await apiLoginGoogle(credential);
+      if (generation.current !== currentGeneration) return { success: false, error: 'Sesi berubah. Silakan masuk kembali.' };
+      setAuthToken(session.token);
+      setUser(session.user);
+      setIsReady(true);
       return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err.message || 'Login dengan Google gagal.' };
+    } catch (error) {
+      if (generation.current === currentGeneration) setIsReady(true);
+      return { success: false, error: error instanceof Error ? error.message : 'Login dengan Google gagal.' };
     }
   }, []);
 
-  const logout = useCallback(() => {
-    removeAuthToken();
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('gls_user');
-    }
-    setUser(null);
-  }, []);
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isLoggedIn: !!user,
-        isAdmin: user?.role === 'admin',
-        login,
-        loginWithGoogle,
-        logout,
-        isReady,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user, isLoggedIn: !!user, isAdmin: user?.role === 'admin', login, loginWithGoogle, logout, refreshUser, isReady }}>{children}</AuthContext.Provider>;
 }
 
-// Custom hook to consume auth context
 export function useAuth(): AuthContextValue {
   return useContext(AuthContext);
 }

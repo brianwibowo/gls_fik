@@ -14,25 +14,33 @@ import {
 } from 'lucide-react';
 
 function AdminUsersContent() {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, refreshUser } = useAuth();
   const searchParams = useSearchParams();
 
   const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [pendingUserId, setPendingUserId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: '',
     email: '',
-    password: '',
     role: 'user' as 'user' | 'admin',
   });
 
   const refreshUsers = async () => {
+    setIsLoading(true);
+    setLoadError('');
     try {
       const data = await apiGetUsers();
       setUsers(data);
     } catch (err) {
-      console.error('Gagal mengambil pengguna:', err);
+      setLoadError(err instanceof Error ? err.message : 'Daftar akun gagal dimuat. Coba lagi.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -44,13 +52,15 @@ function AdminUsersContent() {
   }, [searchParams]);
 
   const resetForm = () => {
-    setForm({ name: '', email: '', password: '', role: 'user' });
+    setForm({ name: '', email: '', role: 'user' });
     setEditingId(null);
     setShowForm(false);
+    setSaveError('');
   };
 
   const handleEdit = (u: User) => {
-    setForm({ name: u.name, email: u.email, password: '', role: u.role });
+    setSaveError('');
+    setForm({ name: u.name, email: u.email, role: u.role });
     setEditingId(u.id);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -58,19 +68,22 @@ function AdminUsersContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving) return;
+    setIsSaving(true);
+    setSaveError('');
     try {
       if (editingId) {
-        const updateData: Partial<User & { password?: string }> = {
+        const updateData: Partial<User> = {
           name: form.name.trim(),
           email: form.email.trim(),
           role: form.role,
         };
         await apiUpdateUser(editingId, updateData);
+        if (editingId === currentUser?.id) await refreshUser();
       } else {
         await apiCreateUser({
           name: form.name.trim(),
           email: form.email.trim(),
-          password: 'google_oauth_managed',
           role: form.role,
         });
       }
@@ -78,7 +91,9 @@ function AdminUsersContent() {
       resetForm();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to save user';
-      alert(msg);
+      setSaveError(msg);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -98,17 +113,21 @@ function AdminUsersContent() {
   };
 
   const handleToggleRole = async (u: User) => {
+    if (pendingUserId) return;
     if (u.id === currentUser?.id) {
       alert('You cannot modify your own account role.');
       return;
     }
     const newRole = u.role === 'admin' ? 'user' : 'admin';
     try {
+      setPendingUserId(u.id);
       await apiUpdateUser(u.id, { role: newRole });
       await refreshUsers();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to change user role';
       alert(msg);
+    } finally {
+      setPendingUserId(null);
     }
   };
 
@@ -121,7 +140,7 @@ function AdminUsersContent() {
             Users &amp; Roles
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Manage coaches, athletes, and administrators who have access to GLS FIK.
+            Akun yang berhasil login otomatis tercatat sebagai user GCL. Admin dapat mengangkat user menjadi admin dari daftar ini.
           </p>
         </div>
 
@@ -163,6 +182,7 @@ function AdminUsersContent() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+            {saveError && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{saveError}</p>}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
               <div>
                 <label className="block text-xs sm:text-sm font-bold text-slate-900 mb-1.5">
@@ -173,7 +193,7 @@ function AdminUsersContent() {
                   required
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="e.g. Alex Johnson"
+                  placeholder="Nama lengkap akun Google"
                   className="w-full min-h-[42px] px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-base sm:text-sm focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800 transition-colors"
                 />
               </div>
@@ -187,7 +207,7 @@ function AdminUsersContent() {
                   required
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  placeholder="e.g. user@gmail.com"
+                  placeholder="Alamat email akun Google"
                   className="w-full min-h-[42px] px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-base sm:text-sm focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800 transition-colors"
                 />
               </div>
@@ -220,10 +240,11 @@ function AdminUsersContent() {
               </button>
               <button
                 type="submit"
-                className="min-h-[44px] inline-flex items-center justify-center gap-2 px-7 py-2.5 rounded-xl bg-[#c1ff72] hover:bg-[#b0f555] active:scale-95 text-[#1f2a2e] font-black text-sm sm:text-base shadow-sm cursor-pointer border border-[#a8ed4b] transition-all"
+                disabled={isSaving}
+                className="min-h-[44px] inline-flex items-center justify-center gap-2 px-7 py-2.5 rounded-xl bg-[#c1ff72] hover:bg-[#b0f555] active:scale-95 text-[#1f2a2e] font-black text-sm sm:text-base shadow-sm cursor-pointer border border-[#a8ed4b] transition-all disabled:opacity-60 disabled:cursor-wait"
               >
                 <Save className="w-5 h-5" />
-                <span>Save User</span>
+                <span>{isSaving ? 'Menyimpan…' : 'Save User'}</span>
               </button>
             </div>
           </form>
@@ -242,6 +263,9 @@ function AdminUsersContent() {
         </div>
 
         <div className="divide-y divide-slate-100">
+          {isLoading && <p role="status" className="p-5 text-sm text-slate-600">Memuat akun terdaftar…</p>}
+          {loadError && <div role="alert" className="p-5 text-sm text-red-800"><p>{loadError}</p><button type="button" onClick={refreshUsers} className="mt-2 min-h-11 rounded-lg bg-red-800 px-4 py-2 font-bold text-white">Coba lagi</button></div>}
+          {!isLoading && !loadError && users.length === 0 && <p className="p-5 text-sm text-slate-600">Belum ada akun terdaftar. Akun akan tercatat setelah login Google berhasil.</p>}
           {users.map((u) => {
             const isMe = u.id === currentUser?.id;
             const isAdminRole = u.role === 'admin';
@@ -286,15 +310,15 @@ function AdminUsersContent() {
                 <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                   <button
                     onClick={() => handleToggleRole(u)}
-                    disabled={isMe}
-                    title={isMe ? 'Cannot modify your own account' : 'Click to change role'}
-                    className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer disabled:cursor-not-allowed active:scale-95 ${
+                    disabled={isMe || pendingUserId !== null}
+                    title={isMe ? 'Cannot modify your own account' : isAdminRole ? 'Ubah menjadi user' : 'Angkat menjadi admin'}
+                    className={`min-h-[44px] px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer disabled:cursor-not-allowed active:scale-95 ${
                       isAdminRole
                         ? 'bg-[#c1ff72]/25 text-[#213506] border-[#a8ed4b] hover:bg-[#c1ff72]/40'
                         : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                     }`}
                   >
-                    {isAdminRole ? '🛡️ Administrator' : '👤 Standard User'}
+                    {pendingUserId === u.id ? 'Menyimpan…' : isAdminRole ? 'Admin · ubah ke user' : 'User · angkat jadi admin'}
                   </button>
 
                   <div className="flex items-center gap-1.5">
