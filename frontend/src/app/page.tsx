@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Navbar } from '@/components/Navbar';
@@ -15,11 +14,9 @@ import { useAuth } from '@/lib/auth';
 import { apiGetCategories, apiGetVideos } from '@/lib/api';
 import type { Category, Video } from '@/lib/types';
 import {
-  Play,
   Activity,
   ChevronLeft,
   ChevronRight,
-  ArrowRight,
   ArrowUpRight,
   Film,
 } from 'lucide-react';
@@ -144,10 +141,6 @@ export default function HomePage() {
     return map;
   }, [categories, videos]);
 
-  const featuredVideo = useMemo(() => {
-    return videos.find((v) => v.isFree) || videos[0] || null;
-  }, [videos]);
-
   const filteredCategories = useMemo(() => {
     if (activeFilter === 'all') return categories;
     return categories.filter((c) => c.id === activeFilter);
@@ -189,7 +182,7 @@ export default function HomePage() {
         <div className="h-16 sm:h-20" />
 
         {/* Bottom Hero Editorial Typography (Studiova Style) */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pb-8 sm:pb-12 lg:pb-16 mt-auto">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pb-5 sm:pb-7 lg:pb-9 mt-auto">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 sm:gap-8">
             {/* Left: Tagline + Giant Title with Pill Button */}
             <motion.div
@@ -240,31 +233,6 @@ export default function HomePage() {
                 >
                   <ArrowUpRight className="w-5 sm:w-6 h-5 sm:h-6 stroke-[2.5] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </motion.a>
-              </motion.div>
-
-              {/* Action Buttons: Stack on small phones, side-by-side on sm+ */}
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.35 }}
-                className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-2 sm:pt-3 w-full sm:w-auto"
-              >
-                {featuredVideo && (
-                  <Link
-                    href={`/watch/${featuredVideo.id}`}
-                    className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 backdrop-blur-md border border-white/25 text-white font-bold text-xs sm:text-sm transition-all min-h-[44px] shadow-sm hover:scale-[1.02]"
-                  >
-                    <Play className="w-3.5 h-3.5 fill-white" />
-                    <span>Watch Free Video ({featuredVideo.title})</span>
-                  </Link>
-                )}
-                <a
-                  href="#katalog-video"
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-black/40 hover:bg-black/60 active:scale-95 backdrop-blur-md border border-white/15 text-slate-200 hover:text-white text-xs sm:text-sm font-semibold transition-all min-h-[44px] hover:scale-[1.02]"
-                >
-                  <span>Browse Catalog</span>
-                  <ArrowRight className="w-4 h-4" />
-                </a>
               </motion.div>
             </motion.div>
           </div>
