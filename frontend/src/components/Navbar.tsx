@@ -113,7 +113,7 @@ export function Navbar() {
   const headerClass = isHome
     ? `fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isSolid
-          ? 'bg-[#c1ff72]/95 backdrop-blur-md border-b border-[#a8ed4b] shadow-xl py-0 text-[#1f2a2e]'
+          ? 'bg-[#c1ff72]/95 backdrop-blur-md border-b border-[#a8ed4b] shadow-md py-0 text-[#1f2a2e]'
           : 'bg-transparent border-b border-transparent py-2 text-white'
       }`
     : 'sticky top-0 z-50 bg-[#c1ff72] border-b border-[#a8ed4b] shadow-md text-[#1f2a2e]';
@@ -222,7 +222,7 @@ export function Navbar() {
                 }`}
               >
                 <Shield className="w-3.5 h-3.5 text-[#c1ff72]" />
-                <span>Panel Admin</span>
+                <span>Admin Panel</span>
               </Link>
             )}
 

@@ -74,6 +74,11 @@ function AdminVideoManagementContent() {
   });
   const [initialVideoForm, setInitialVideoForm] = useState<typeof videoForm | null>(null);
 
+  // Quick Inline Duration Editor State
+  const [quickDurationVideoId, setQuickDurationVideoId] = useState<string | null>(null);
+  const [quickDurationValue, setQuickDurationValue] = useState<string>('');
+  const [isSavingQuickDuration, setIsSavingQuickDuration] = useState(false);
+
   // Category Form Modal State
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
@@ -311,6 +316,24 @@ function AdminVideoManagementContent() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to update access status';
       alert(msg);
+    }
+  };
+
+  // Instant quick duration save from video row
+  const handleQuickSaveDuration = async (videoId: string, overrideVal?: string) => {
+    const val = (overrideVal ?? quickDurationValue).trim();
+    if (!val) return;
+    setIsSavingQuickDuration(true);
+    try {
+      await apiUpdateVideo(videoId, { duration: val });
+      await refreshData();
+      showToast(`Video duration updated to ${val}`);
+      setQuickDurationVideoId(null);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to update duration';
+      alert(msg);
+    } finally {
+      setIsSavingQuickDuration(false);
     }
   };
 
@@ -817,11 +840,20 @@ function AdminVideoManagementContent() {
                                 EP {video.episodeNum}
                               </span>
                             </div>
-                            <div className="absolute bottom-1 right-1">
-                              <span className="px-1.5 py-0.5 rounded bg-black/85 text-[9px] font-mono text-slate-200">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setQuickDurationVideoId(video.id);
+                                setQuickDurationValue(video.duration);
+                              }}
+                              className="absolute bottom-1 right-1 cursor-pointer group/dur"
+                              title="Click to edit duration"
+                            >
+                              <span className="px-1.5 py-0.5 rounded bg-black/85 group-hover/dur:bg-[#1F2A2E] text-[9px] font-mono text-slate-200 group-hover/dur:text-[#c1ff72] flex items-center gap-0.5 transition-colors border border-transparent group-hover/dur:border-[#c1ff72]/40">
+                                <Clock className="w-2.5 h-2.5" />
                                 {video.duration}
                               </span>
-                            </div>
+                            </button>
                           </div>
 
                           {/* Info */}
@@ -878,6 +910,29 @@ function AdminVideoManagementContent() {
                             )}
                           </button>
 
+                          {/* Quick Duration Button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (quickDurationVideoId === video.id) {
+                                setQuickDurationVideoId(null);
+                              } else {
+                                setQuickDurationVideoId(video.id);
+                                setQuickDurationValue(video.duration);
+                              }
+                            }}
+                            className={`min-h-[38px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border shadow-sm active:scale-95 ${
+                              quickDurationVideoId === video.id
+                                ? 'bg-[#1F2A2E] text-white border-[#1F2A2E] ring-2 ring-[#c1ff72]/30'
+                                : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                            }`}
+                            title="Click to quickly change video duration"
+                          >
+                            <Clock className={`w-3.5 h-3.5 ${quickDurationVideoId === video.id ? 'text-[#c1ff72]' : 'text-slate-500'}`} />
+                            <span>{video.duration}</span>
+                            <Pencil className="w-2.5 h-2.5 text-slate-400 ml-0.5" />
+                          </button>
+
                           <div className="flex items-center gap-1.5">
                             {/* Preview Link */}
                             <Link
@@ -911,6 +966,71 @@ function AdminVideoManagementContent() {
                             </button>
                           </div>
                         </div>
+
+                        {/* Inline Quick Duration Editor Drawer */}
+                        {quickDurationVideoId === video.id && (
+                          <div className="w-full bg-slate-100 border border-slate-300 rounded-2xl p-3 sm:p-4 mt-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in slide-in-from-top-1 duration-150">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-xl bg-[#1F2A2E] text-[#c1ff72] flex items-center justify-center shrink-0 shadow-xs">
+                                <Clock className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <div className="text-xs font-black text-slate-900">
+                                  Quick Duration: &ldquo;{video.title}&rdquo;
+                                </div>
+                                <div className="text-[11px] text-slate-500">
+                                  Pick a preset or enter MM:SS, then click Save
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2">
+                              <div className="flex flex-wrap items-center gap-1">
+                                {['01:00', '01:30', '02:00', '02:30', '03:00', '03:45', '04:15', '05:00'].map((preset) => (
+                                  <button
+                                    key={preset}
+                                    type="button"
+                                    onClick={() => handleQuickSaveDuration(video.id, preset)}
+                                    disabled={isSavingQuickDuration}
+                                    className={`px-2 py-1 rounded-lg text-[11px] font-bold cursor-pointer transition-colors border ${
+                                      quickDurationValue === preset
+                                        ? 'bg-[#1F2A2E] text-white border-[#1F2A2E]'
+                                        : 'bg-white hover:bg-slate-200 text-slate-700 border-slate-200'
+                                    }`}
+                                  >
+                                    {preset}
+                                  </button>
+                                ))}
+                              </div>
+
+                              <div className="flex items-center gap-1.5">
+                                <input
+                                  type="text"
+                                  value={quickDurationValue}
+                                  onChange={(e) => setQuickDurationValue(e.target.value)}
+                                  placeholder="03:45"
+                                  className="w-20 px-2.5 py-1 text-xs font-mono font-bold bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-slate-800"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleQuickSaveDuration(video.id)}
+                                  disabled={isSavingQuickDuration}
+                                  className="px-3.5 py-1 bg-[#1F2A2E] hover:bg-black text-[#c1ff72] rounded-lg text-xs font-black cursor-pointer shadow-xs transition-colors"
+                                >
+                                  {isSavingQuickDuration ? '...' : 'Save'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setQuickDurationVideoId(null)}
+                                  className="p-1 hover:bg-slate-200 text-slate-500 rounded-lg cursor-pointer"
+                                  title="Cancel"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))
                   )}
@@ -1342,25 +1462,33 @@ function AdminVideoManagementContent() {
                       </div>
 
                       {/* Video Duration with Quick Presets */}
-                      <div>
-                        <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1.5">
-                          Video Duration (MM:SS)
-                        </label>
+                      <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="flex items-center gap-1.5 text-xs font-black text-slate-800 uppercase tracking-wider">
+                            <Clock className="w-3.5 h-3.5 text-[#1F2A2E]" />
+                            <span>Video Duration (MM:SS)</span>
+                          </label>
+                          <span className="text-[10px] text-slate-400 font-medium">Card & Player</span>
+                        </div>
                         <input
                           type="text"
                           value={videoForm.duration}
                           onChange={(e) => setVideoForm({ ...videoForm, duration: e.target.value })}
                           placeholder="04:00"
-                          className="w-full min-h-[42px] px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-base sm:text-sm font-bold focus:outline-none focus:bg-white focus:border-slate-800 shadow-xs"
+                          className="w-full min-h-[42px] px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-base sm:text-sm font-bold focus:outline-none focus:border-slate-800 shadow-xs"
                         />
-                        <div className="flex items-center gap-1 mt-1.5">
-                          <span className="text-[10px] text-slate-400 font-medium">Presets:</span>
-                          {['03:00', '03:45', '04:15', '05:00'].map((preset) => (
+                        <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Presets:</span>
+                          {['01:00', '01:30', '02:00', '02:30', '03:00', '03:45', '04:15', '05:00'].map((preset) => (
                             <button
                               type="button"
                               key={preset}
                               onClick={() => setVideoForm({ ...videoForm, duration: preset })}
-                              className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[10px] font-bold text-slate-700 cursor-pointer"
+                              className={`px-2 py-0.5 rounded-md text-[10px] font-bold cursor-pointer transition-colors border ${
+                                videoForm.duration === preset
+                                  ? 'bg-[#1F2A2E] text-white border-[#1F2A2E]'
+                                  : 'bg-white hover:bg-slate-200 text-slate-700 border-slate-200'
+                              }`}
                             >
                               {preset}
                             </button>

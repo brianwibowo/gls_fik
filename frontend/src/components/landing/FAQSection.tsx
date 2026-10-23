@@ -65,8 +65,8 @@ function AccordionItem({
       }}
       className={`border rounded-2xl transition-all ${
         isOpen
-          ? 'border-[#1F2A2E]/30 bg-white shadow-md'
-          : 'border-slate-200 bg-white hover:border-slate-300 shadow-sm'
+          ? 'border-[#c1ff72]/40 bg-[#1f2b30] shadow-lg'
+          : 'border-white/10 bg-[#192327] hover:border-white/20 hover:bg-[#1d292e] shadow-sm'
       }`}
     >
       <button
@@ -75,7 +75,9 @@ function AccordionItem({
         className="w-full flex items-center justify-between gap-4 p-5 sm:p-6 text-left cursor-pointer group"
         aria-expanded={isOpen}
       >
-        <span className="text-sm sm:text-base font-bold text-[#1F2A2E] leading-snug pr-2">
+        <span className={`text-sm sm:text-base font-bold leading-snug pr-2 transition-colors ${
+          isOpen ? 'text-[#c1ff72]' : 'text-white group-hover:text-slate-100'
+        }`}>
           {item.question}
         </span>
         <motion.div
@@ -85,7 +87,7 @@ function AccordionItem({
         >
           <ChevronDown
             className={`w-5 h-5 transition-colors ${
-              isOpen ? 'text-[#1F2A2E]' : 'text-slate-400 group-hover:text-slate-600'
+              isOpen ? 'text-[#c1ff72]' : 'text-slate-400 group-hover:text-white'
             }`}
           />
         </motion.div>
@@ -101,8 +103,8 @@ function AccordionItem({
             className="overflow-hidden"
           >
             <div className="px-5 sm:px-6 pb-5 sm:pb-6 pt-0">
-              <div className="border-t border-slate-100 pt-4">
-                <p className="text-xs sm:text-sm text-[#52636A] leading-relaxed">
+              <div className="border-t border-white/10 pt-4">
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                   {item.answer}
                 </p>
               </div>
@@ -120,9 +122,11 @@ export function FAQSection() {
   return (
     <section
       id="faq"
-      className="py-20 bg-white border-b border-slate-200 relative overflow-hidden text-[#1F2A2E] scroll-mt-16"
+      className="py-20 bg-[#162125] relative overflow-hidden text-white scroll-mt-16"
     >
-      <div className="absolute bottom-10 right-10 w-[400px] h-[300px] bg-[radial-gradient(circle,rgba(193,255,114,0.08)_0%,transparent_70%)] pointer-events-none blur-3xl -z-0" />
+      {/* Subtle ambient lighting */}
+      <div className="absolute top-1/2 left-1/4 w-[500px] h-[350px] bg-[radial-gradient(circle,rgba(193,255,114,0.06)_0%,transparent_70%)] pointer-events-none blur-3xl -z-0" />
+      <div className="absolute bottom-0 right-10 w-[400px] h-[300px] bg-[radial-gradient(circle,rgba(193,255,114,0.05)_0%,transparent_70%)] pointer-events-none blur-3xl -z-0" />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
@@ -136,16 +140,16 @@ export function FAQSection() {
             <div className="w-8 h-8 rounded-full bg-[#C1FF72] flex items-center justify-center text-[#1F2A2E] font-black text-xs shadow-sm">
               08
             </div>
-            <div className="w-8 h-[1px] bg-slate-300" />
-            <div className="px-3.5 py-1 rounded-full bg-[#1F2A2E] text-white text-xs font-bold shadow-sm">
+            <div className="w-8 h-[1px] bg-white/20" />
+            <div className="px-3.5 py-1 rounded-full bg-white/10 text-white text-xs font-bold shadow-sm border border-white/15">
               FAQ
             </div>
           </div>
 
-          <h2 className="text-2xl sm:text-4xl font-black text-[#1F2A2E] tracking-tight">
+          <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
             Frequently Asked Questions
           </h2>
-          <p className="text-xs sm:text-sm text-[#52636A] mt-1.5 max-w-lg mx-auto">
+          <p className="text-xs sm:text-sm text-slate-300 mt-1.5 max-w-lg mx-auto">
             Find answers to common questions about using the GLS FIK learning platform.
           </p>
         </motion.div>
@@ -169,9 +173,9 @@ export function FAQSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-8 flex items-center justify-center gap-2 text-xs text-[#52636A]"
+          className="mt-8 flex items-center justify-center gap-2 text-xs text-slate-400"
         >
-          <HelpCircle className="w-4 h-4" />
+          <HelpCircle className="w-4 h-4 text-[#c1ff72]" />
           <span>
             Still have questions? Contact your course instructor or GLS FIK administrator.
           </span>

@@ -207,33 +207,65 @@ export async function apiDeleteCategory(id: string): Promise<{ message: string }
   });
 }
 
+// Helper to read and write custom video overrides locally (for offline dev persistence)
+function getLocalCustomVideos(): Record<string, Partial<Video>> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem('gls_custom_videos');
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveLocalCustomVideo(id: string, updates: Partial<Video>): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const current = getLocalCustomVideos();
+    current[id] = { ...(current[id] || {}), ...updates };
+    localStorage.setItem('gls_custom_videos', JSON.stringify(current));
+  } catch (e) {
+    console.error('Failed to save custom video locally:', e);
+  }
+}
+
 // ── Videos API ──
 export async function apiGetVideos(categoryId?: string): Promise<Video[]> {
+  const localOverrides = getLocalCustomVideos();
+  const applyOverrides = (list: Video[]) =>
+    list.map((v) => (localOverrides[v.id] ? { ...v, ...localOverrides[v.id] } : v));
+
   try {
     const query = categoryId ? `?categoryId=${encodeURIComponent(categoryId)}` : '';
     const data = await fetchApi<Video[]>(`/videos${query}`);
-    if (Array.isArray(data) && data.length > 0) return data;
-    return categoryId
+    if (Array.isArray(data) && data.length > 0) return applyOverrides(data);
+    const fallback = categoryId
       ? FALLBACK_VIDEOS.filter((v) => v.categoryId === categoryId)
       : FALLBACK_VIDEOS;
+    return applyOverrides(fallback);
   } catch (err) {
     console.warn('[API] Gagal terhubung ke backend server, menggunakan video kurikulum cadangan:', err);
-    return categoryId
+    const fallback = categoryId
       ? FALLBACK_VIDEOS.filter((v) => v.categoryId === categoryId)
       : FALLBACK_VIDEOS;
+    return applyOverrides(fallback);
   }
 }
 
 export async function apiGetVideoById(id: string): Promise<Video> {
+  const localOverrides = getLocalCustomVideos();
+  const applyOverride = (v: Video) =>
+    localOverrides[v.id] ? { ...v, ...localOverrides[v.id] } : v;
+
   try {
     const data = await fetchApi<Video>(`/videos/${id}`);
-    if (data && data.id) return data;
+    if (data && data.id) return applyOverride(data);
     const fallback = FALLBACK_VIDEOS.find((v) => v.id === id);
-    if (fallback) return fallback;
+    if (fallback) return applyOverride(fallback);
     throw new Error('Video tidak ditemukan');
   } catch (err) {
     const fallback = FALLBACK_VIDEOS.find((v) => v.id === id);
-    if (fallback) return fallback;
+    if (fallback) return applyOverride(fallback);
     throw err;
   }
 }
@@ -246,10 +278,24 @@ export async function apiCreateVideo(data: Partial<Video>): Promise<Video> {
 }
 
 export async function apiUpdateVideo(id: string, data: Partial<Video>): Promise<Video> {
-  return fetchApi<Video>(`/videos/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  });
+  // Always persist locally first so edits (e.g. duration) work instantly in all environments
+  saveLocalCustomVideo(id, data);
+  try {
+    return await fetchApi<Video>(`/videos/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  } catch (err) {
+    console.warn('[API] Backend offline or request failed, update saved locally:', err);
+    const fallback = FALLBACK_VIDEOS.find((v) => v.id === id);
+    const localOverrides = getLocalCustomVideos();
+    return {
+      ...(fallback || ({} as Video)),
+      ...data,
+      ...(localOverrides[id] || {}),
+      id,
+    } as Video;
+  }
 }
 
 export async function apiDeleteVideo(id: string): Promise<{ message: string }> {
