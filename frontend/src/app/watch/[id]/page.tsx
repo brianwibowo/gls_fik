@@ -8,6 +8,7 @@ import { Navbar } from '@/components/Navbar';
 import { LoginModal } from '@/components/LoginModal';
 import { LearningTracker } from '@/components/LearningTracker';
 import { VideoThumbnail } from '@/components/VideoThumbnail';
+import { VideoCard } from '@/components/VideoCard';
 import { useAuth } from '@/lib/auth';
 import { ApiError, apiGetCategories, apiGetVideoById, apiGetVideoPlayback, apiGetVideos } from '@/lib/api';
 import type { Category, Video, VideoPlayback } from '@/lib/types';
@@ -69,6 +70,7 @@ function WatchContent({ videoId }: { videoId: string }) {
   const [video, setVideo] = useState<Video | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
   const [siblings, setSiblings] = useState<Video[]>([]);
+  const [relatedLessons, setRelatedLessons] = useState<Array<{ video: Video; categoryName?: string }>>([]);
   const [error, setError] = useState('');
   const [notFound, setNotFound] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -79,11 +81,19 @@ function WatchContent({ videoId }: { videoId: string }) {
     async function load() {
       try {
         const selected = await apiGetVideoById(videoId);
-        const [categories, related] = await Promise.all([apiGetCategories(), apiGetVideos(selected.categoryId)]);
+        const [categories, catalog] = await Promise.all([apiGetCategories(), apiGetVideos()]);
         if (!current) return;
         setVideo(selected);
         setCategory(categories.find(item => item.id === selected.categoryId) || null);
-        setSiblings(related);
+        setSiblings(catalog.filter(item => item.categoryId === selected.categoryId));
+        const others = catalog.filter(item => item.id !== selected.id);
+        setRelatedLessons([
+          ...others.filter(item => item.categoryId === selected.categoryId),
+          ...others.filter(item => item.categoryId !== selected.categoryId),
+        ].slice(0, 3).map(item => ({
+          video: item,
+          categoryName: categories.find(entry => entry.id === item.categoryId)?.name,
+        })));
       } catch (reason) {
         if (!current) return;
         setNotFound(reason instanceof ApiError && reason.status === 404);
@@ -132,6 +142,21 @@ function WatchContent({ videoId }: { videoId: string }) {
           </div>
 
           <div className="mt-10 border-t border-white/15 pt-8"><LearningTracker videoId={video.id} onLogin={() => setShowLogin(true)} /></div>
+
+          {relatedLessons.length > 0 && (
+            <section aria-labelledby="related-learning-title" className="mt-10 rounded-2xl bg-[#f7f5ee] p-5 text-[#1f2a2e] sm:p-6">
+              <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <h2 id="related-learning-title" className="text-xl font-bold tracking-tight">Lanjutkan belajar</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-[#52636a]">Pilih materi GCL lain untuk sesi belajarmu berikutnya.</p>
+                </div>
+                <Link href="/#katalog-video" className="inline-flex min-h-11 items-center rounded-lg border border-[#7b8583] bg-white px-4 py-2 text-sm font-semibold hover:bg-[#eceee5] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1f2a2e]">Lihat semua video</Link>
+              </div>
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {relatedLessons.map(lesson => <VideoCard key={lesson.video.id} video={lesson.video} categoryName={lesson.categoryName} />)}
+              </div>
+            </section>
+          )}
         </>}
       </main>
       {showLogin && <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />}

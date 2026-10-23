@@ -27,10 +27,13 @@ Jalankan API terpisah mengikuti petunjuk backend atau gunakan `docker compose up
 ## Alur akun dan belajar
 
 - Login Google yang terverifikasi menyimpan akun baru sebagai `user`. Email bootstrap pada `ADMIN_EMAILS` hanya menentukan admin ketika akun tersebut pertama kali dibuat.
+- Setelah login melalui halaman masuk atau popup, user diarahkan ke `/#katalog-video` dan admin ke `/admin`.
 - Admin melihat akun pada **Users & Roles** dan dapat mengangkat user menjadi admin. API memeriksa role terbaru dari database untuk setiap permintaan; tampilan akun diperbarui saat kembali ke tab dan berkala.
 - Tamu dapat menonton materi gratis. Endpoint pemutaran memerlukan sesi valid untuk materi lainnya.
 - Checklist memakai status **Belum dipelajari**, **Perlu diulang**, dan **Sudah dipahami**. Progres serta catatan disimpan berdasarkan akun, video, dan ID item checklist.
+- Catatan per item mempunyai aksi tambah, simpan, ubah, batal, serta hapus dengan konfirmasi. Catatan pribadi pada ringkasan tetap disimpan otomatis.
 - Hasil analisis belajar dihitung dari checklist yang diisi pengguna. Ini bukan analisis gerakan otomatis dari video.
+- Bagian **Lanjutkan belajar** di bawah tracker menampilkan hingga tiga video lain dari katalog dan tautan ke katalog lengkap.
 
 ## Menambahkan video
 

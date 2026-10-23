@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
+import { ChevronDown, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import {
   apiGetLearningTracker,
@@ -48,6 +49,90 @@ export function LearningTracker({ videoId, onLogin }: LearningTrackerProps) {
   }
 
   return <PersonalTracker key={`${user.id}:${videoId}:${sessionToken}`} videoId={videoId} sessionToken={sessionToken} />;
+}
+
+function ItemNotes({ item, noteId, onSave }: {
+  item: LearningItem;
+  noteId: string;
+  onSave: (note: string) => void;
+}) {
+  const [mode, setMode] = useState<'view' | 'edit' | 'delete'>('view');
+  const [draft, setDraft] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const actionRef = useRef<HTMLButtonElement>(null);
+  const deleteRef = useRef<HTMLButtonElement>(null);
+  const previousMode = useRef(mode);
+
+  useEffect(() => {
+    if (mode === 'edit') textareaRef.current?.focus();
+    if (mode === 'delete') deleteRef.current?.focus();
+    if (mode === 'view' && previousMode.current !== 'view') actionRef.current?.focus();
+    previousMode.current = mode;
+  }, [mode]);
+
+  useEffect(() => {
+    if (mode !== 'edit' || draft === item.note) return;
+    const protectDraft = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener('beforeunload', protectDraft);
+    return () => window.removeEventListener('beforeunload', protectDraft);
+  }, [mode, draft, item.note]);
+
+  function startEditing() {
+    setDraft(item.note);
+    setMode('edit');
+  }
+
+  return (
+    <div className={styles.itemNotes}>
+      {mode === 'edit' ? (
+        <div className={styles.noteEditor}>
+          <label className={styles.noteLabel} htmlFor={noteId}>Catatan untuk {item.name}</label>
+          <textarea
+            ref={textareaRef}
+            id={noteId}
+            rows={3}
+            maxLength={2000}
+            value={draft}
+            placeholder="Apa yang ingin kamu ingat dari bagian ini?"
+            onChange={(event) => setDraft(event.target.value)}
+          />
+          <div className={styles.noteFooter}>
+            <div className={styles.noteActions}>
+              <button type="button" className={styles.primaryButton} disabled={!draft.trim() || draft.trim() === item.note} onClick={() => {
+                onSave(draft.trim());
+                setMode('view');
+              }}>Simpan catatan</button>
+              <button type="button" className={styles.secondaryButton} onClick={() => setMode('view')}>Batal</button>
+            </div>
+            <span className={styles.helper}>{draft.length}/2000</span>
+          </div>
+        </div>
+      ) : item.note ? (
+        <div className={styles.noteCard}>
+          <p className={styles.noteText}>{item.note}</p>
+          {mode === 'delete' ? (
+            <div className={styles.deletePrompt} role="group" aria-label={`Konfirmasi hapus catatan untuk ${item.name}`}>
+              <p>Hapus catatan ini?</p>
+              <div className={styles.noteActions}>
+                <button ref={deleteRef} type="button" className={styles.deleteButton} onClick={() => {
+                  onSave('');
+                  setMode('view');
+                }}>Ya, hapus catatan</button>
+                <button type="button" className={styles.secondaryButton} onClick={() => setMode('view')}>Batal</button>
+              </div>
+            </div>
+          ) : (
+            <div className={styles.noteActions}>
+              <button ref={actionRef} type="button" className={styles.noteButton} aria-label={`Ubah catatan untuk ${item.name}`} onClick={startEditing}><Pencil size={14} aria-hidden="true" />Ubah</button>
+              <button type="button" className={styles.noteButton} aria-label={`Hapus catatan untuk ${item.name}`} onClick={() => setMode('delete')}><Trash2 size={14} aria-hidden="true" />Hapus</button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <button ref={actionRef} type="button" className={styles.noteButton} aria-label={`Tambah catatan untuk ${item.name}`} onClick={startEditing}><Plus size={15} aria-hidden="true" />Tambah catatan</button>
+      )}
+    </div>
+  );
 }
 
 function PersonalTracker({ videoId, sessionToken }: { videoId: string; sessionToken: string }) {
@@ -162,7 +247,7 @@ function PersonalTracker({ videoId, sessionToken }: { videoId: string; sessionTo
     };
     drafts.current = next;
     setTracker(next);
-    schedule(`item:${id}`, change.status !== undefined);
+    schedule(`item:${id}`, true);
   }
 
   function updatePersonalNote(note: string) {
@@ -229,29 +314,20 @@ function PersonalTracker({ videoId, sessionToken }: { videoId: string; sessionTo
                   <div className={styles.itemMain}>
                     <span className={styles.itemNumber} aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
                     <label htmlFor={statusId} className={styles.itemName}>{item.name}</label>
-                    <select
-                      id={statusId}
-                      className={styles.statusControl}
-                      aria-label={`Status ${item.name}`}
-                      value={item.status}
-                      onChange={(event) => updateItem(item.id, { status: event.target.value as LearningStatus })}
-                    >
-                      {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                    </select>
+                    <div className={styles.statusField} data-status={item.status}>
+                      <select
+                        id={statusId}
+                        className={styles.statusControl}
+                        aria-label={`Status ${item.name}`}
+                        value={item.status}
+                        onChange={(event) => updateItem(item.id, { status: event.target.value as LearningStatus })}
+                      >
+                        {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                      </select>
+                      <ChevronDown className={styles.statusChevron} size={16} aria-hidden="true" />
+                    </div>
                   </div>
-                  <details className={styles.itemNotes}>
-                    <summary aria-label={`Catatan untuk ${item.name}`}>{item.note ? 'Lihat catatan' : 'Tambah catatan'}</summary>
-                    <label className={styles.noteLabel} htmlFor={noteId}>Catatan untuk {item.name}</label>
-                    <textarea
-                      id={noteId}
-                      rows={2}
-                      maxLength={2000}
-                      value={item.note}
-                      placeholder="Apa yang ingin kamu ingat dari bagian ini?"
-                      onChange={(event) => updateItem(item.id, { note: event.target.value })}
-                      onBlur={() => void flush(`item:${item.id}`)}
-                    />
-                  </details>
+                  <ItemNotes item={item} noteId={noteId} onSave={(note) => updateItem(item.id, { note })} />
                 </li>
               );
             })}

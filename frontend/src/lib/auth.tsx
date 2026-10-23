@@ -4,12 +4,14 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import type { User } from './types';
 import { ApiError, apiLogin, apiLoginGoogle, apiGetMe, getAuthToken, removeAuthToken, setAuthToken } from './api';
 
+type LoginResult = { success: true; user: User } | { success: false; error: string };
+
 interface AuthContextValue {
   user: User | null;
   isLoggedIn: boolean;
   isAdmin: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  loginWithGoogle: (credential: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<LoginResult>;
+  loginWithGoogle: (credential: string) => Promise<LoginResult>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   isReady: boolean;
@@ -17,8 +19,8 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue>({
   user: null, isLoggedIn: false, isAdmin: false, isReady: false,
-  login: async () => ({ success: false }),
-  loginWithGoogle: async () => ({ success: false }),
+  login: async () => ({ success: false, error: 'Sesi belum siap.' }),
+  loginWithGoogle: async () => ({ success: false, error: 'Sesi belum siap.' }),
   logout: () => {}, refreshUser: async () => {},
 });
 
@@ -79,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [refreshUser, logout]);
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string): Promise<LoginResult> => {
     const currentGeneration = ++generation.current;
     try {
       const session = await apiLogin(email, password);
@@ -87,14 +89,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAuthToken(session.token);
       setUser(session.user);
       setIsReady(true);
-      return { success: true };
+      return { success: true, user: session.user };
     } catch (error) {
       if (generation.current === currentGeneration) setIsReady(true);
       return { success: false, error: error instanceof Error ? error.message : 'Login gagal.' };
     }
   }, []);
 
-  const loginWithGoogle = useCallback(async (credential: string) => {
+  const loginWithGoogle = useCallback(async (credential: string): Promise<LoginResult> => {
     const currentGeneration = ++generation.current;
     try {
       const session = await apiLoginGoogle(credential);
@@ -102,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAuthToken(session.token);
       setUser(session.user);
       setIsReady(true);
-      return { success: true };
+      return { success: true, user: session.user };
     } catch (error) {
       if (generation.current === currentGeneration) setIsReady(true);
       return { success: false, error: error instanceof Error ? error.message : 'Login dengan Google gagal.' };

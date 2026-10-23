@@ -3,7 +3,7 @@
 import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { GoogleLogin } from '@react-oauth/google';
 import {
@@ -16,7 +16,6 @@ import {
 
 function LoginForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { loginWithGoogle } = useAuth();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -26,11 +25,7 @@ function LoginForm() {
     setIsLoading(true);
     const result = await loginWithGoogle(credential);
     if (result.success) {
-      const requestedRedirect = searchParams.get('redirect') || '/';
-      const redirect = requestedRedirect.startsWith('/') && !requestedRedirect.startsWith('//') && !requestedRedirect.includes('\\')
-        ? requestedRedirect
-        : '/';
-      router.push(redirect);
+      router.replace(result.user.role === 'admin' ? '/admin' : '/#katalog-video');
     } else {
       setError(result.error || 'Google sign-in failed. Please try again.');
       setIsLoading(false);

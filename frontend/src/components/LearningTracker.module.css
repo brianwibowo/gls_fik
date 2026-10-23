@@ -1,12 +1,14 @@
 .workspace,
 .guest,
 .feedback {
-  color-scheme: dark;
-  --tracker-ink: #f2f6f4;
-  --tracker-muted: #b6c4c5;
-  --tracker-surface: #172023;
-  --tracker-line: #405355;
-  --tracker-control: #8c9fa3;
+  color-scheme: light;
+  --tracker-ink: #1f2a2e;
+  --tracker-muted: #52636a;
+  --tracker-panel: #f7f5ee;
+  --tracker-surface: #ffffff;
+  --tracker-line: #dcded5;
+  --tracker-control: #7b8583;
+  --tracker-progress: #456337;
   --tracker-lime: #c1ff72;
   margin-top: 32px;
   color: var(--tracker-ink);
@@ -47,13 +49,17 @@
 .workspace :focus-visible,
 .guest :focus-visible,
 .feedback :focus-visible {
-  outline: 3px solid var(--tracker-lime);
+  outline: 3px solid var(--tracker-ink);
   outline-offset: 3px;
 }
 
 .checklist,
 .summary {
   min-width: 0;
+  padding: 20px 16px;
+  background: var(--tracker-panel);
+  border: 1px solid var(--tracker-line);
+  border-radius: 12px;
 }
 
 .sectionHeading {
@@ -106,12 +112,18 @@
   line-height: 1.45;
 }
 
-.statusControl {
+.statusField {
   grid-column: 2;
+  position: relative;
+  min-width: 0;
+}
+
+.statusControl {
   width: 100%;
   min-width: 0;
   min-height: 44px;
-  padding: 9px;
+  appearance: none;
+  padding: 10px 36px 10px 12px;
   color: var(--tracker-ink);
   background: var(--tracker-surface);
   border: 1px solid var(--tracker-control);
@@ -120,22 +132,100 @@
   cursor: pointer;
 }
 
-.itemNotes {
-  margin: 3px 0 0 34px;
+.statusControl:hover {
+  border-color: var(--tracker-ink);
 }
 
-.itemNotes summary {
-  width: fit-content;
-  max-width: 100%;
-  min-height: 44px;
-  padding: 11px 0;
-  font-size: 0.8125rem;
+.statusControl option {
+  color: var(--tracker-ink);
+  background: var(--tracker-surface);
+}
+
+.statusField[data-status='review'] .statusControl {
+  background: #f4eddc;
+}
+
+.statusField[data-status='understood'] .statusControl {
+  background: #e7f2d8;
+}
+
+.statusChevron {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
   color: var(--tracker-muted);
+  pointer-events: none;
+}
+
+.itemNotes {
+  margin: 8px 0 0 34px;
+}
+
+.noteButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 9px 10px;
+  border: 1px solid var(--tracker-control);
+  border-radius: 7px;
+  background: var(--tracker-surface);
+  color: var(--tracker-ink);
+  font-size: 0.8125rem !important;
   cursor: pointer;
 }
 
-.itemNotes summary:hover {
-  color: var(--tracker-ink);
+.noteButton:hover {
+  background: #eceee5;
+}
+
+.noteCard,
+.noteEditor {
+  padding: 14px;
+  border: 1px solid var(--tracker-line);
+  border-radius: 8px;
+  background: var(--tracker-surface);
+}
+
+.noteCard .noteText {
+  margin-bottom: 12px;
+  white-space: pre-wrap;
+  font-size: 0.875rem;
+}
+
+.noteActions,
+.noteFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.noteFooter {
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.deletePrompt p {
+  margin-bottom: 10px;
+  font-size: 0.875rem;
+}
+
+.deleteButton {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid #9b3434;
+  border-radius: 8px;
+  color: #9b3434;
+  background: #fff5f2;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+}
+
+.deleteButton:hover {
+  background: #fce7e1;
 }
 
 .workspace textarea {
@@ -157,13 +247,6 @@
 .workspace textarea::placeholder {
   color: var(--tracker-muted);
   opacity: 1;
-}
-
-.summary {
-  padding: 20px 16px;
-  background: var(--tracker-surface);
-  border: 1px solid var(--tracker-line);
-  border-radius: 12px;
 }
 
 .progressHeading {
@@ -188,14 +271,14 @@
 
 .track {
   height: 8px;
-  background: #405355;
+  background: var(--tracker-line);
   border-radius: 4px;
 }
 
 .track span {
   display: block;
   height: 100%;
-  background: var(--tracker-lime);
+  background: var(--tracker-progress);
   border-radius: 4px;
 }
 
@@ -260,7 +343,7 @@
 .guest,
 .feedback {
   padding: 20px;
-  background: var(--tracker-surface);
+  background: var(--tracker-panel);
   border: 1px solid var(--tracker-line);
   border-radius: 12px;
 }
@@ -291,13 +374,20 @@
 }
 
 .primaryButton {
-  border: 1px solid var(--tracker-lime);
+  border: 1px solid var(--tracker-progress);
   color: #1f2a2e;
   background: var(--tracker-lime);
 }
 
 .primaryButton:hover {
   background: #ade75f;
+}
+
+.primaryButton:disabled {
+  color: var(--tracker-muted);
+  border-color: var(--tracker-line);
+  background: #eceee5;
+  cursor: not-allowed;
 }
 
 .secondaryButton {
@@ -307,7 +397,7 @@
 }
 
 .secondaryButton:hover {
-  background: #263438;
+  background: #eceee5;
 }
 
 .saveError {
@@ -328,10 +418,11 @@
     grid-template-columns: 24px minmax(0, 1fr) 176px;
   }
 
-  .statusControl {
+  .statusField {
     grid-column: auto;
   }
 
+  .checklist,
   .summary {
     padding: 24px;
   }

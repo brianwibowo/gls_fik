@@ -6,6 +6,8 @@ Frontend dan Docker Compose memakai alamat produksi tersebut secara bawaan. Envi
 
 Server menggunakan AlmaLinux 8.10, Nginx pada port 80/443, dan `/usr/bin/certbot`. Gunakan Nginx yang ada. Instruksi Caddy sebelumnya digantikan panduan ini. Jalankan sebagai root; perintah Docker Compose dijalankan dari folder `gls_fik`.
 
+Untuk menyiapkan virtual host dan sertifikat setelah backend lokal siap, tersedia `bash deploy/setup-api-nginx.sh`. Script memeriksa health backend, memeriksa konflik domain pada file konfigurasi lain, mencadangkan `/etc/nginx`, menulis virtual host khusus API, mengizinkan koneksi proxy jika SELinux Enforcing, lalu menjalankan Certbot dan memverifikasi HTTPS serta endpoint katalog. Script berhenti ketika suatu langkah gagal. Certbot dapat meminta input interaktif. Renewal tetap perlu diverifikasi sesuai bagian 6.
+
 ## 1. Pastikan backend siap
 
 ```sh

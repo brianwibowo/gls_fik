@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useId } from 'react';
 import { useAuth } from '@/lib/auth';
 import { GoogleLogin } from '@react-oauth/google';
+import { useRouter } from 'next/navigation';
 import {
   Lock,
   X,
@@ -26,6 +27,7 @@ export function LoginModal({
   subtitle = 'Sign in to access this GCL lesson and save your personal learning progress.',
 }: LoginModalProps) {
   const { loginWithGoogle } = useAuth();
+  const router = useRouter();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -63,6 +65,7 @@ export function LoginModal({
       setIsLoading(false);
       if (onSuccess) onSuccess();
       onClose();
+      router.replace(result.user.role === 'admin' ? '/admin' : '/#katalog-video');
     } else {
       setError(result.error || 'Google sign-in failed. Please try again.');
       setIsLoading(false);
