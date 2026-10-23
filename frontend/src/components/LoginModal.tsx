@@ -5,10 +5,10 @@ import { useAuth } from '@/lib/auth';
 import { GoogleLogin } from '@react-oauth/google';
 import {
   Lock,
-  Mail,
   X,
-  LogIn,
   AlertCircle,
+  ShieldCheck,
+  Sparkles,
 } from 'lucide-react';
 
 interface LoginModalProps {
@@ -26,9 +26,7 @@ export function LoginModal({
   title = 'Akses Video Terkunci',
   subtitle = 'Materi ini membutuhkan akses akun atlet, pelatih, atau mahasiswa GLS FIK.',
 }: LoginModalProps) {
-  const { login, loginWithGoogle } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { loginWithGoogle } = useAuth();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -45,22 +43,6 @@ export function LoginModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
-
-    const result = await login(email, password);
-    if (result.success) {
-      setIsLoading(false);
-      if (onSuccess) onSuccess();
-      onClose();
-    } else {
-      setError(result.error || 'Login gagal. Periksa kembali email dan kata sandi Anda.');
-      setIsLoading(false);
-    }
-  };
-
   const handleGoogleSuccess = async (credential: string) => {
     setError('');
     setIsLoading(true);
@@ -75,10 +57,9 @@ export function LoginModal({
     }
   };
 
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
-      <div className="bg-[#121721] border border-white/10 rounded-3xl max-w-md w-full max-h-[90dvh] overflow-y-auto p-5 sm:p-8 shadow-2xl relative text-white my-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+      <div className="bg-[#121721] border border-white/10 rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl relative text-white my-auto">
         {/* Close Button */}
         <button
           type="button"
@@ -90,35 +71,35 @@ export function LoginModal({
         </button>
 
         {/* Header Icon & Title */}
-        <div className="flex items-center gap-3 mb-3.5 sm:mb-4">
-          <div className="w-11 h-11 rounded-2xl bg-[#c1ff72] flex items-center justify-center text-[#1f2a2e] font-black shadow-md shrink-0">
-            <Lock className="w-5 h-5 stroke-[2.5]" />
+        <div className="flex items-center gap-3.5 mb-3 sm:mb-4">
+          <div className="w-12 h-12 rounded-2xl bg-[#c1ff72] flex items-center justify-center text-[#1f2a2e] font-black shadow-lg shadow-[#c1ff72]/20 shrink-0">
+            <Lock className="w-6 h-6 stroke-[2.5]" />
           </div>
           <div>
+            <span className="text-[11px] font-black text-[#c1ff72] uppercase tracking-wider block">
+              Login Diperlukan
+            </span>
             <h2 className="text-lg sm:text-xl font-black text-white tracking-tight leading-tight">
               {title}
             </h2>
-            <span className="text-[11px] font-bold text-[#c1ff72] uppercase tracking-wider">
-              Login Diperlukan
-            </span>
           </div>
         </div>
 
-        <p className="text-xs sm:text-sm text-slate-300 mb-4 sm:mb-5 leading-relaxed">
-          {subtitle}
+        <p className="text-xs sm:text-sm text-slate-300 mb-6 leading-relaxed">
+          {subtitle} Masuk langsung dengan akun Google Anda untuk membuka seluruh kurikulum video latihan.
         </p>
 
         {/* Error notification */}
         {error && (
-          <div className="p-3.5 mb-4 rounded-xl bg-red-500/15 border border-red-500/30 flex items-start gap-2.5 text-xs text-red-300">
+          <div className="p-3.5 mb-5 rounded-xl bg-red-500/15 border border-red-500/30 flex items-start gap-2.5 text-xs text-red-300">
             <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
 
-        {/* Google One-Click Login */}
-        <div className="mb-4">
-          <div className="w-full flex justify-center [&>div]:!w-full [&>div>iframe]:!w-full [&>div>div]:!w-full">
+        {/* Google One-Click Login Button */}
+        <div className="space-y-4">
+          <div className="w-full flex justify-center [&>div]:!w-full [&>div>iframe]:!w-full [&>div>div]:!w-full shadow-lg rounded-full overflow-hidden">
             <GoogleLogin
               onSuccess={(res) => {
                 if (res.credential) handleGoogleSuccess(res.credential);
@@ -132,62 +113,17 @@ export function LoginModal({
             />
           </div>
 
-          <div className="w-full flex items-center gap-3 my-4">
-            <div className="h-px bg-white/10 flex-1" />
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-              atau masuk dengan email
-            </span>
-            <div className="h-px bg-white/10 flex-1" />
+          {isLoading && (
+            <p className="text-center text-xs text-[#c1ff72] font-semibold animate-pulse">
+              Memverifikasi akun Google & membuka video...
+            </p>
+          )}
+
+          <div className="pt-3 border-t border-white/10 flex items-center justify-center gap-2 text-slate-400 text-[11px]">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#c1ff72]" />
+            <span>Otentikasi aman terenkripsi Google OAuth 2.0</span>
           </div>
         </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-              Alamat Email
-            </label>
-            <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="nama@gls.id"
-                className="w-full min-h-[42px] pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-base sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-[#c1ff72] focus:ring-1 focus:ring-[#c1ff72] transition-colors"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-              Kata Sandi
-            </label>
-            <div className="relative">
-              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full min-h-[42px] pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-base sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-[#c1ff72] focus:ring-1 focus:ring-[#c1ff72] transition-colors"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full min-h-[44px] py-3 rounded-xl bg-[#c1ff72] hover:bg-[#b0f555] active:scale-95 text-[#1f2a2e] font-black text-sm tracking-wide shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 mt-2 disabled:opacity-50"
-          >
-            <LogIn className="w-4 h-4 stroke-[2.5]" />
-            <span>{isLoading ? 'Memverifikasi...' : 'Masuk & Buka Video'}</span>
-          </button>
-        </form>
-
-
       </div>
     </div>
   );

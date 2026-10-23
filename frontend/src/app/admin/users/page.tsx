@@ -65,17 +65,12 @@ function AdminUsersContent() {
           email: form.email.trim(),
           role: form.role,
         };
-        if (form.password.trim()) updateData.password = form.password.trim();
         await apiUpdateUser(editingId, updateData);
       } else {
-        if (!form.password.trim()) {
-          alert('Mohon masukkan kata sandi untuk akun baru.');
-          return;
-        }
         await apiCreateUser({
           name: form.name.trim(),
           email: form.email.trim(),
-          password: form.password.trim(),
+          password: 'google_oauth_managed',
           role: form.role,
         });
       }
@@ -155,7 +150,7 @@ function AdminUsersContent() {
                 {editingId ? 'Ubah Data Pengguna' : 'Tambah Pengguna Baru'}
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Lengkapi nama, email, dan kata sandi untuk akun pengguna.
+                Daftarkan akun Google dan tentukan hak akses pengguna (Admin atau User).
               </p>
             </div>
             <button
@@ -185,47 +180,34 @@ function AdminUsersContent() {
 
               <div>
                 <label className="block text-xs sm:text-sm font-bold text-slate-900 mb-1.5">
-                  Alamat Email *
+                  Alamat Email (Akun Google) *
                 </label>
                 <input
                   type="email"
                   required
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  placeholder="Contoh: pelatih@gls.id"
+                  placeholder="Contoh: pelatih@gmail.com"
                   className="w-full min-h-[42px] px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-base sm:text-sm focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800 transition-colors"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
-              <div>
-                <label className="block text-xs sm:text-sm font-bold text-slate-900 mb-1.5">
-                  Kata Sandi {editingId ? '(Kosongkan bila tidak diubah)' : '*'}
-                </label>
-                <input
-                  type="password"
-                  required={!editingId}
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  placeholder={editingId ? '••••••••' : 'Minimal 6 karakter'}
-                  className="w-full min-h-[42px] px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-base sm:text-sm focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800 transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-bold text-slate-900 mb-1.5">
-                  Peran / Hak Akses
-                </label>
-                <select
-                  value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value as 'user' | 'admin' })}
-                  className="w-full min-h-[42px] px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-base sm:text-sm font-medium focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800 transition-colors cursor-pointer"
-                >
-                  <option value="user">User Biasa (Hanya Menonton Video)</option>
-                  <option value="admin">Admin Pengelola (Bisa Tambah & Hapus Video)</option>
-                </select>
-              </div>
+            <div>
+              <label className="block text-xs sm:text-sm font-bold text-slate-900 mb-1.5">
+                Peran / Hak Akses *
+              </label>
+              <select
+                value={form.role}
+                onChange={(e) => setForm({ ...form, role: e.target.value as 'user' | 'admin' })}
+                className="w-full min-h-[42px] px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-base sm:text-sm font-medium focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800 transition-colors cursor-pointer"
+              >
+                <option value="user">User Biasa (Atlet / Pelatih - Akses Menonton Video)</option>
+                <option value="admin">Admin Pengelola (Bisa Tambah, Edit, & Hapus Video/Pengguna)</option>
+              </select>
+              <p className="text-xs text-slate-500 mt-1.5">
+                Autentikasi terpusat via Google OAuth. Pengguna cukup login dengan akun Google mereka tanpa kata sandi terpisah.
+              </p>
             </div>
 
             <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-200">

@@ -9,47 +9,17 @@ import { GoogleLogin } from '@react-oauth/google';
 import {
   Activity,
   ArrowLeft,
-  Mail,
-  Lock,
-  LogIn,
   AlertCircle,
+  ShieldCheck,
+  Lock,
 } from 'lucide-react';
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login, loginWithGoogle, isLoggedIn } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { loginWithGoogle, isLoggedIn } = useAuth();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
-  // If already logged in, redirect
-  React.useEffect(() => {
-    if (isLoggedIn) {
-      const redirect = searchParams.get('redirect') || '/';
-      router.push(redirect);
-    }
-  }, [isLoggedIn, router, searchParams]);
-
-  if (isLoggedIn) {
-    return null;
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
-
-    const result = await login(email, password);
-    if (result.success) {
-      const redirect = searchParams.get('redirect') || '/';
-      router.push(redirect);
-    } else {
-      setError(result.error || 'Login gagal.');
-      setIsLoading(false);
-    }
-  };
 
   const handleGoogleSuccess = async (credential: string) => {
     setError('');
@@ -145,10 +115,10 @@ function LoginForm() {
               <Activity className="w-5 h-5 stroke-[3]" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Masuk Akun Pengguna
+              Masuk ke GLS FIK
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1.5">
-              Gunakan email dan kata sandi Anda untuk mengakses materi video atau panel admin.
+            <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
+              Gunakan akun Google Anda untuk langsung mengakses seluruh kurikulum video latihan dan panel pengelolaan.
             </p>
           </div>
 
@@ -160,9 +130,16 @@ function LoginForm() {
             </div>
           )}
 
-          {/* Google One-Click Login */}
-          <div className="space-y-4">
-            <div className="flex justify-center [&>div]:!w-full [&>div>iframe]:!w-full [&>div>div]:!w-full">
+          {/* Google One-Click Login Box */}
+          <div className="p-6 rounded-2xl bg-[#141a24] border border-[#273549] space-y-5">
+            <div className="flex items-center gap-3 text-xs text-slate-300 font-medium">
+              <div className="w-7 h-7 rounded-lg bg-[#c1ff72]/15 flex items-center justify-center text-[#c1ff72] shrink-0 font-bold">
+                <Lock className="w-3.5 h-3.5" />
+              </div>
+              <span>Satu akun untuk seluruh akses video dan materi latihan</span>
+            </div>
+
+            <div className="w-full flex justify-center [&>div]:!w-full [&>div>iframe]:!w-full [&>div>div]:!w-full shadow-lg rounded-full overflow-hidden">
               <GoogleLogin
                 onSuccess={(res) => {
                   if (res.credential) handleGoogleSuccess(res.credential);
@@ -176,66 +153,17 @@ function LoginForm() {
               />
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="h-px bg-[#273549] flex-1" />
-              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                atau masuk dengan email
-              </span>
-              <div className="h-px bg-[#273549] flex-1" />
+            {isLoading && (
+              <p className="text-center text-xs text-[#c1ff72] font-semibold animate-pulse">
+                Memverifikasi kredensial Google & menyiapkan sesi...
+              </p>
+            )}
+
+            <div className="pt-3 border-t border-white/5 flex items-center justify-center gap-2 text-slate-400 text-[11px]">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#c1ff72]" />
+              <span>Otentikasi resmi Google OAuth 2.0 (Tanpa Kata Sandi)</span>
             </div>
           </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">
-                Alamat Email
-              </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@gls.id"
-                  required
-                  className="w-full min-h-[44px] pl-10 pr-4 py-3 rounded-xl bg-[#141a24] border border-[#273549] text-base sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#c1ff72]/40 focus:border-[#c1ff72] transition-all"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">
-                Kata Sandi
-              </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Masukkan kata sandi akun"
-                  required
-                  className="w-full min-h-[44px] pl-10 pr-4 py-3 rounded-xl bg-[#141a24] border border-[#273549] text-base sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#c1ff72]/40 focus:border-[#c1ff72] transition-all"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full min-h-[46px] py-3.5 rounded-xl bg-[#c1ff72] hover:bg-[#b0f555] text-[#1f2a2e] font-black text-sm sm:text-base active:scale-[0.99] transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
-            >
-              {isLoading ? (
-                <span>Memverifikasi Akun...</span>
-              ) : (
-                <>
-                  <LogIn className="w-4 h-4 stroke-[2.5]" />
-                  <span>Masuk Sekarang</span>
-                </>
-              )}
-            </button>
-          </form>
 
 
         </div>

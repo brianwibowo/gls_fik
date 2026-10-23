@@ -12,6 +12,7 @@ import {
   LogOut,
   ChevronDown,
   Shield,
+  LogIn,
   Menu,
   X,
 } from 'lucide-react';
@@ -221,7 +222,7 @@ export function Navbar() {
                 }`}
               >
                 <Shield className="w-3.5 h-3.5 text-[#c1ff72]" />
-                <span>Masuk Admin</span>
+                <span>Panel Admin</span>
               </Link>
             )}
 
@@ -239,9 +240,18 @@ export function Navbar() {
                           : 'bg-black/40 text-white hover:bg-black/60 border border-white/20 backdrop-blur-md'
                       }`}
                     >
-                      <div className="w-7 h-7 rounded-lg bg-white/20 text-[#c1ff72] flex items-center justify-center font-black text-xs">
-                        {user?.name.charAt(0).toUpperCase()}
-                      </div>
+                      {user?.avatar ? (
+                        <img
+                          src={user.avatar}
+                          alt={user.name}
+                          referrerPolicy="no-referrer"
+                          className="w-7 h-7 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="w-7 h-7 rounded-lg bg-white/20 text-[#c1ff72] flex items-center justify-center font-black text-xs">
+                          {user?.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       <span className="text-xs font-bold hidden xl:inline">
                         {user?.name}
                       </span>
@@ -275,15 +285,15 @@ export function Navbar() {
                   </div>
                 ) : (
                   <Link
-                    href="/login?redirect=/admin"
+                    href="/login"
                     className={`inline-flex items-center gap-2 px-4 py-2 min-h-[38px] rounded-xl text-xs sm:text-sm font-black transition-all shadow-sm active:scale-95 ${
                       isSolid
                         ? 'bg-[#1f2a2e] text-white hover:bg-black'
                         : 'bg-[#c1ff72] text-[#1f2a2e] hover:bg-[#b0f555] shadow-lg'
                     }`}
                   >
-                    <Shield className="w-4 h-4 stroke-[2.5]" />
-                    <span>Login Admin</span>
+                    <LogIn className="w-4 h-4 stroke-[2.5]" />
+                    <span>Login</span>
                   </Link>
                 )}
               </>
@@ -294,15 +304,15 @@ export function Navbar() {
           <div className="flex lg:hidden items-center gap-2">
             {isReady && !isLoggedIn && (
               <Link
-                href="/login?redirect=/admin"
+                href="/login"
                 className={`min-h-[40px] px-3 py-2 rounded-xl font-black text-xs flex items-center gap-1.5 active:scale-95 transition-all shadow-sm ${
                   isSolid
                     ? 'bg-[#1f2a2e] text-white hover:bg-black'
                     : 'bg-[#c1ff72] text-[#1f2a2e] hover:bg-[#b0f555]'
                 }`}
               >
-                <Shield className="w-3.5 h-3.5" />
-                <span>Login Admin</span>
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Login</span>
               </Link>
             )}
             <button
@@ -372,16 +382,16 @@ export function Navbar() {
               className="min-h-[44px] px-3.5 py-2.5 rounded-xl text-sm font-black text-white bg-[#1f2a2e] hover:bg-black flex items-center gap-2 transition-colors"
             >
               <Shield className="w-4 h-4 text-[#c1ff72]" />
-              <span>Masuk Admin</span>
+              <span>Panel Admin</span>
             </Link>
           ) : !isLoggedIn ? (
             <Link
-              href="/login?redirect=/admin"
+              href="/login"
               onClick={() => setMenuOpen(false)}
               className="min-h-[44px] px-3.5 py-2.5 rounded-xl text-sm font-black text-white bg-[#1f2a2e] hover:bg-black flex items-center gap-2 transition-colors"
             >
-              <Shield className="w-4 h-4 text-[#c1ff72]" />
-              <span>Login Admin</span>
+              <LogIn className="w-4 h-4 text-[#c1ff72]" />
+              <span>Login</span>
             </Link>
           ) : null}
 

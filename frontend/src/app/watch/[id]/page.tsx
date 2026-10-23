@@ -15,17 +15,21 @@ import {
   Clock,
   Lock,
   Layers,
+  ShieldCheck,
 } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function WatchPage() {
   const params = useParams();
   const router = useRouter();
-  const { isLoggedIn, isReady } = useAuth();
+  const { isLoggedIn, isReady, loginWithGoogle } = useAuth();
   const [video, setVideo] = useState<Video | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
   const [siblingVideos, setSiblingVideos] = useState<Video[]>([]);
   const [notFound, setNotFound] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
 
   const videoId = params.id as string;
 
@@ -91,6 +95,16 @@ export default function WatchPage() {
     return match ? match[1] : name;
   };
 
+  const handleGoogleDirect = async (credential: string) => {
+    setAuthError('');
+    setAuthLoading(true);
+    const result = await loginWithGoogle(credential);
+    setAuthLoading(false);
+    if (!result.success) {
+      setAuthError(result.error || 'Login dengan Google gagal.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       <Navbar />
@@ -143,31 +157,53 @@ export default function WatchPage() {
             />
           </div>
         ) : (
-          <div className="relative w-full min-h-[340px] sm:min-h-0 sm:aspect-video bg-gradient-to-br from-[#12161f] via-[#0d1017] to-black rounded-2xl overflow-hidden shadow-2xl border border-white/10 ring-1 ring-white/5 flex flex-col items-center justify-center p-5 sm:p-6 text-center">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl bg-[#c1ff72]/15 border border-[#c1ff72]/40 flex items-center justify-center text-[#c1ff72] mb-3 sm:mb-4 shadow-[0_0_20px_rgba(193,255,114,0.15)]">
-              <Lock className="w-6 h-6 sm:w-8 sm:h-8" />
+          <div className="relative w-full min-h-[380px] sm:min-h-0 sm:aspect-video bg-gradient-to-br from-[#12161f] via-[#0d1017] to-black rounded-2xl overflow-hidden shadow-2xl border border-white/10 ring-1 ring-white/5 flex flex-col items-center justify-center p-6 sm:p-8 text-center">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl bg-[#c1ff72]/15 border border-[#c1ff72]/40 flex items-center justify-center text-[#c1ff72] mb-3 sm:mb-4 shadow-[0_0_20px_rgba(193,255,114,0.15)]">
+              <Lock className="w-7 h-7 sm:w-8 sm:h-8 stroke-[2.5]" />
             </div>
 
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[11px] sm:text-xs font-bold mb-2.5 sm:mb-3">
-              <span>Akses Khusus Akun Terdaftar</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#c1ff72]/10 border border-[#c1ff72]/30 text-[#c1ff72] text-[11px] sm:text-xs font-bold mb-2.5 sm:mb-3">
+              <span>Materi Khusus Pengguna Terdaftar</span>
             </div>
 
-            <h2 className="text-lg sm:text-2xl font-black text-white max-w-lg mb-2 leading-tight">
-              Video Episode Ini Membutuhkan Akses Login
+            <h2 className="text-xl sm:text-2xl font-black text-white max-w-lg mb-2 leading-tight">
+              Akses Video Episode Ini Terkunci
             </h2>
 
-            <p className="text-xs sm:text-sm text-slate-300 max-w-md mb-5 sm:mb-6 leading-relaxed">
-              Silakan masuk dengan akun atlet, pelatih, atau mahasiswa GLS FIK untuk memutar materi latihan ini.
+            <p className="text-xs sm:text-sm text-slate-300 max-w-md mb-6 leading-relaxed">
+              Masuk langsung dengan akun Google Anda untuk membuka dan memutar seluruh materi kurikulum latihan ini.
             </p>
 
-            <button
-              type="button"
-              onClick={() => setShowLoginModal(true)}
-              className="px-5 sm:px-6 py-3 min-h-[44px] rounded-xl bg-[#c1ff72] hover:bg-[#b0f555] text-[#1f2a2e] font-black text-xs sm:text-sm shadow-md transition-all cursor-pointer inline-flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 border border-[#a8ed4b]"
-            >
-              <Lock className="w-4 h-4 stroke-[2.5]" />
-              <span>Masuk Akun Sekarang & Buka Video</span>
-            </button>
+            {authError && (
+              <p className="text-xs text-red-400 mb-3 font-semibold">{authError}</p>
+            )}
+
+            {/* Direct Google Sign-In on Player */}
+            <div className="flex flex-col items-center gap-3">
+              <div className="shadow-lg rounded-full overflow-hidden">
+                <GoogleLogin
+                  onSuccess={(res) => {
+                    if (res.credential) handleGoogleDirect(res.credential);
+                  }}
+                  onError={() => setAuthError('Gagal melakukan login dengan Google.')}
+                  theme="filled_black"
+                  shape="pill"
+                  size="large"
+                  text="continue_with"
+                />
+              </div>
+
+              {authLoading ? (
+                <p className="text-xs text-[#c1ff72] font-semibold animate-pulse">
+                  Memverifikasi akun Google & membuka video...
+                </p>
+              ) : (
+                <div className="flex items-center gap-1.5 text-slate-400 text-[11px]">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#c1ff72]" />
+                  <span>Akses instan & gratis dengan akun Google</span>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
