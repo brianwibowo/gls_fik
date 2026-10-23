@@ -2,6 +2,8 @@
 
 Backend untuk Gymnastics Competition Level (GCL), memakai Go dan PostgreSQL.
 
+Untuk VPS dan frontend Vercel, ikuti [panduan HTTPS API](../docs/deploy-https.md). Build Docker menyertakan database zona waktu lewat `-tags timetzdata` agar `Asia/Jakarta` tersedia pada image runtime Alpine.
+
 ## Konfigurasi
 
 Set environment berikut sebelum menjalankan `go run ./cmd/api`:
@@ -13,7 +15,7 @@ Set environment berikut sebelum menjalankan `go run ./cmd/api`:
 | `GOOGLE_CLIENT_ID` | OAuth client ID yang sama dengan `NEXT_PUBLIC_GOOGLE_CLIENT_ID` di frontend. Wajib untuk login Google. |
 | `ADMIN_EMAILS` | Daftar email admin awal dipisahkan koma. Berlaku saat akun Google pertama kali dibuat. Login berikutnya mempertahankan role yang ditentukan admin. |
 | `FRONTEND_URL` | Origin frontend tambahan untuk CORS, dipisahkan koma. |
-| `PUBLIC_API_URL` | Origin backend publik, misalnya `https://api.example.com`, untuk URL thumbnail di balik proxy. Jika kosong, memakai origin request. |
+| `PUBLIC_API_URL` | Origin backend publik `https://api.gymnasticcomplevel.com`, untuk URL thumbnail di balik proxy. Docker Compose memakai origin ini secara bawaan. Jika variabel kosong saat menjalankan Go langsung, memakai origin request. |
 | `PORT` | Port HTTP; default `8080`. |
 
 Startup menjalankan migrasi, menormalkan email menjadi huruf kecil, menambahkan materi awal yang belum ada, dan menyalin checklist kurikulum ke tiap video satu kali. Perubahan materi/checklist dari admin dipertahankan. Akun demo beserta password bawaan tidak dibuat lagi. Admin awal masuk lewat Google dengan email pada `ADMIN_EMAILS`; akun lain otomatis menjadi `user` dan tampil pada manajemen user.

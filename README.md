@@ -9,11 +9,13 @@ Frontend memakai Next.js 16 di `frontend/`; API Go dan PostgreSQL berada di `bac
 Konfigurasi frontend di `frontend/.env.local`:
 
 ```dotenv
-NEXT_PUBLIC_API_URL=http://localhost:8088/api
+NEXT_PUBLIC_API_URL=https://api.gymnasticcomplevel.com/api
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
 ```
 
 `GOOGLE_CLIENT_ID` pada backend harus sama dengan client ID frontend. Daftarkan origin frontend yang digunakan pada pengaturan OAuth Google. `JWT_SECRET` wajib diatur, termasuk ketika menjalankan Docker Compose.
+
+Alamat API bawaan adalah `https://api.gymnasticcomplevel.com/api`. Untuk memakai backend lokal saat pengembangan, override `NEXT_PUBLIC_API_URL=http://localhost:8088/api` di `frontend/.env.local`. Pada Vercel, gunakan alamat HTTPS produksi dan redeploy setelah mengubah environment. Ikuti [panduan HTTPS dan Vercel](docs/deploy-https.md) untuk konfigurasi VPS.
 
 ```sh
 npm --prefix frontend install

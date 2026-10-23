@@ -11,7 +11,7 @@ RUN go mod download
 COPY . .
 
 # Compile binary statis (CGO_ENABLED=0 agar standalone & sangat ringan)
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /app/server ./cmd/api/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -tags timetzdata -ldflags="-w -s" -o /app/server ./cmd/api/main.go
 
 # Stage 2: Minimal Production Image
 FROM alpine:3.20

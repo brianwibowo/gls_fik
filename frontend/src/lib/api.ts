@@ -1,6 +1,6 @@
 import type { Category, Video, User, LearningTrackerData, LearningItem, LearningStatus, VideoPlayback } from './types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8088/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.gymnasticcomplevel.com/api';
 
 export { extractDriveFileId } from './utils';
 
