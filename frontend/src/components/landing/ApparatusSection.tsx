@@ -20,6 +20,7 @@ export interface ApparatusInfo {
   categoryTag: string;
   dimensions: string;
   image: string;
+  imageAlt: string;
   drillSummary: string;
   keyDrills: string[];
   safetyTip: string;
@@ -33,7 +34,8 @@ export const APPARATUS_DATA: ApparatusInfo[] = [
     name: 'Floor Exercise (FX)',
     categoryTag: "Men's Artistic Gymnastics (MAG)",
     dimensions: 'Spring Floor 12 × 12 m',
-    image: '/images/apparatus-floor.webp',
+    image: '/images/mag-floor.webp',
+    imageAlt: 'Frederick Richard performing a floor exercise at the U.S. National Gymnastics Championships',
     drillSummary: 'Acrobatic tumble passes, saltos, balance holds, and stick landings on the floor mat.',
     keyDrills: [
       'Single Leg Balance, Forward Roll & Handstand (Level 1)',
@@ -49,7 +51,8 @@ export const APPARATUS_DATA: ApparatusInfo[] = [
     name: 'Pommel Horse (PH)',
     categoryTag: "Men's Artistic Gymnastics (MAG)",
     dimensions: 'Height 1.15 m | 2 Pommels',
-    image: '/images/apparatus-pommel.webp',
+    image: '/images/mag-pommel.webp',
+    imageAlt: 'Male gymnast balancing above the pommel horse during a FIG competition',
     drillSummary: 'Continuous double leg circular rotations supported on hands over mushroom and pommels.',
     keyDrills: [
       'Double leg circle – 5 progressive reps (Level 1)',
@@ -65,7 +68,8 @@ export const APPARATUS_DATA: ApparatusInfo[] = [
     name: 'Vault (VT)',
     categoryTag: "Men's Artistic Gymnastics (MAG)",
     dimensions: 'Table Height 1.35 m (MAG)',
-    image: '/images/apparatus-vault.webp',
+    image: '/images/mag-vault.webp',
+    imageAlt: 'Jared Fry vaulting over the vault table at the Rocky Mountain Open',
     drillSummary: '25-meter sprint acceleration, springboard entry, instant shoulder block, and stick landing.',
     keyDrills: [
       'Controlled Run, Hurdle, Take-off & Handstand to Flat Back (Level 1)',
@@ -81,7 +85,8 @@ export const APPARATUS_DATA: ApparatusInfo[] = [
     name: 'Still Rings (SR)',
     categoryTag: "Men's Artistic Gymnastics (MAG)",
     dimensions: 'Height 2.8 m from floor',
-    image: '/images/apparatus-rings.webp',
+    image: '/images/mag-rings.webp',
+    imageAlt: 'Erich Upton holding an L-sit on still rings',
     drillSummary: 'Static shoulder holds combined with controlled swings minimizing cable swing.',
     keyDrills: [
       'Hang Position, Tuck Hang & Swing Forward-Backward (Level 1)',
@@ -97,7 +102,8 @@ export const APPARATUS_DATA: ApparatusInfo[] = [
     name: 'Parallel Bars (PB)',
     categoryTag: "Men's Artistic Gymnastics (MAG)",
     dimensions: 'Height 2.0 m | Length 3.5 m',
-    image: '/images/apparatus-bars.webp',
+    image: '/images/mag-parallel.webp',
+    imageAlt: 'Male gymnast performing on parallel bars at the Islamic Solidarity Games',
     drillSummary: 'Combinations of swings, hand supports, under-bar skills, and controlled dismounts.',
     keyDrills: [
       'Mount from box, Tuck Support & L-Sit 2 sec (Level 1)',
@@ -113,7 +119,8 @@ export const APPARATUS_DATA: ApparatusInfo[] = [
     name: 'Horizontal Bar (HB)',
     categoryTag: "Men's Artistic Gymnastics (MAG)",
     dimensions: 'Height 2.8 m | Steel bar',
-    image: '/images/apparatus-highbar.jpg',
+    image: '/images/mag-highbar.webp',
+    imageAlt: 'Tai Gopaul performing a handstand on the horizontal bar',
     drillSummary: 'Dynamic high-velocity swings, continuous giant circles, and dismount releases.',
     keyDrills: [
       'Safe Mount, Tuck Hang & L-Hang 2 sec (Level 1)',
@@ -233,12 +240,12 @@ export function ApparatusSection({ activeId, onSelectApparatus, videos = [] }: A
                 }`}
               >
                 <div>
-                  <div className="relative h-36 sm:h-40 w-full rounded-xl overflow-hidden bg-slate-100 mb-3.5 shadow-inner">
+                  <div className="relative aspect-[3/2] w-full rounded-xl overflow-hidden bg-slate-100 mb-3.5 shadow-inner">
                     <Image
                       src={item.image}
-                      alt={item.name}
+                      alt={item.imageAlt}
                       fill
-                      className="object-cover object-center"
+                      className="object-contain object-center"
                       sizes="310px"
                     />
                     <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Navbar } from '@/components/Navbar';
 import { VideoCard } from '@/components/VideoCard';
@@ -284,13 +285,13 @@ export default function HomePage() {
               whileHover={{ y: -6, transition: { duration: 0.25 } }}
               className="group bg-[#F4F8FA] border border-slate-200/90 rounded-3xl overflow-hidden hover:border-[#1F2A2E]/30 hover:shadow-xl transition-all shadow-sm cursor-pointer"
             >
-              <div className="relative w-full h-48 overflow-hidden">
+              <div className="relative aspect-[3/2] w-full overflow-hidden">
                 <Image
-                  src="/images/feature-video.webp"
-                  alt="Instructional gymnastics videos"
+                  src="/images/feature-technique-men.webp"
+                  alt="Frederick Richard demonstrating a floor exercise movement in competition"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="object-contain"
                 />
               </div>
               <div className="p-6">
@@ -310,13 +311,13 @@ export default function HomePage() {
               whileHover={{ y: -6, transition: { duration: 0.25 } }}
               className="group bg-[#F4F8FA] border border-slate-200/90 rounded-3xl overflow-hidden hover:border-[#1F2A2E]/30 hover:shadow-xl transition-all shadow-sm cursor-pointer"
             >
-              <div className="relative w-full h-48 overflow-hidden">
+              <div className="relative aspect-[3/2] w-full overflow-hidden">
                 <Image
-                  src="/images/feature-structured.webp"
-                  alt="Apparatus categories structure"
+                  src="/images/feature-apparatus-men.webp"
+                  alt="Tai Gopaul performing on parallel bars at the Rocky Mountain Open"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="object-contain"
                 />
               </div>
               <div className="p-6">
@@ -336,13 +337,13 @@ export default function HomePage() {
               whileHover={{ y: -6, transition: { duration: 0.25 } }}
               className="group bg-[#F4F8FA] border border-slate-200/90 rounded-3xl overflow-hidden hover:border-[#1F2A2E]/30 hover:shadow-xl transition-all shadow-sm cursor-pointer"
             >
-              <div className="relative w-full h-48 overflow-hidden">
+              <div className="relative aspect-[3/2] w-full overflow-hidden">
                 <Image
-                  src="/images/feature-coaching.webp"
-                  alt="Coaching and evaluation"
+                  src="/images/feature-coaching-men.webp"
+                  alt="Charlie Miles with the Air Force men's gymnastics team after his rings routine"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="object-contain"
                 />
               </div>
               <div className="p-6">
@@ -553,6 +554,7 @@ export default function HomePage() {
           <p className="text-[11px] text-slate-500 pt-2">
             &copy; {new Date().getFullYear()} Gymnastics Competition Level (GCL). All rights reserved.
           </p>
+          <Link href="/photo-credits" className="inline-flex min-h-11 items-center text-xs text-slate-300 underline underline-offset-4 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c1ff72]">Photo credits &amp; licenses</Link>
         </div>
       </footer>
     </div>

@@ -27,9 +27,7 @@ export function Navbar() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const moreRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -63,12 +61,10 @@ export function Navbar() {
   // Close dropdowns on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false);
     };
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
-      setMoreOpen(false);
       setProfileOpen(false);
       setMenuOpen(false);
     };
@@ -130,7 +126,7 @@ export function Navbar() {
     : 'sticky top-0 z-50 bg-[#c1ff72] border-b border-[#a8ed4b] shadow-md text-[#1f2a2e]';
 
   const linkClass = (active?: boolean) =>
-    `text-sm font-bold transition-colors relative ${
+    `text-sm font-bold transition-colors relative rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 ${isSolid ? 'focus-visible:outline-[#1f2a2e]' : 'focus-visible:outline-[#c1ff72]'} ${
       active
         ? isSolid
           ? 'text-[#1f2a2e]'
@@ -145,7 +141,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Brand */}
-          <Link href="/" aria-label="Gymnastics Competition Level (GCL)" className="flex items-center gap-2.5 sm:gap-3">
+          <Link href="/" aria-label="Gymnastics Competition Level (GCL)" className="flex shrink-0 items-center gap-2.5 sm:gap-3">
             <div
               className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm transition-all shadow-xs ${
                 isSolid
@@ -174,53 +170,22 @@ export function Navbar() {
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden lg:flex items-center gap-5">
-            <Link href="/" className={linkClass(isHome)}>
+          <div className="hidden xl:flex items-center gap-3 2xl:gap-4">
+            <Link href="/" className={`${linkClass(isHome)} inline-flex min-h-11 items-center whitespace-nowrap`}>
               Home
             </Link>
 
             {primaryLinks.map((item) => (
-              <Link key={item.id} href={item.href} className={linkClass()}>
+              <Link key={item.id} href={item.href} className={`${linkClass()} inline-flex min-h-11 items-center whitespace-nowrap`}>
                 {item.label}
               </Link>
             ))}
 
-            {/* Dynamic "More" dropdown */}
-            {extraCategories.length > 0 && (
-              <div className="relative" ref={moreRef}>
-                <button
-                  type="button"
-                  onClick={() => setMoreOpen(!moreOpen)}
-                  aria-expanded={moreOpen}
-                  aria-controls="more-navigation"
-                  className={`flex items-center gap-1 text-sm font-bold transition-colors cursor-pointer ${
-                    isSolid
-                      ? 'text-[#1f2a2e]/80 hover:text-[#1f2a2e]'
-                      : 'text-slate-300 hover:text-white'
-                  }`}
-                >
-                  <span>More</span>
-                  <ChevronDown
-                    className={`w-3.5 h-3.5 transition-transform ${moreOpen ? 'rotate-180' : ''}`}
-                  />
-                </button>
-
-                {moreOpen && (
-                  <div id="more-navigation" className="absolute top-full left-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden z-50">
-                    {extraCategories.map((item) => (
-                      <Link
-                        key={item.id}
-                        href={item.href}
-                        onClick={() => setMoreOpen(false)}
-                        className="block px-4 py-3 text-sm font-bold text-slate-700 hover:bg-[#c1ff72]/20 hover:text-[#1f2a2e] transition-colors border-b border-slate-100 last:border-b-0"
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+            {extraCategories.map((item) => (
+              <Link key={item.id} href={item.href} className={`${linkClass()} inline-flex min-h-11 items-center whitespace-nowrap`}>
+                {item.label}
+              </Link>
+            ))}
 
             {/* Admin link */}
             {isLoggedIn && isAdmin && (
@@ -228,7 +193,7 @@ export function Navbar() {
                 href="/admin"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`text-xs font-black flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-colors shadow-xs ${
+                className={`min-h-11 whitespace-nowrap text-xs font-black flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-colors shadow-xs ${
                   isSolid
                     ? 'text-white bg-[#1f2a2e] hover:bg-black'
                     : 'text-white bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md'
@@ -250,7 +215,7 @@ export function Navbar() {
                       aria-label="Menu akun"
                       aria-expanded={profileOpen}
                       aria-controls="account-navigation"
-                      className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer ${
+                      className={`min-h-11 flex items-center gap-2 px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer ${
                         isSolid
                           ? 'bg-[#1f2a2e] text-white hover:bg-black border border-[#1f2a2e]'
                           : 'bg-black/40 text-white hover:bg-black/60 border border-white/20 backdrop-blur-md'
@@ -268,7 +233,7 @@ export function Navbar() {
                           {user?.name.charAt(0).toUpperCase()}
                         </div>
                       )}
-                      <span className="text-xs font-bold hidden xl:inline">
+                      <span className="max-w-24 truncate text-xs font-bold hidden 2xl:inline" title={user?.name}>
                         {user?.name}
                       </span>
                       <ChevronDown
@@ -302,7 +267,7 @@ export function Navbar() {
                 ) : (
                   <Link
                     href="/login"
-                    className={`inline-flex items-center gap-2 px-4 py-2 min-h-[38px] rounded-xl text-xs sm:text-sm font-black transition-all shadow-sm active:scale-95 ${
+                    className={`inline-flex items-center gap-2 px-4 py-2 min-h-11 whitespace-nowrap rounded-xl text-xs sm:text-sm font-black transition-all shadow-sm active:scale-95 ${
                       isSolid
                         ? 'bg-[#1f2a2e] text-white hover:bg-black'
                         : 'bg-[#c1ff72] text-[#1f2a2e] hover:bg-[#b0f555] shadow-lg'
@@ -317,11 +282,11 @@ export function Navbar() {
           </div>
 
           {/* Mobile/Tablet controls */}
-          <div className="flex lg:hidden items-center gap-2">
+          <div className="flex xl:hidden items-center gap-2">
             {isReady && !isLoggedIn && (
               <Link
                 href="/login"
-                className={`min-h-[40px] px-3 py-2 rounded-xl font-black text-xs flex items-center gap-1.5 active:scale-95 transition-all shadow-sm ${
+                className={`min-h-11 px-3 py-2 rounded-xl font-black text-xs flex items-center gap-1.5 active:scale-95 transition-all shadow-sm ${
                   isSolid
                     ? 'bg-[#1f2a2e] text-white hover:bg-black'
                     : 'bg-[#c1ff72] text-[#1f2a2e] hover:bg-[#b0f555]'
@@ -350,7 +315,7 @@ export function Navbar() {
 
       {/* Mobile drawer */}
       {menuOpen && (
-        <div className="lg:hidden bg-[#c1ff72] border-t border-[#a8ed4b] px-4 py-4 space-y-1 shadow-2xl animate-in fade-in duration-150">
+        <div className="xl:hidden max-h-[calc(100dvh-4rem)] overflow-y-auto bg-[#c1ff72] border-t border-[#a8ed4b] px-4 py-4 space-y-1 shadow-2xl animate-in fade-in duration-150">
           <Link
             href="/"
             onClick={() => setMenuOpen(false)}
@@ -369,24 +334,16 @@ export function Navbar() {
             </Link>
           ))}
 
-          {/* Extra categories inline on mobile */}
-          {extraCategories.length > 0 && (
-            <div className="pt-2 border-t border-black/10 space-y-1">
-              <p className="px-3.5 pt-1 pb-0.5 text-[11px] font-bold text-[#1f2a2e]/60 uppercase tracking-wider">
-                More Apparatus
-              </p>
-              {extraCategories.map((item) => (
-                <Link
-                  key={item.id}
-                  href={item.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="min-h-[44px] px-3.5 py-2.5 rounded-xl text-sm font-bold text-[#1f2a2e]/90 hover:bg-black/10 flex items-center transition-colors"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-          )}
+          {extraCategories.map((item) => (
+            <Link
+              key={item.id}
+              href={item.href}
+              onClick={() => setMenuOpen(false)}
+              className="min-h-[44px] px-3.5 py-2.5 rounded-xl text-sm font-black text-[#1f2a2e] hover:bg-black/10 flex items-center transition-colors"
+            >
+              {item.label}
+            </Link>
+          ))}
 
           {/* Admin link / Login Admin */}
           {isLoggedIn && isAdmin ? (

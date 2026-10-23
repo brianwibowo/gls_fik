@@ -39,8 +39,8 @@ function LoginForm() {
       <div className="hidden lg:flex relative overflow-hidden flex-col justify-between p-12 bg-black">
         {/* Background Image */}
         <Image
-          src="/images/feature-video.webp"
-          alt="Instructional Gymnastics Training"
+          src="/images/feature-technique-men.webp"
+          alt="Frederick Richard performing a floor exercise movement in competition"
           fill
           priority
           className="object-cover object-center filter brightness-95"
@@ -86,6 +86,7 @@ function LoginForm() {
             <span className="px-2.5 py-1 rounded-md bg-black/60 border border-white/20">Pommel Horse</span>
             <span className="px-2.5 py-1 rounded-md bg-black/60 border border-white/20">Vault</span>
           </div>
+          <Link href="/photo-credits" className="inline-flex min-h-11 items-center text-xs text-slate-300 underline underline-offset-4 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c1ff72]">Photo credits &amp; licenses</Link>
         </div>
       </div>
 

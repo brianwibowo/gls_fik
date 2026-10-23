@@ -41,6 +41,10 @@ Admin dapat mengatur judul, deskripsi sesuai isi materi, sumber Google Drive, st
 
 Perubahan metadata atau checklist yang disimpan admin dipertahankan setelah API dimulai ulang. Menambah video pada level yang sama tidak menggabungkan progresnya dengan video lain.
 
+## Foto dokumentasi
+
+Foto pada kartu alat, pengenalan platform, dan visual halaman masuk menggunakan dokumentasi senam putra asli dalam format WebP. Sumber, fotografer, dan lisensi tercatat pada [daftar sumber foto](docs/photo-sources.md) dan halaman publik `/photo-credits`. Versi WebP mengikuti lisensi masing-masing foto sumber.
+
 ## Pemeriksaan
 
 ```sh
