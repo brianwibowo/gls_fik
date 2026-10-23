@@ -284,6 +284,7 @@ export default function HomePage() {
                   src="/images/feature-video.webp"
                   alt="Instructional gymnastics videos"
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -309,6 +310,7 @@ export default function HomePage() {
                   src="/images/feature-structured.webp"
                   alt="Apparatus categories structure"
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -334,6 +336,7 @@ export default function HomePage() {
                   src="/images/feature-coaching.webp"
                   alt="Coaching and evaluation"
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
