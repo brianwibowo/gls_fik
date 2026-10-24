@@ -1,1937 +1,279 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
-import Image from 'next/image';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { FormEvent, ReactNode } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import {
-  apiGetVideos,
-  apiGetCategories,
-  apiCreateVideo,
-  apiUpdateVideo,
-  apiDeleteVideo,
-  apiCreateCategory,
-  apiUpdateCategory,
-  apiDeleteCategory,
-} from '@/lib/api';
+import { Plus, Pencil, Trash2, X, Eye, ChevronDown, ChevronUp, Info, Clock } from 'lucide-react';
+import { apiCreateCategory, apiCreateVideo, apiDeleteCategory, apiDeleteVideo, apiGetCategories, apiGetVideos, apiUpdateCategory, apiUpdateVideo } from '@/lib/api';
 import { extractDriveFileId } from '@/lib/utils';
 import { videoLevelLabel } from '@/lib/video-level';
-import { VideoThumbnail, getDriveThumbnailUrl, isVideoThumbnailOverride } from '@/components/VideoThumbnail';
-import type { Video, Category } from '@/lib/types';
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  X,
-  Save,
-  Video as VideoIcon,
-  CheckCircle2,
-  Layers,
-  Lock,
-  Unlock,
-  Eye,
-  ChevronDown,
-  ChevronUp,
-  ChevronLeft,
-  ChevronRight,
-  Search,
-  AlertTriangle,
-  RotateCcw,
-  ExternalLink,
-  Play,
-  Clock,
-  Sparkles,
-  Info,
-} from 'lucide-react';
+import { prepareCategoryCover } from '@/lib/category-cover';
+import { CategoryCover } from '@/components/CategoryCover';
+import { VideoThumbnail } from '@/components/VideoThumbnail';
+import type { Category, Video } from '@/lib/types';
+import styles from './page.module.css';
 
-function AdminVideoManagementContent() {
-  const searchParams = useSearchParams();
-  const autoOpenHandled = useRef(false);
+const emptyEpisode = { categoryId: '', title: '', description: '', driveLink: '', duration: '', level: 'Level 1', episodeNum: 1, isFree: false, checklistText: '' };
+type EpisodeForm = typeof emptyEpisode;
+type CategoryForm = { id: string | null; name: string; description: string; thumbnail: string; coverData?: string };
 
-  const [videos, setVideos] = useState<Video[]>([]);
+function Modal({ title, onClose, children, wide = false }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+  const ref = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = ref.current;
+    dialog?.showModal();
+    return () => { dialog?.close(); };
+  }, []);
+  return <dialog ref={ref} className={`${styles.dialog} ${wide ? styles.wide : ''}`} aria-labelledby="editor-title" onCancel={event => { event.preventDefault(); onClose(); }}>
+    <header className={styles.modalHeader}><h2 id="editor-title">{title}</h2><button type="button" className={styles.iconButton} aria-label="Tutup formulir" onClick={onClose}><X size={20} /></button></header>
+    {children}
+  </dialog>;
+}
+
+function AdminVideoManagement() {
+  const params = useSearchParams();
+  const openedFromURL = useRef(false);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [accessFilter, setAccessFilter] = useState<'all' | 'free' | 'locked'>('all');
-  const [levelFilter, setLevelFilter] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'default' | 'name-asc' | 'episodes-desc'>('default');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(4); // Default minimal 4 langsung aktif
-  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [videoFormError, setVideoFormError] = useState('');
-  const [isSavingVideo, setIsSavingVideo] = useState(false);
+  const [notice, setNotice] = useState('');
+  const [actionError, setActionError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [query, setQuery] = useState('');
+  const [access, setAccess] = useState('all');
+  const [level, setLevel] = useState('all');
+  const [sort, setSort] = useState('order');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(4);
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [categoryForm, setCategoryForm] = useState<CategoryForm | null>(null);
+  const [initialCategory, setInitialCategory] = useState('');
+  const [categoryError, setCategoryError] = useState('');
+  const [readingImage, setReadingImage] = useState(false);
+  const imageRequest = useRef(0);
+  const [episodeForm, setEpisodeForm] = useState<EpisodeForm | null>(null);
+  const [initialEpisode, setInitialEpisode] = useState('');
+  const [editingEpisode, setEditingEpisode] = useState<Video | null>(null);
+  const [episodeError, setEpisodeError] = useState('');
+  const [previewPlayer, setPreviewPlayer] = useState(false);
+  const [showAccessHelp, setShowAccessHelp] = useState(false);
 
-  // Video Form Modal State
-  const [showVideoModal, setShowVideoModal] = useState(false);
-  const [editingVideoId, setEditingVideoId] = useState<string | null>(null);
-  const [showDirtyConfirm, setShowDirtyConfirm] = useState(false);
-  const [previewTab, setPreviewTab] = useState<'card' | 'player'>('card');
-  const [videoForm, setVideoForm] = useState({
-    categoryId: '',
-    title: '',
-    description: '',
-    driveLink: '',
-    duration: '04:00',
-    level: 'Level 1',
-    episodeNum: 1,
-    isFree: false,
-    thumbnail: '',
-    checklistText: '',
-  });
-  const [initialVideoForm, setInitialVideoForm] = useState<typeof videoForm | null>(null);
-
-  // Quick Inline Duration Editor State
-  const [quickDurationVideoId, setQuickDurationVideoId] = useState<string | null>(null);
-  const [quickDurationValue, setQuickDurationValue] = useState<string>('');
-  const [isSavingQuickDuration, setIsSavingQuickDuration] = useState(false);
-
-  // Category Form Modal State
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
-  const [categoryForm, setCategoryForm] = useState({
-    name: '',
-    description: '',
-  });
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 3200);
-  };
-
-  const refreshData = useCallback(async () => {
-    setIsLoading(true);
-    setLoadError('');
+  const load = useCallback(async () => {
+    setLoading(true); setLoadError('');
     try {
       const [cats, vids] = await Promise.all([apiGetCategories(), apiGetVideos()]);
-      setCategories(cats);
-      setVideos(vids);
-    } catch (err) {
-      setLoadError(err instanceof Error ? err.message : 'Video dan kategori gagal dimuat. Coba lagi.');
-    } finally {
-      setIsLoading(false);
-    }
+      setCategories(cats); setVideos(vids);
+    } catch (error) { setLoadError(error instanceof Error ? error.message : 'Materi gagal dimuat.'); }
+    finally { setLoading(false); }
   }, []);
-
-  // Track if video form is dirty (modified from initial state)
-  const isVideoDirty = useMemo(() => {
-    if (!initialVideoForm) return false;
-    return (
-      videoForm.categoryId !== initialVideoForm.categoryId ||
-      videoForm.title !== initialVideoForm.title ||
-      videoForm.description !== initialVideoForm.description ||
-      videoForm.driveLink !== initialVideoForm.driveLink ||
-      videoForm.duration !== initialVideoForm.duration ||
-      videoForm.level !== initialVideoForm.level ||
-      videoForm.episodeNum !== initialVideoForm.episodeNum ||
-      videoForm.isFree !== initialVideoForm.isFree ||
-      videoForm.thumbnail !== initialVideoForm.thumbnail ||
-      videoForm.checklistText !== initialVideoForm.checklistText
-    );
-  }, [videoForm, initialVideoForm]);
-
-  // Open modal to add episode for a specific category
-  const openAddEpisodeModal = useCallback((catId?: string) => {
-    const targetCatId = catId || categories[0]?.id || 'cat-fx';
-    const catVideos = videos.filter((v) => v.categoryId === targetCatId);
-    const nextEpisodeNum = Math.max(0, ...catVideos.map((video) => video.episodeNum)) + 1;
-
-    const newForm = {
-      categoryId: targetCatId,
-      title: '',
-      description: '',
-      driveLink: '',
-      duration: '04:00',
-      level: `Level ${Math.min(nextEpisodeNum, 3)}`,
-      episodeNum: nextEpisodeNum,
-      isFree: nextEpisodeNum === 1, // Episode 1 defaults to Free
-      thumbnail: '',
-      checklistText: '',
-    };
-
-    setEditingVideoId(null);
-    setVideoForm(newForm);
-    setInitialVideoForm(newForm);
-    setShowVideoModal(true);
-    setShowDirtyConfirm(false);
-    setPreviewTab('card');
-    setVideoFormError('');
-  }, [categories, videos]);
-
+  useEffect(() => { void load(); }, [load]);
   useEffect(() => {
-    refreshData();
-  }, [refreshData]);
+    if (!notice) return;
+    const timeout = setTimeout(() => setNotice(''), 6000);
+    return () => clearTimeout(timeout);
+  }, [notice]);
 
+  const nextEpisode = useCallback((categoryId: string, exceptId?: string) => Math.max(0, ...videos.filter(video => video.categoryId === categoryId && video.id !== exceptId).map(video => video.episodeNum)) + 1, [videos]);
+  const addEpisode = useCallback((categoryId: string) => {
+    const episodeNum = nextEpisode(categoryId);
+    const form = { ...emptyEpisode, categoryId, episodeNum, level: `Level ${Math.min(episodeNum, 3)}`, isFree: episodeNum === 1 };
+    setEpisodeForm(form); setInitialEpisode(JSON.stringify(form)); setEditingEpisode(null); setEpisodeError(''); setPreviewPlayer(false); setShowAccessHelp(false);
+  }, [nextEpisode]);
   useEffect(() => {
-    if (searchParams.get('action') === 'new' && categories.length > 0 && !autoOpenHandled.current) {
-      autoOpenHandled.current = true;
-      openAddEpisodeModal();
+    if (params.get('action') === 'new' && categories.length > 0 && !openedFromURL.current) {
+      openedFromURL.current = true; addEpisode(categories[0].id);
     }
-  }, [searchParams, categories.length, openAddEpisodeModal]);
+  }, [params, categories, addEpisode]);
 
-  // Safe close requests that protect unsaved changes
-  const handleRequestCloseVideoModal = () => {
-    if (isVideoDirty) {
-      setShowDirtyConfirm(true);
-    } else {
-      setShowVideoModal(false);
-      setShowDirtyConfirm(false);
-    }
-  };
-
-  const handleForceDiscardVideo = () => {
-    setShowDirtyConfirm(false);
-    setShowVideoModal(false);
-    if (initialVideoForm) {
-      setVideoForm(initialVideoForm);
-    }
-  };
-
-  const handleResetVideoForm = () => {
-    if (initialVideoForm) {
-      setVideoForm(initialVideoForm);
-      showToast('Form has been reset to initial values.');
-    }
-  };
-
-  // Keyboard accessibility: Escape closes modal with dirty protection
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (showDirtyConfirm) {
-          setShowDirtyConfirm(false);
-        } else if (showVideoModal) {
-          if (isVideoDirty) {
-            setShowDirtyConfirm(true);
-          } else {
-            setShowVideoModal(false);
-          }
-        } else if (showCategoryModal) {
-          setShowCategoryModal(false);
-        }
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showVideoModal, showCategoryModal, isVideoDirty, showDirtyConfirm]);
-
-  const extractedDriveId = extractDriveFileId(videoForm.driveLink);
-  const detectedDriveId = /^[a-zA-Z0-9_-]{10,}$/.test(extractedDriveId) ? extractedDriveId : '';
-
-  const handleEditVideo = (v: Video) => {
-    const isAutomaticThumbnail = v.thumbnail === getDriveThumbnailUrl(v.driveFileId) ||
-      /\/api\/videos\/[^/]+\/thumbnail(?:\?.*)?$/.test(v.thumbnail);
-    const editForm = {
-      categoryId: v.categoryId,
-      title: v.title,
-      description: v.description,
-      driveLink: v.driveLink,
-      duration: v.duration,
-      level: videoLevelLabel(v.level),
-      episodeNum: v.episodeNum,
-      isFree: v.isFree,
-      thumbnail: isVideoThumbnailOverride(v.thumbnail) && !isAutomaticThumbnail
-        ? v.thumbnail
-        : '',
-      checklistText: (v.checklistItems || []).map((item) => item.name).join('\n'),
-    };
-    setEditingVideoId(v.id);
-    setVideoForm(editForm);
-    setInitialVideoForm(editForm);
-    setShowVideoModal(true);
-    setShowDirtyConfirm(false);
-    setPreviewTab('card');
-    setVideoFormError('');
-  };
-
-  // Dynamic category changer with smart defaults
-  const handleCategoryChange = (newCatId: string) => {
-    const catVideos = videos.filter((v) => v.categoryId === newCatId);
-    const nextEpNum = editingVideoId ? videoForm.episodeNum : Math.max(0, ...catVideos.map((video) => video.episodeNum)) + 1;
-
-    setVideoForm((prev) => ({
-      ...prev,
-      categoryId: newCatId,
-      episodeNum: nextEpNum,
-      level: !editingVideoId ? `Level ${Math.min(nextEpNum, 3)}` : prev.level,
-      isFree: !editingVideoId ? nextEpNum === 1 : prev.isFree,
-    }));
-  };
-
-  const handleSaveVideo = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSavingVideo) return;
-    setVideoFormError('');
-    if (!detectedDriveId) {
-      setVideoFormError('Masukkan tautan atau File ID Google Drive yang valid.');
-      return;
-    }
-    if (!videoForm.title.trim() || !videoForm.description.trim()) {
-      setVideoFormError('Judul dan deskripsi harus menjelaskan video yang ditampilkan.');
-      return;
-    }
-    const thumbnail = videoForm.thumbnail.trim();
-    if (thumbnail && !/^https?:\/\//.test(thumbnail)) {
-      setVideoFormError('Gunakan URL gambar berawalan https:// atau kosongkan untuk thumbnail otomatis.');
-      return;
-    }
-    const checklistNames = videoForm.checklistText.split('\n').map((name) => name.trim()).filter(Boolean);
-    if (checklistNames.length > 100 || checklistNames.some((name) => name.length > 500)) {
-      setVideoFormError('Checklist maksimal 100 poin, masing-masing maksimal 500 karakter.');
-      return;
-    }
-    if (new Set(checklistNames).size !== checklistNames.length) {
-      setVideoFormError('Setiap poin checklist harus berbeda.');
-      return;
-    }
-    const existingItems = editingVideoId
-      ? [...(videos.find((video) => video.id === editingVideoId)?.checklistItems || [])]
-      : [];
-    const checklistItems = checklistNames.map((name) => {
-      const existingIndex = existingItems.findIndex((item) => item.name.trim() === name);
-      return existingIndex >= 0 ? existingItems.splice(existingIndex, 1)[0] : { id: '', name };
+  function editEpisode(video: Video) {
+    const form = { categoryId: video.categoryId, title: video.title, description: video.description, driveLink: video.driveLink || video.driveFileId, duration: video.duration, level: videoLevelLabel(video.level), episodeNum: video.episodeNum, isFree: video.isFree, checklistText: (video.checklistItems || []).map(item => item.name).join('\n') };
+    setEpisodeForm(form); setInitialEpisode(JSON.stringify(form)); setEditingEpisode(video); setEpisodeError(''); setPreviewPlayer(false); setShowAccessHelp(false);
+  }
+  function openCategory(category?: Category) {
+    const form = { id: category?.id ?? null, name: category?.name || '', description: category?.description || '', thumbnail: category?.thumbnail || '' };
+    setCategoryForm(form); setInitialCategory(JSON.stringify(form)); setCategoryError('');
+  }
+  function closeCategory() {
+    if (busy) return;
+    if (JSON.stringify(categoryForm) !== initialCategory && !confirm('Tutup formulir dan buang perubahan kategori yang belum disimpan?')) return;
+    imageRequest.current++; setCategoryForm(null); setReadingImage(false);
+  }
+  function closeEpisode() {
+    if (busy) return;
+    if (JSON.stringify(episodeForm) !== initialEpisode && !confirm('Tutup formulir dan buang perubahan episode yang belum disimpan?')) return;
+    setEpisodeForm(null);
+  }
+  async function chooseCover(file?: File) {
+    if (!file) return;
+    const request = ++imageRequest.current;
+    setReadingImage(true); setCategoryError('');
+    try {
+      const data = await prepareCategoryCover(file);
+      if (request === imageRequest.current) setCategoryForm(form => form ? { ...form, coverData: data, thumbnail: data } : null);
+    } catch (error) { if (request === imageRequest.current) setCategoryError(error instanceof Error ? error.message : 'Gambar gagal dibaca.'); }
+    finally { if (request === imageRequest.current) setReadingImage(false); }
+  }
+  async function saveCategory(event: FormEvent) {
+    event.preventDefault();
+    if (!categoryForm || busy || readingImage) return;
+    setBusy(true); setCategoryError('');
+    const payload = { name: categoryForm.name.trim(), description: categoryForm.description.trim(), coverData: categoryForm.coverData };
+    try {
+      const saved = categoryForm.id !== null ? await apiUpdateCategory(categoryForm.id, payload) : await apiCreateCategory(payload);
+      if (categoryForm.id === null) {
+        setCategories(current => [...current, saved]); setQuery(''); setAccess('all'); setLevel('all'); setSort('order'); setPage(Math.ceil((categories.length + 1) / pageSize));
+      } else setCategories(current => current.map(category => category.id === saved.id ? saved : category));
+      setNotice(categoryForm.id !== null ? 'Kategori berhasil diperbarui.' : 'Kategori ditambahkan pada urutan terakhir.');
+      setCategoryForm(null);
+    } catch (error) { setCategoryError(error instanceof Error ? error.message : 'Kategori gagal disimpan.'); }
+    finally { setBusy(false); }
+  }
+  async function saveEpisode(event: FormEvent) {
+    event.preventDefault();
+    if (!episodeForm || busy) return;
+    setEpisodeError('');
+    const driveFileId = extractDriveFileId(episodeForm.driveLink.trim());
+    if (!/^[a-zA-Z0-9_-]{10,}$/.test(driveFileId)) { setEpisodeError('Masukkan tautan atau ID video Google Drive yang valid.'); return; }
+    if (!episodeForm.title.trim() || !episodeForm.description.trim()) { setEpisodeError('Judul dan deskripsi wajib diisi sesuai isi video.'); return; }
+    if (!/^\d{1,3}:[0-5]\d(:[0-5]\d)?$/.test(episodeForm.duration.trim())) { setEpisodeError('Isi durasi dalam format menit:detik, misalnya 04:30, atau jam:menit:detik.'); return; }
+    if (videos.some(video => video.id !== editingEpisode?.id && video.categoryId === episodeForm.categoryId && video.episodeNum === episodeForm.episodeNum)) { setEpisodeError('Nomor episode sudah dipakai dalam kategori ini. Pilih nomor lain.'); return; }
+    const names = episodeForm.checklistText.split('\n').map(name => name.trim()).filter(Boolean);
+    if (names.length > 100 || names.some(name => name.length > 500) || new Set(names).size !== names.length) { setEpisodeError('Checklist maksimal 100 poin berbeda, masing-masing maksimal 500 karakter.'); return; }
+    const items = [...(editingEpisode?.checklistItems || [])];
+    const checklistItems = names.map(name => {
+      const index = items.findIndex(item => item.name.trim() === name);
+      return index < 0 ? { id: '', name } : items.splice(index, 1)[0];
     });
-
-    const payload = {
-      categoryId: videoForm.categoryId,
-      title: videoForm.title.trim(),
-      description: videoForm.description.trim(),
-      driveFileId: detectedDriveId,
-      driveLink: videoForm.driveLink.startsWith('http')
-        ? videoForm.driveLink
-        : `https://drive.google.com/file/d/${detectedDriveId}/view`,
-      duration: videoForm.duration.trim() || '04:00',
-      level: videoForm.level,
-      episodeNum: Number(videoForm.episodeNum) || 1,
-      isFree: Boolean(videoForm.isFree),
-      thumbnail,
-      checklistItems,
-    };
-
+    const payload = { ...episodeForm, title: episodeForm.title.trim(), description: episodeForm.description.trim(), duration: episodeForm.duration.trim(), driveFileId, driveLink: `https://drive.google.com/file/d/${driveFileId}/view`, thumbnail: '', checklistItems };
+    setBusy(true);
     try {
-      setIsSavingVideo(true);
-      if (editingVideoId) {
-        await apiUpdateVideo(editingVideoId, payload);
-        showToast(`Episode "${payload.title}" updated successfully.`);
-      } else {
-        await apiCreateVideo(payload);
-        showToast(`Episode "${payload.title}" added successfully.`);
-      }
-      await refreshData();
-      setShowVideoModal(false);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to save video';
-      setVideoFormError(msg);
-    } finally {
-      setIsSavingVideo(false);
-    }
-  };
-
-  const handleDeleteVideo = async (id: string, title: string) => {
-    if (!confirm(`Delete episode "${title}"? This action cannot be undone.`)) return;
+      const saved = editingEpisode ? await apiUpdateVideo(editingEpisode.id, payload) : await apiCreateVideo(payload);
+      setVideos(current => editingEpisode ? current.map(video => video.id === saved.id ? saved : video) : [...current, saved]);
+      setNotice(editingEpisode ? 'Episode berhasil diperbarui.' : 'Episode berhasil ditambahkan.'); setEpisodeForm(null);
+    } catch (error) { setEpisodeError(error instanceof Error ? error.message : 'Episode gagal disimpan.'); }
+    finally { setBusy(false); }
+  }
+  async function removeCategory(category: Category) {
+    const count = videos.filter(video => video.categoryId === category.id).length;
+    if (busy || !confirm(`Hapus kategori “${category.name}”${count ? ` beserta ${count} episode dan progres belajar terkait` : ''}? Tindakan ini tidak dapat dibatalkan.`)) return;
+    setBusy(true); setActionError('');
     try {
-      await apiDeleteVideo(id);
-      await refreshData();
-      showToast(`Episode "${title}" has been deleted.`);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to delete video';
-      alert(msg);
-    }
-  };
-
-  // Instant one-click toggle for Free vs Requires Login
-  const handleToggleFreeAccess = async (video: Video) => {
-    const nextState = !video.isFree;
-    try {
-      await apiUpdateVideo(video.id, { ...video, isFree: nextState });
-      await refreshData();
-      showToast(
-        `Access for "${video.title}" updated to: ${nextState ? 'FREE (Public)' : 'LOGIN REQUIRED (Members)'}.`
-      );
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to update access status';
-      alert(msg);
-    }
-  };
-
-  // Instant quick duration save from video row
-  const handleQuickSaveDuration = async (videoId: string, overrideVal?: string) => {
-    const val = (overrideVal ?? quickDurationValue).trim();
-    if (!val) return;
-    const video = videos.find((item) => item.id === videoId);
-    if (!video) return;
-    setIsSavingQuickDuration(true);
-    try {
-      await apiUpdateVideo(videoId, { ...video, duration: val });
-      await refreshData();
-      showToast(`Video duration updated to ${val}`);
-      setQuickDurationVideoId(null);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to update duration';
-      alert(msg);
-    } finally {
-      setIsSavingQuickDuration(false);
-    }
-  };
-
-  // Category Management
-  const openAddCategoryModal = () => {
-    setEditingCategoryId(null);
-    setCategoryForm({
-      name: '',
-      description: '',
-    });
-    setShowCategoryModal(true);
-  };
-
-  const openEditCategoryModal = (cat: Category) => {
-    setEditingCategoryId(cat.id);
-    setCategoryForm({
-      name: cat.name,
-      description: cat.description,
-    });
-    setShowCategoryModal(true);
-  };
-
-  const handleSaveCategory = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!categoryForm.name.trim()) return;
-
-    try {
-      if (editingCategoryId) {
-        await apiUpdateCategory(editingCategoryId, {
-          name: categoryForm.name.trim(),
-          description: categoryForm.description.trim(),
-        });
-        showToast(`Category "${categoryForm.name}" updated successfully.`);
-      } else {
-        await apiCreateCategory({
-          name: categoryForm.name.trim(),
-          description: categoryForm.description.trim() || `Technique drills and lessons for ${categoryForm.name.trim()}.`,
-          thumbnail: '/images/apparatus-floor.webp',
-          order: categories.length + 1,
-        });
-        showToast(`New category "${categoryForm.name}" added successfully.`);
-      }
-      await refreshData();
-      setShowCategoryModal(false);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to save category';
-      alert(msg);
-    }
-  };
-
-  const handleDeleteCategory = async (cat: Category) => {
-    const count = videos.filter((v) => v.categoryId === cat.id).length;
-    const confirmMsg =
-      count > 0
-        ? `Delete category "${cat.name}" along with ${count} video episode(s) inside? This action cannot be undone!`
-        : `Delete category "${cat.name}"?`;
-
-    if (!confirm(confirmMsg)) return;
-    try {
-      await apiDeleteCategory(cat.id);
-      await refreshData();
-      showToast(`Category "${cat.name}" has been deleted.`);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to delete category';
-      alert(msg);
-    }
-  };
-
-  // Collapse / Expand toggle
-  const toggleCategoryCollapse = (catId: string) => {
-    setCollapsedCategories((prev) => ({
-      ...prev,
-      [catId]: !prev[catId],
-    }));
-  };
-
-  // Clean Indonesian display name helper
-  const getCategoryTitle = (catName: string) => {
-    return catName;
-  };
-
-  // Filter categories based on search, access status, and difficulty level
-  const query = searchQuery.toLowerCase().trim();
-  const filteredCategories = categories
-    .filter((cat) => {
-      const catVideos = videos.filter((v) => v.categoryId === cat.id);
-
-      // 1. Search Query Filter
-      if (query) {
-        const matchCat =
-          cat.name.toLowerCase().includes(query) ||
-          cat.description.toLowerCase().includes(query);
-        const hasMatchingVideo = catVideos.some(
-          (v) =>
-            v.title.toLowerCase().includes(query) ||
-            v.description.toLowerCase().includes(query)
-        );
-        if (!matchCat && !hasMatchingVideo) return false;
-      }
-
-      // 2. Access Filter (Gratis vs Butuh Login)
-      if (accessFilter === 'free') {
-        const hasFree = catVideos.some((v) => v.isFree);
-        if (!hasFree) return false;
-      } else if (accessFilter === 'locked') {
-        const hasLocked = catVideos.some((v) => !v.isFree);
-        if (!hasLocked) return false;
-      }
-
-      // 3. Level Filter
-      if (levelFilter !== 'all') {
-        const hasLevel = catVideos.some(
-          (v) => videoLevelLabel(v.level) === levelFilter
-        );
-        if (!hasLevel) return false;
-      }
-
-      return true;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'name-asc') {
-        return a.name.localeCompare(b.name);
-      }
-      if (sortBy === 'episodes-desc') {
-        const countA = videos.filter((v) => v.categoryId === a.id).length;
-        const countB = videos.filter((v) => v.categoryId === b.id).length;
-        return countB - countA;
-      }
-      // default: official FIG apparatus curriculum order
-      return a.order - b.order;
-    });
-
-  // Pagination calculation (minimal 4 categories per page)
-  const totalItems = filteredCategories.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-  const validCurrentPage = Math.min(currentPage, totalPages);
-  const startIndex = (validCurrentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-  const paginatedCategories = filteredCategories.slice(startIndex, endIndex);
-
-  const isFilterActive =
-    searchQuery.trim() !== '' ||
-    accessFilter !== 'all' ||
-    levelFilter !== 'all' ||
-    sortBy !== 'default';
-
-  const resetAllFilters = () => {
-    setSearchQuery('');
-    setAccessFilter('all');
-    setLevelFilter('all');
-    setSortBy('default');
-    setCurrentPage(1);
-  };
-
-  const totalFreeCount = videos.filter((v) => v.isFree).length;
-  const totalLockedCount = videos.filter((v) => !v.isFree).length;
-
-  return (
-    <div className="p-3.5 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full text-slate-900">
-      {isLoading && <p role="status" className="mb-4 text-sm text-slate-600">Memuat video dan kategori…</p>}
-      {loadError && <div role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"><p>{loadError}</p><button type="button" onClick={refreshData} className="mt-2 min-h-11 rounded-lg bg-red-800 px-4 py-2 font-bold text-white">Coba lagi</button></div>}
-      {/* Header panel */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-5 sm:pb-6 mb-5 sm:mb-6 border-b border-slate-200 gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#c1ff72]/30 border border-[#a8ed4b]/80 text-[#1f2a2e] text-xs font-black uppercase tracking-wider mb-2">
-            <span>Curriculum Management</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            Video Lessons by Apparatus
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl">
-            All episodes organized by gymnastics events. Add new episodes, manage lesson sequence, and set free or members-only access instantly.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
-          <button
-            type="button"
-            onClick={openAddCategoryModal}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#1F2A2E] hover:bg-black text-white text-xs sm:text-sm font-black shadow-sm transition-all cursor-pointer hover:shadow-md min-h-[42px] active:scale-95"
-          >
-            <Plus className="w-4 h-4 text-[#C1FF72] stroke-[2.5]" />
-            <span>Add Category</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Statistics overview - 2x2 on mobile and tablet, 4x1 on desktop */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 mb-5 sm:mb-6">
-        <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wider">Total Categories</p>
-            <p className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">{categories.length}</p>
-          </div>
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
-            <Layers className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-        </div>
-
-        <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wider">Total Episodes</p>
-            <p className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">{videos.length}</p>
-          </div>
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#c1ff72]/40 flex items-center justify-center text-[#1f2a2e] shrink-0">
-            <VideoIcon className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
-          </div>
-        </div>
-
-        <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wider">Free Access</p>
-            <p className="text-xl sm:text-2xl font-black text-emerald-600 mt-0.5">{totalFreeCount}</p>
-          </div>
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0">
-            <Unlock className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-        </div>
-
-        <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wider">Members Only</p>
-            <p className="text-xl sm:text-2xl font-black text-amber-700 mt-0.5">{totalLockedCount}</p>
-          </div>
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 shrink-0">
-            <Lock className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-        </div>
-      </div>
-
-      {/* Search and filter toolbar */}
-      <div className="mb-5 sm:mb-6 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          {/* Search Box - 16px font on mobile prevents iOS zoom */}
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Search category or episode title..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-base sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-800 transition-colors"
-            />
-          </div>
-
-          {/* Filter Controls */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* 1. Filter Akses: All / Free / Members */}
-            <div className="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200/80 w-full sm:w-auto">
-              <button
-                type="button"
-                onClick={() => {
-                  setAccessFilter('all');
-                  setCurrentPage(1);
-                }}
-                className={`flex-1 sm:flex-initial min-h-[38px] px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  accessFilter === 'all'
-                    ? 'bg-white text-[#1F2A2E] shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                All ({categories.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setAccessFilter('free');
-                  setCurrentPage(1);
-                }}
-                className={`flex-1 sm:flex-initial min-h-[38px] px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  accessFilter === 'free'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-emerald-700'
-                }`}
-              >
-                Free ({totalFreeCount})
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setAccessFilter('locked');
-                  setCurrentPage(1);
-                }}
-                className={`flex-1 sm:flex-initial min-h-[38px] px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  accessFilter === 'locked'
-                    ? 'bg-amber-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-amber-700'
-                }`}
-              >
-                Members ({totalLockedCount})
-              </button>
-            </div>
-
-            {/* 2. Filter Level */}
-            <select
-              value={levelFilter}
-              onChange={(e) => {
-                setLevelFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              aria-label="Filter Difficulty Level"
-              className="flex-1 sm:flex-initial min-h-[38px] px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-base sm:text-xs font-bold text-slate-700 focus:outline-none focus:border-slate-800 cursor-pointer shadow-xs"
-            >
-              <option value="all">All Levels</option>
-              <option value="Level 1">Level 1</option>
-              <option value="Level 2">Level 2</option>
-              <option value="Level 3">Level 3</option>
-            </select>
-
-            {/* 3. Urutkan (Sort) */}
-            <select
-              value={sortBy}
-              onChange={(e) => {
-                setSortBy(e.target.value as 'default' | 'name-asc' | 'episodes-desc');
-                setCurrentPage(1);
-              }}
-              aria-label="Sort Categories"
-              className="flex-1 sm:flex-initial min-h-[38px] px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-base sm:text-xs font-bold text-slate-700 focus:outline-none focus:border-slate-800 cursor-pointer shadow-xs"
-            >
-              <option value="default">Curriculum Order (FIG)</option>
-              <option value="name-asc">Category Name (A-Z)</option>
-              <option value="episodes-desc">Most Episodes</option>
-            </select>
-
-            {/* 4. Reset Filters Button */}
-            {isFilterActive && (
-              <button
-                type="button"
-                onClick={resetAllFilters}
-                className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 text-xs font-bold transition-colors cursor-pointer"
-                title="Reset filters"
-              >
-                Reset Filters
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Filter Summary Bar */}
-        <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
-          <p>
-            Found <span className="font-bold text-slate-800">{totalItems}</span> apparatus categories
-            {isFilterActive && ' (filtered)'}
-          </p>
-          <p className="font-medium">
-            Page {validCurrentPage} of {totalPages}
-          </p>
-        </div>
-      </div>
-
-      {/* Category curriculum cards */}
-      <div className="space-y-6">
-        {paginatedCategories.map((cat) => {
-          const catVideos = videos
-            .filter((v) => v.categoryId === cat.id)
-            .filter((v) => levelFilter === 'all' || videoLevelLabel(v.level) === levelFilter)
-            .filter((v) => accessFilter === 'all' || (accessFilter === 'free' ? v.isFree : !v.isFree))
-            .filter((v) => {
-              if (!query) return true;
-              return (
-                v.title.toLowerCase().includes(query) ||
-                v.description.toLowerCase().includes(query) ||
-                cat.name.toLowerCase().includes(query)
-              );
-            })
-            .sort((a, b) => a.episodeNum - b.episodeNum);
-
-          const isCollapsed = Boolean(collapsedCategories[cat.id]);
-          const freeCount = catVideos.filter((v) => v.isFree).length;
-          const lockedCount = catVideos.filter((v) => !v.isFree).length;
-
-          return (
-            <div
-              key={cat.id}
-              className="bg-white border border-slate-200/90 rounded-2xl shadow-sm overflow-hidden transition-all"
-            >
-              {/* Card Header (Kategori Senam) */}
-              <div className="p-3.5 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 bg-[#C1FF72] border-b border-[#a8ed4b]/80">
-                <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
-                  {/* Thumbnail / Alat Image */}
-                  <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-slate-900 border-2 border-white/80 shrink-0 shadow-sm">
-                    <Image
-                      src={cat.thumbnail || '/images/apparatus-floor.webp'}
-                      alt={cat.name}
-                      fill
-                      className="object-cover object-center"
-                      sizes="64px"
-                    />
-                  </div>
-
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
-                      <h2 className="text-base sm:text-xl font-black text-[#1F2A2E] tracking-tight truncate">
-                        {getCategoryTitle(cat.name)}
-                      </h2>
-                      <span className="px-2 py-0.5 rounded-full bg-white/90 border border-black/10 text-[#1F2A2E] text-[11px] sm:text-xs font-bold shadow-xs">
-                        {catVideos.length} {catVideos.length === 1 ? 'Episode' : 'Episodes'}
-                      </span>
-                      {freeCount > 0 && (
-                        <span className="px-2 py-0.5 rounded-full bg-[#1F2A2E] text-[#C1FF72] text-[10px] sm:text-[11px] font-black shadow-xs">
-                          {freeCount} Free
-                        </span>
-                      )}
-                      {lockedCount > 0 && (
-                        <span className="px-2 py-0.5 rounded-full bg-white/90 border border-amber-300 text-amber-900 text-[10px] sm:text-[11px] font-bold shadow-xs">
-                          {lockedCount} Members
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-[#1F2A2E]/80 font-medium line-clamp-1 max-w-xl">
-                      {cat.description}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Header Action Buttons: Reflow to full width on mobile with >=40px touch areas */}
-                <div className="flex items-center justify-between md:justify-end gap-2 shrink-0 w-full md:w-auto pt-2 md:pt-0 border-t md:border-t-0 border-black/10">
-                  <button
-                    type="button"
-                    onClick={() => openAddEpisodeModal(cat.id)}
-                    className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#1F2A2E] hover:bg-black text-white hover:text-[#C1FF72] font-black text-xs sm:text-sm border border-[#1F2A2E] shadow-sm transition-all cursor-pointer hover:shadow-md min-h-[40px] active:scale-95"
-                    title={`Add new episode to ${cat.name}`}
-                  >
-                    <Plus className="w-4 h-4 text-[#C1FF72] stroke-[2.5]" />
-                    <span>Add Episode</span>
-                  </button>
-
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => openEditCategoryModal(cat)}
-                      className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-white/90 hover:bg-white text-[#1F2A2E] border border-black/10 text-xs font-bold transition-colors cursor-pointer shadow-xs flex items-center justify-center active:scale-95"
-                      title="Edit category name or description"
-                      aria-label={`Edit category ${cat.name}`}
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-
-                    {/* Only allow deleting custom categories (leave standard 6 intact) */}
-                    {!['cat-fx', 'cat-ph', 'cat-sr', 'cat-vt', 'cat-pb', 'cat-hb'].includes(cat.id) && (
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteCategory(cat)}
-                        className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-white/90 hover:bg-red-50 text-red-600 border border-red-200 text-xs font-bold transition-colors cursor-pointer shadow-xs flex items-center justify-center active:scale-95"
-                        title="Delete this category"
-                        aria-label={`Delete category ${cat.name}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() => toggleCategoryCollapse(cat.id)}
-                      className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-white/90 hover:bg-white text-[#1F2A2E] border border-black/10 transition-colors cursor-pointer shadow-xs flex items-center justify-center active:scale-95"
-                      title={isCollapsed ? 'Expand episode list' : 'Collapse episode list'}
-                      aria-label={isCollapsed ? 'Expand episode list' : 'Collapse episode list'}
-                    >
-                      {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card Body: Episode List */}
-              {!isCollapsed && (
-                <div className="divide-y divide-slate-100">
-                  {catVideos.length === 0 ? (
-                    <div className="p-8 text-center text-slate-500">
-                      <VideoIcon className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-                      <p className="text-sm font-semibold text-slate-700">
-                        No episodes in this category yet.
-                      </p>
-                      <p className="text-xs text-slate-500 mt-1 mb-4">
-                        Add a training video from Google Drive to get started.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => openAddEpisodeModal(cat.id)}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#c1ff72] hover:bg-[#b0f555] text-[#1f2a2e] font-black text-xs border border-[#a8ed4b] shadow-sm cursor-pointer"
-                      >
-                        <Plus className="w-4 h-4" />
-                        <span>Add First Episode</span>
-                      </button>
-                    </div>
-                  ) : (
-                    catVideos.map((video) => (
-                      <div
-                        key={video.id}
-                        className="p-3.5 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 hover:bg-slate-50/70 transition-colors"
-                      >
-                        {/* Left: Thumbnail & Episode Details */}
-                        <div className="flex items-start gap-3 sm:gap-4 min-w-0">
-                          {/* Episode Badge & Thumbnail */}
-                          <div className="relative w-22 sm:w-28 h-15 sm:h-18 rounded-xl overflow-hidden bg-slate-900 shrink-0 border border-slate-200 shadow-sm">
-                            <VideoThumbnail
-                              video={video}
-                              className="object-cover object-center"
-                              sizes="112px"
-                            />
-                            <div className="absolute top-1 left-1">
-                              <span className="px-1.5 py-0.5 rounded bg-black/85 text-[10px] font-black text-white">
-                                EP {video.episodeNum}
-                              </span>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setQuickDurationVideoId(video.id);
-                                setQuickDurationValue(video.duration);
-                              }}
-                              className="absolute bottom-1 right-1 cursor-pointer group/dur"
-                              title="Click to edit duration"
-                            >
-                              <span className="px-1.5 py-0.5 rounded bg-black/85 group-hover/dur:bg-[#1F2A2E] text-[9px] font-mono text-slate-200 group-hover/dur:text-[#c1ff72] flex items-center gap-0.5 transition-colors border border-transparent group-hover/dur:border-[#c1ff72]/40">
-                                <Clock className="w-2.5 h-2.5" />
-                                {video.duration}
-                              </span>
-                            </button>
-                          </div>
-
-                          {/* Info */}
-                          <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
-                              <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] sm:text-[11px] font-bold border border-slate-200">
-                                {videoLevelLabel(video.level)}
-                              </span>
-
-                              <span className="text-[10px] sm:text-[11px] text-slate-400 font-mono">
-                                ID: {video.driveFileId.slice(0, 10)}...
-                              </span>
-                            </div>
-
-                            <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-snug">
-                              {video.title}
-                            </h3>
-
-                            <p className="text-xs text-slate-500 mt-0.5 sm:mt-1 line-clamp-1 max-w-xl">
-                              {video.description}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Right: Quick Access Toggle & Action Buttons */}
-                        <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 shrink-0 w-full lg:w-auto pt-2.5 lg:pt-0 border-t lg:border-t-0 border-slate-100">
-                          {/* Access status toggle */}
-                          <button
-                            type="button"
-                            onClick={() => handleToggleFreeAccess(video)}
-                            className={`min-h-[38px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border shadow-sm active:scale-95 ${
-                              video.isFree
-                                ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300 ring-1 ring-emerald-400/30'
-                                : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300 ring-1 ring-amber-400/30'
-                            }`}
-                            title="Click to toggle access permissions"
-                          >
-                            {video.isFree ? (
-                              <>
-                                <Unlock className="w-3.5 h-3.5 text-emerald-600" />
-                                <span>FREE</span>
-                                <span className="text-[10px] text-emerald-700/80 font-normal hidden sm:inline">
-                                  (Public)
-                                </span>
-                              </>
-                            ) : (
-                              <>
-                                <Lock className="w-3.5 h-3.5 text-amber-600" />
-                                <span>MEMBERS ONLY</span>
-                                <span className="text-[10px] text-amber-800/80 font-normal hidden sm:inline">
-                                  (Sign In)
-                                </span>
-                              </>
-                            )}
-                          </button>
-
-                          {/* Quick Duration Button */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (quickDurationVideoId === video.id) {
-                                setQuickDurationVideoId(null);
-                              } else {
-                                setQuickDurationVideoId(video.id);
-                                setQuickDurationValue(video.duration);
-                              }
-                            }}
-                            className={`min-h-[38px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border shadow-sm active:scale-95 ${
-                              quickDurationVideoId === video.id
-                                ? 'bg-[#1F2A2E] text-white border-[#1F2A2E] ring-2 ring-[#c1ff72]/30'
-                                : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
-                            }`}
-                            title="Click to quickly change video duration"
-                          >
-                            <Clock className={`w-3.5 h-3.5 ${quickDurationVideoId === video.id ? 'text-[#c1ff72]' : 'text-slate-500'}`} />
-                            <span>{video.duration}</span>
-                            <Pencil className="w-2.5 h-2.5 text-slate-400 ml-0.5" />
-                          </button>
-
-                          <div className="flex items-center gap-1.5">
-                            {/* Preview Link */}
-                            <Link
-                              href={`/watch/${video.id}`}
-                              target="_blank"
-                              className="w-10 h-10 min-w-[38px] min-h-[38px] rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors flex items-center justify-center active:scale-95"
-                              title="Watch Video Preview (New Tab)"
-                              aria-label={`Preview video ${video.title}`}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Link>
-
-                            {/* Edit Button */}
-                            <button
-                              type="button"
-                              onClick={() => handleEditVideo(video)}
-                              className="min-h-[38px] inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition-colors cursor-pointer active:scale-95"
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                              <span>Edit</span>
-                            </button>
-
-                            {/* Delete Button */}
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteVideo(video.id, video.title)}
-                              className="min-h-[38px] inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold transition-colors cursor-pointer active:scale-95"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                              <span>Delete</span>
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Inline Quick Duration Editor Drawer */}
-                        {quickDurationVideoId === video.id && (
-                          <div className="w-full bg-slate-100 border border-slate-300 rounded-2xl p-3 sm:p-4 mt-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in slide-in-from-top-1 duration-150">
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-xl bg-[#1F2A2E] text-[#c1ff72] flex items-center justify-center shrink-0 shadow-xs">
-                                <Clock className="w-4 h-4" />
-                              </div>
-                              <div>
-                                <div className="text-xs font-black text-slate-900">
-                                  Quick Duration: &ldquo;{video.title}&rdquo;
-                                </div>
-                                <div className="text-[11px] text-slate-500">
-                                  Pick a preset or enter MM:SS, then click Save
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="flex flex-wrap items-center gap-2">
-                              <div className="flex flex-wrap items-center gap-1">
-                                {['01:00', '01:30', '02:00', '02:30', '03:00', '03:45', '04:15', '05:00'].map((preset) => (
-                                  <button
-                                    key={preset}
-                                    type="button"
-                                    onClick={() => handleQuickSaveDuration(video.id, preset)}
-                                    disabled={isSavingQuickDuration}
-                                    className={`px-2 py-1 rounded-lg text-[11px] font-bold cursor-pointer transition-colors border ${
-                                      quickDurationValue === preset
-                                        ? 'bg-[#1F2A2E] text-white border-[#1F2A2E]'
-                                        : 'bg-white hover:bg-slate-200 text-slate-700 border-slate-200'
-                                    }`}
-                                  >
-                                    {preset}
-                                  </button>
-                                ))}
-                              </div>
-
-                              <div className="flex items-center gap-1.5">
-                                <input
-                                  type="text"
-                                  value={quickDurationValue}
-                                  onChange={(e) => setQuickDurationValue(e.target.value)}
-                                  placeholder="03:45"
-                                  className="w-20 px-2.5 py-1 text-xs font-mono font-bold bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-slate-800"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => handleQuickSaveDuration(video.id)}
-                                  disabled={isSavingQuickDuration}
-                                  className="px-3.5 py-1 bg-[#1F2A2E] hover:bg-black text-[#c1ff72] rounded-lg text-xs font-black cursor-pointer shadow-xs transition-colors"
-                                >
-                                  {isSavingQuickDuration ? '...' : 'Save'}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setQuickDurationVideoId(null)}
-                                  className="p-1 hover:bg-slate-200 text-slate-500 rounded-lg cursor-pointer"
-                                  title="Cancel"
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-          );
-        })}
-
-        {filteredCategories.length === 0 && (
-          <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 text-slate-500">
-            <Search className="w-8 h-8 mx-auto mb-2 text-slate-400 opacity-60" />
-            <p className="text-base font-bold text-slate-800">
-              No categories match your filters or search.
-            </p>
-            <p className="text-xs text-slate-500 mt-1 mb-4">
-              Try different keywords or reset your filters.
-            </p>
-            <button
-              type="button"
-              onClick={resetAllFilters}
-              className="px-5 py-2.5 rounded-xl bg-[#1F2A2E] hover:bg-black text-white text-xs font-black cursor-pointer transition-all shadow-sm"
-            >
-              Reset All Filters
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Pagination controls */}
-      {filteredCategories.length > 0 && (
-        <div className="mt-6 sm:mt-8 bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3.5 sm:gap-4">
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 sm:gap-3 text-xs text-slate-600 w-full sm:w-auto">
-            <span className="font-bold text-slate-800">
-              Showing {totalItems === 0 ? 0 : startIndex + 1}–{endIndex} of {totalItems} Categories
-            </span>
-            <span className="text-slate-300 hidden sm:inline">•</span>
-            <div className="flex items-center gap-1.5">
-              <span>Show:</span>
-              <select
-                value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                aria-label="Select items per page"
-                className="min-h-[36px] px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 cursor-pointer shadow-xs focus:outline-none focus:border-slate-800"
-              >
-                <option value={4}>4 per page</option>
-                <option value={6}>6 per page</option>
-                <option value={8}>8 per page</option>
-                <option value={12}>12 per page</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center gap-1.5 w-full sm:w-auto">
-            <button
-              type="button"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={validCurrentPage <= 1}
-              className="min-h-[38px] inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-xs active:scale-95"
-            >
-              <ChevronLeft className="w-3.5 h-3.5" />
-              <span>Previous</span>
-            </button>
-
-            <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                <button
-                  key={pageNum}
-                  type="button"
-                  onClick={() => setCurrentPage(pageNum)}
-                  className={`w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center active:scale-95 ${
-                    validCurrentPage === pageNum
-                      ? 'bg-[#1F2A2E] text-[#C1FF72] shadow-sm'
-                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-xs'
-                  }`}
-                >
-                  {pageNum}
-                </button>
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={validCurrentPage >= totalPages}
-              className="min-h-[38px] inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-xs active:scale-95"
-            >
-              <span>Next</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Video episode modal - Highly Informative, Intuitive & Dual-Pane */}
-      {showVideoModal && (
-        <div
-          onClick={(e) => {
-            if (e.target === e.currentTarget) handleRequestCloseVideoModal();
-          }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 lg:p-6 bg-black/65 backdrop-blur-xs overflow-y-auto"
-        >
-          <div className="bg-white border border-slate-200 rounded-3xl max-w-5xl w-full max-h-[92dvh] flex flex-col shadow-2xl my-auto animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-slate-100 bg-slate-50/80 shrink-0">
-              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-[#c1ff72] flex items-center justify-center text-[#1f2a2e] font-black shrink-0 shadow-sm border border-[#a8ed4b]">
-                  <VideoIcon className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-base sm:text-lg font-black text-slate-900 truncate">
-                      {editingVideoId ? 'Edit Video Episode' : 'Add New Video Episode'}
-                    </h2>
-                    {/* Dirty State Indicator Badge */}
-                    {isVideoDirty ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[10px] sm:text-[11px] font-bold shrink-0 animate-pulse">
-                        <AlertTriangle className="w-3 h-3 text-amber-600" />
-                        <span>Unsaved Changes</span>
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 text-[10px] sm:text-[11px] font-semibold shrink-0">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                        <span>Form Synced</span>
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] sm:text-xs text-slate-500 truncate mt-0.5">
-                    {editingVideoId
-                      ? `Editing episode #${videoForm.episodeNum} • Live preview updated on the right`
-                      : 'Fill in the gymnastics drill details and test Google Drive playback before saving.'}
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleRequestCloseVideoModal}
-                className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors flex items-center justify-center cursor-pointer active:scale-95"
-                aria-label="Close dialog"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Modal Body: Responsive Dual Pane (Form Controls + Live Preview) */}
-            <form onSubmit={handleSaveVideo} className="flex-1 flex flex-col overflow-hidden">
-              <div className="overflow-y-auto p-4 sm:p-6 lg:p-7 flex-1">
-                {videoFormError && <p role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-800">{videoFormError}</p>}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-                  {/* Left Column: Form Fields (7 cols) */}
-                  <div className="lg:col-span-7 space-y-4 sm:space-y-5">
-                    {/* Field Group 1: Category & Episode Number */}
-                    <div className="bg-slate-50/70 p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label className="block text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                          <Layers className="w-3.5 h-3.5 text-slate-600" />
-                          <span>Category & Episode Order</span>
-                        </label>
-                        <span className="text-[11px] text-slate-500 font-medium">
-                          Automatically syncs sequence number
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                        <div className="sm:col-span-2">
-                          <select
-                            value={videoForm.categoryId}
-                            onChange={(e) => handleCategoryChange(e.target.value)}
-                            aria-label="Select Gymnastics Event"
-                            className="w-full min-h-[42px] px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-base sm:text-xs font-bold focus:outline-none focus:border-slate-800 shadow-xs"
-                          >
-                            {categories.map((c) => {
-                              const count = videos.filter((v) => v.categoryId === c.id).length;
-                              return (
-                                <option key={c.id} value={c.id}>
-                                  {c.name} ({count} {count === 1 ? 'Episode' : 'Episodes'})
-                                </option>
-                              );
-                            })}
-                          </select>
-                        </div>
-
-                        <div>
-                          <div className="relative flex items-center">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setVideoForm((prev) => ({
-                                  ...prev,
-                                  episodeNum: Math.max(1, prev.episodeNum - 1),
-                                }))
-                              }
-                              className="absolute left-1 w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center cursor-pointer active:scale-90"
-                              title="Decrease episode number"
-                            >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              min="1"
-                              required
-                              value={videoForm.episodeNum}
-                              onChange={(e) =>
-                                setVideoForm({ ...videoForm, episodeNum: Number(e.target.value) })
-                              }
-                              placeholder="Episode"
-                              aria-label="Episode Number"
-                              className="w-full min-h-[42px] px-8 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-center text-base sm:text-xs font-black focus:outline-none focus:border-slate-800 shadow-xs"
-                            />
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setVideoForm((prev) => ({
-                                  ...prev,
-                                  episodeNum: prev.episodeNum + 1,
-                                }))
-                              }
-                              className="absolute right-1 w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center cursor-pointer active:scale-90"
-                              title="Increase episode number"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Field Group 2: Episode Title */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="block text-xs font-black text-slate-800 uppercase tracking-wider">
-                          Episode Title
-                        </label>
-                        <span className="text-[11px] text-slate-400">
-                          Use a clear and specific title
-                        </span>
-                      </div>
-                      <input
-                        type="text"
-                        required
-                        value={videoForm.title}
-                        onChange={(e) => setVideoForm({ ...videoForm, title: e.target.value })}
-                        placeholder="Example: Posture, Footwork & Floor Exercise Run-up"
-                        className="w-full min-h-[42px] px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-base sm:text-sm font-semibold focus:outline-none focus:bg-white focus:border-slate-800 shadow-xs"
-                      />
-
-                      {/* Quick Title Suggestion Chips */}
-                      <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                        <span className="text-[11px] font-bold text-slate-400">Quick Suggestions:</span>
-                        {['Posture & Approach', 'Takeoff & Drill Repetitions', 'Transitions & Somersaults', 'Stick Landing & Form'].map(
-                          (suggestion) => (
-                            <button
-                              type="button"
-                              key={suggestion}
-                              onClick={() => setVideoForm({ ...videoForm, title: suggestion })}
-                              className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer active:scale-95"
-                            >
-                              + {suggestion}
-                            </button>
-                          )
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Field Group 3: Google Drive Link */}
-                    <div className="bg-slate-50/70 p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label className="block text-xs font-black text-slate-800 uppercase tracking-wider">
-                          Google Drive Share Link / File ID
-                        </label>
-                        {detectedDriveId && (
-                          <a
-                            href={`https://drive.google.com/file/d/${detectedDriveId}/view`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[11px] text-emerald-700 hover:text-emerald-800 font-bold"
-                          >
-                            <span>Open in Google Drive</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        )}
-                      </div>
-
-                      <input
-                        type="text"
-                        required
-                        value={videoForm.driveLink}
-                        onChange={(e) => setVideoForm({ ...videoForm, driveLink: e.target.value })}
-                        placeholder="Paste link: https://drive.google.com/file/d/.../view"
-                        className="w-full min-h-[42px] px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-base sm:text-xs font-mono focus:outline-none focus:border-slate-800 shadow-xs"
-                      />
-
-                      {/* Drive Extraction Feedback Card */}
-                      {detectedDriveId ? (
-                        <div className="flex items-start gap-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-950 text-xs">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
-                          <div className="min-w-0">
-                            <p className="font-bold">
-                              Detected File ID: <code className="font-mono bg-emerald-100/80 px-1 rounded">{detectedDriveId}</code>
-                            </p>
-                            <p className="text-[11px] text-emerald-800 mt-0.5">
-                              Ensure Google Drive general access is set to: <strong>&quot;Anyone with the link can view&quot;</strong>.
-                            </p>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex items-start gap-2 p-2.5 rounded-xl bg-amber-50/70 border border-amber-200 text-amber-900 text-xs">
-                          <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-                          <p className="text-[11px] text-amber-800 leading-relaxed">
-                            Open video in Google Drive &gt; Click <strong>Share</strong> &gt; Set General access to <strong>Anyone with the link</strong> &gt; Copy link and paste here.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    <div>
-                      <label htmlFor="video-thumbnail" className="mb-1.5 block text-xs font-black uppercase tracking-wider text-slate-800">Thumbnail video (opsional)</label>
-                      <input
-                        id="video-thumbnail"
-                        type="url"
-                        value={videoForm.thumbnail}
-                        onChange={(e) => setVideoForm({ ...videoForm, thumbnail: e.target.value })}
-                        placeholder="https://…"
-                        aria-describedby="video-thumbnail-help"
-                        className="w-full min-h-[44px] rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-base text-slate-900 focus:border-slate-800 focus:outline-none sm:text-sm"
-                      />
-                      <p id="video-thumbnail-help" className="mt-1.5 text-xs leading-relaxed text-slate-600">Kosongkan untuk mengambil cuplikan dari video Google Drive ini. Jika cuplikan tidak tersedia, isi URL gambar yang diambil dari video yang sama. Pergantian kategori tidak mengubah thumbnail video.</p>
-                    </div>
-
-                    {/* Field Group 4: Access Rights (Interactive Explanatory Cards) */}
-                    <div>
-                      <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-2">
-                        Access Permission
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        {/* Option 1: Free */}
-                        <button
-                          type="button"
-                          onClick={() => setVideoForm({ ...videoForm, isFree: true })}
-                          className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-start gap-3 active:scale-98 ${
-                            videoForm.isFree
-                              ? 'bg-emerald-50/90 border-emerald-400 ring-2 ring-emerald-500/20 shadow-xs'
-                              : 'bg-white border-slate-200 hover:bg-slate-50'
-                          }`}
-                        >
-                          <div
-                            className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                              videoForm.isFree
-                                ? 'bg-emerald-600 text-white shadow-xs'
-                                : 'bg-slate-100 text-slate-500'
-                            }`}
-                          >
-                            <Unlock className="w-4 h-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-xs font-black text-slate-900">FREE (Public)</span>
-                              {videoForm.isFree && (
-                                <span className="px-1.5 py-0.2 rounded bg-emerald-200 text-emerald-800 text-[9px] font-black">
-                                  ACTIVE
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
-                              Can be watched by anyone without signing in. Recommended for Episode 1.
-                            </p>
-                          </div>
-                        </button>
-
-                        {/* Option 2: Members Only */}
-                        <button
-                          type="button"
-                          onClick={() => setVideoForm({ ...videoForm, isFree: false })}
-                          className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-start gap-3 active:scale-98 ${
-                            !videoForm.isFree
-                              ? 'bg-amber-50/90 border-amber-400 ring-2 ring-amber-500/20 shadow-xs'
-                              : 'bg-white border-slate-200 hover:bg-slate-50'
-                          }`}
-                        >
-                          <div
-                            className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                              !videoForm.isFree
-                                ? 'bg-amber-600 text-white shadow-xs'
-                                : 'bg-slate-100 text-slate-500'
-                            }`}
-                          >
-                            <Lock className="w-4 h-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-xs font-black text-slate-900">MEMBERS ONLY</span>
-                              {!videoForm.isFree && (
-                                <span className="px-1.5 py-0.2 rounded bg-amber-200 text-amber-800 text-[9px] font-black">
-                                  ACTIVE
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
-                              Available to every user signed in with a GCL account.
-                            </p>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Field Group 5: Difficulty Level & Video Duration */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      {/* Difficulty Level Selector */}
-                      <div>
-                        <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1.5">
-                          Difficulty Level
-                        </label>
-                        <div className="grid grid-cols-3 gap-1.5">
-                          {[
-                            { key: 'Level 1', label: 'Level 1' },
-                            { key: 'Level 2', label: 'Level 2' },
-                            { key: 'Level 3', label: 'Level 3' },
-                          ].map((lvl) => (
-                            <button
-                              type="button"
-                              key={lvl.key}
-                              onClick={() => setVideoForm({ ...videoForm, level: lvl.key })}
-                              className={`py-2 px-1.5 rounded-xl border text-center transition-all cursor-pointer active:scale-95 ${
-                                videoForm.level === lvl.key
-                                  ? 'bg-[#1F2A2E] text-white border-[#1F2A2E] shadow-xs'
-                                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                              }`}
-                            >
-                              <div className="text-xs font-black">{lvl.label}</div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Video Duration with Quick Presets */}
-                      <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl">
-                        <div className="flex items-center justify-between mb-1.5">
-                          <label className="flex items-center gap-1.5 text-xs font-black text-slate-800 uppercase tracking-wider">
-                            <Clock className="w-3.5 h-3.5 text-[#1F2A2E]" />
-                            <span>Video Duration (MM:SS)</span>
-                          </label>
-                          <span className="text-[10px] text-slate-400 font-medium">Card & Player</span>
-                        </div>
-                        <input
-                          type="text"
-                          value={videoForm.duration}
-                          onChange={(e) => setVideoForm({ ...videoForm, duration: e.target.value })}
-                          placeholder="04:00"
-                          className="w-full min-h-[42px] px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-base sm:text-sm font-bold focus:outline-none focus:border-slate-800 shadow-xs"
-                        />
-                        <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Presets:</span>
-                          {['01:00', '01:30', '02:00', '02:30', '03:00', '03:45', '04:15', '05:00'].map((preset) => (
-                            <button
-                              type="button"
-                              key={preset}
-                              onClick={() => setVideoForm({ ...videoForm, duration: preset })}
-                              className={`px-2 py-0.5 rounded-md text-[10px] font-bold cursor-pointer transition-colors border ${
-                                videoForm.duration === preset
-                                  ? 'bg-[#1F2A2E] text-white border-[#1F2A2E]'
-                                  : 'bg-white hover:bg-slate-200 text-slate-700 border-slate-200'
-                              }`}
-                            >
-                              {preset}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Field Group 6: Coaching Notes */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label htmlFor="video-description" className="block text-xs font-black text-slate-800 uppercase tracking-wider">
-                          Deskripsi video *
-                        </label>
-                        <span className="text-[11px] text-slate-400">Instructions for athletes</span>
-                      </div>
-                      <textarea
-                        id="video-description"
-                        required
-                        rows={3}
-                        value={videoForm.description}
-                        onChange={(e) => setVideoForm({ ...videoForm, description: e.target.value })}
-                        placeholder="Jelaskan gerakan, tahapan, dan poin teknik yang benar-benar ada di video ini."
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-base sm:text-xs leading-relaxed focus:outline-none focus:bg-white focus:border-slate-800 shadow-xs"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="video-checklist" className="mb-1.5 block text-xs font-black uppercase tracking-wider text-slate-800">Checklist materi</label>
-                      <textarea
-                        id="video-checklist"
-                        rows={5}
-                        value={videoForm.checklistText}
-                        onChange={(e) => setVideoForm({ ...videoForm, checklistText: e.target.value })}
-                        placeholder="Tulis satu poin pembelajaran dari video per baris"
-                        aria-describedby="video-checklist-help"
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-base leading-relaxed text-slate-900 focus:border-slate-800 focus:bg-white focus:outline-none sm:text-sm"
-                      />
-                      <p id="video-checklist-help" className="mt-1.5 text-xs leading-relaxed text-slate-600">Satu poin per baris, maksimal 100 poin. User menandai pemahaman dan menyimpan catatan pribadi. Poin yang teksnya tetap sama mempertahankan progres, termasuk saat diurutkan ulang. Mengubah teks membuat poin baru.</p>
-                    </div>
-                  </div>
-
-                  {/* Right Column: Interactive Live Preview & Player Tester (5 cols) */}
-                  <div className="lg:col-span-5 space-y-4 lg:sticky lg:top-0">
-                    <div className="bg-slate-900 rounded-3xl p-4 sm:p-5 text-white border border-slate-800 shadow-xl space-y-4">
-                      {/* Preview Header & Tabs */}
-                      <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-lg bg-[#c1ff72] text-[#1f2a2e] flex items-center justify-center font-black">
-                            <Sparkles className="w-3.5 h-3.5" />
-                          </div>
-                          <span className="text-xs font-black text-white uppercase tracking-wider">
-                            Live Preview
-                          </span>
-                        </div>
-
-                        {/* Switcher Tab */}
-                        <div className="flex items-center gap-1 bg-white/10 p-1 rounded-xl">
-                          <button
-                            type="button"
-                            onClick={() => setPreviewTab('card')}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                              previewTab === 'card'
-                                ? 'bg-[#c1ff72] text-[#1f2a2e] shadow-xs'
-                                : 'text-slate-300 hover:text-white'
-                            }`}
-                          >
-                            Card
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setPreviewTab('player')}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                              previewTab === 'player'
-                                ? 'bg-[#c1ff72] text-[#1f2a2e] shadow-xs'
-                                : 'text-slate-300 hover:text-white'
-                            }`}
-                          >
-                            Test Play
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Tab 1: Live Video Card representation */}
-                      {previewTab === 'card' && (
-                        <div className="space-y-3">
-                          <div className="relative rounded-2xl overflow-hidden bg-slate-950 border border-white/10 shadow-lg">
-                            {/* Thumbnail */}
-                            <div className="relative w-full aspect-video bg-slate-900">
-                              <VideoThumbnail
-                                video={{ title: videoForm.title || 'Video baru', thumbnail: videoForm.thumbnail, driveFileId: detectedDriveId }}
-                                className="object-cover"
-                                sizes="360px"
-                              />
-
-                              {/* Overlays */}
-                              <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                                <span className="px-2 py-0.5 rounded-md bg-black/80 backdrop-blur-md text-[10px] font-black text-[#c1ff72]">
-                                  EP {videoForm.episodeNum}
-                                </span>
-                                <span className="px-2 py-0.5 rounded-md bg-white/20 backdrop-blur-md text-[10px] font-bold text-white">
-                                  {videoLevelLabel(videoForm.level)}
-                                </span>
-                              </div>
-
-                              <div className="absolute bottom-2.5 right-2.5">
-                                <span className="px-2 py-0.5 rounded-md bg-black/80 backdrop-blur-md text-[10px] font-mono font-bold text-slate-200">
-                                  {videoForm.duration}
-                                </span>
-                              </div>
-
-                              {/* Play Icon overlay */}
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-11 h-11 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/30 shadow-lg">
-                                  <Play className="w-5 h-5 fill-white ml-0.5" />
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Card Content info */}
-                            <div className="p-3.5 space-y-2 bg-slate-900/90">
-                              <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-bold text-[#c1ff72] uppercase tracking-wider">
-                                  {categories.find((c) => c.id === videoForm.categoryId)?.name.split(' ')[0] ||
-                                    'GYMNASTICS'}
-                                </span>
-                                {videoForm.isFree ? (
-                                  <span className="inline-flex items-center gap-1 text-[10px] font-black text-[#c1ff72]">
-                                    <Unlock className="w-3 h-3" /> FREE
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-400">
-                                    <Lock className="w-3 h-3" /> MEMBERS ONLY
-                                  </span>
-                                )}
-                              </div>
-
-                              <h4 className="text-sm font-bold text-white leading-snug line-clamp-2">
-                                {videoForm.title.trim() || 'Episode Title Will Appear Here'}
-                              </h4>
-
-                              <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
-                                {videoForm.description.trim() ||
-                                  'Deskripsi video akan tampil di sini.'}
-                              </p>
-                            </div>
-                          </div>
-
-                          <p className="text-[11px] text-slate-400 text-center">
-                            Preview of the video card in the main catalog.
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Tab 2: Test Play Google Drive embed directly */}
-                      {previewTab === 'player' && (
-                        <div className="space-y-3">
-                          {detectedDriveId ? (
-                            <div className="space-y-2.5">
-                              <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-white/10 shadow-inner">
-                                <iframe
-                                  src={`https://drive.google.com/file/d/${detectedDriveId}/preview`}
-                                  className="w-full h-full border-0"
-                                  allow="autoplay; fullscreen"
-                                  allowFullScreen
-                                  title="Google Drive Test Playback"
-                                />
-                              </div>
-                              <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-xs space-y-1">
-                                <div className="flex items-center gap-1.5 text-[#c1ff72] font-bold">
-                                  <CheckCircle2 className="w-3.5 h-3.5" />
-                                  <span>Google Drive Embed Player Active</span>
-                                </div>
-                                <p className="text-[11px] text-slate-300">
-                                  Click play above to verify that your video plays without permission errors.
-                                </p>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="py-12 px-4 rounded-2xl bg-white/5 border border-white/10 text-center space-y-2">
-                              <VideoIcon className="w-8 h-8 text-slate-500 mx-auto" />
-                              <p className="text-xs font-bold text-slate-300">
-                                Google Drive Link Not Provided
-                              </p>
-                              <p className="text-[11px] text-slate-500 max-w-xs mx-auto">
-                                Enter a Google Drive sharing link on the left to test playback here.
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Quick specs pill */}
-                      <div className="pt-2 border-t border-slate-800 grid grid-cols-2 gap-2 text-[11px]">
-                        <div className="p-2 rounded-xl bg-white/5 border border-white/5">
-                          <span className="text-slate-400 block">Duration:</span>
-                          <span className="font-bold text-white flex items-center gap-1 mt-0.5">
-                            <Clock className="w-3 h-3 text-[#c1ff72]" />
-                            {videoForm.duration}
-                          </span>
-                        </div>
-                        <div className="p-2 rounded-xl bg-white/5 border border-white/5">
-                          <span className="text-slate-400 block">Level:</span>
-                          <span className="font-bold text-white mt-0.5 block">
-                            {videoLevelLabel(videoForm.level)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Modal Footer: Dirty Action + Primary Actions */}
-              <div className="px-4 sm:px-6 lg:px-7 py-3.5 border-t border-slate-100 bg-slate-50/90 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
-                {/* Left: Dirty Action Revert Button */}
-                <div className="flex items-center gap-2">
-                  {isVideoDirty ? (
-                    <button
-                      type="button"
-                      onClick={handleResetVideoForm}
-                      className="min-h-[38px] inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
-                      title="Reset all values to initial state"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5 text-amber-700" />
-                      <span>Reset to Initial</span>
-                    </button>
-                  ) : (
-                    <span className="text-xs text-slate-400 flex items-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                      <span>All changes saved</span>
-                    </span>
-                  )}
-                </div>
-
-                {/* Right: Cancel & Save Buttons */}
-                <div className="flex items-center justify-end gap-2.5">
-                  <button
-                    type="button"
-                    onClick={handleRequestCloseVideoModal}
-                    className="min-h-[42px] px-5 py-2 rounded-xl bg-slate-200/80 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm transition-colors cursor-pointer active:scale-95"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSavingVideo}
-                    className="min-h-[42px] inline-flex items-center justify-center gap-2 px-6 py-2 rounded-xl bg-[#c1ff72] hover:bg-[#b0f555] text-[#1f2a2e] font-black text-xs sm:text-sm border border-[#a8ed4b] shadow-md transition-all cursor-pointer active:scale-95 disabled:opacity-60 disabled:cursor-wait"
-                  >
-                    <Save className="w-4 h-4 stroke-[2.5]" />
-                    <span>{isSavingVideo ? 'Menyimpan…' : editingVideoId ? 'Save Episode Changes' : 'Save New Episode'}</span>
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Dirty Action Exit Confirmation Dialog */}
-      {showDirtyConfirm && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-5 sm:p-6 border border-slate-200 shadow-2xl animate-in zoom-in-95">
-            <div className="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-200 text-amber-800 flex items-center justify-center mb-3.5 shadow-xs">
-              <AlertTriangle className="w-6 h-6 stroke-[2.5]" />
-            </div>
-            <h3 className="text-base font-black text-slate-900 leading-tight">
-              Discard Unsaved Changes?
-            </h3>
-            <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-              You have modified this video episode. If you close now, any changes you just made will be discarded.
-            </p>
-            <div className="flex items-center justify-end gap-2.5 mt-5 pt-3.5 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setShowDirtyConfirm(false)}
-                className="min-h-[38px] px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer active:scale-95"
-              >
-                Continue Editing
-              </button>
-              <button
-                type="button"
-                onClick={handleForceDiscardVideo}
-                className="min-h-[38px] inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs cursor-pointer shadow-sm active:scale-95"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Yes, Discard</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Category modal - Compact */}
-      {showCategoryModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-white border border-slate-200 rounded-2xl max-w-sm w-full max-h-[90dvh] overflow-y-auto p-4 sm:p-5 shadow-2xl my-auto animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-800 font-black shrink-0">
-                  <Layers className="w-4 h-4" />
-                </div>
-                <div>
-                  <h2 className="text-base font-black text-slate-900 leading-tight">
-                    {editingCategoryId ? 'Edit Apparatus Category' : 'Add New Category'}
-                  </h2>
-                  <p className="text-[11px] text-slate-500">
-                    Group training episodes by apparatus event.
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowCategoryModal(false)}
-                className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors flex items-center justify-center cursor-pointer active:scale-95"
-                aria-label="Close dialog"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveCategory} className="space-y-3">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                  Category Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={categoryForm.name}
-                  onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
-                  placeholder="Example: Balance Beam (BB)"
-                  className="w-full min-h-[40px] px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-base sm:text-sm font-semibold focus:outline-none focus:bg-white focus:border-slate-800"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                  Category Description
-                </label>
-                <textarea
-                  rows={2}
-                  value={categoryForm.description}
-                  onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
-                  placeholder="Example: Acrobatic series, balance holds, turns, and dismounts..."
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-base sm:text-xs focus:outline-none focus:bg-white focus:border-slate-800"
-                />
-              </div>
-
-              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowCategoryModal(false)}
-                  className="min-h-[42px] px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm transition-colors cursor-pointer flex items-center justify-center active:scale-95"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="min-h-[42px] inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#c1ff72] hover:bg-[#b0f555] text-[#1f2a2e] font-black text-xs sm:text-sm border border-[#a8ed4b] shadow-xs transition-all cursor-pointer active:scale-95"
-                >
-                  <Save className="w-4 h-4" />
-                  <span>Save Category</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Toast notification */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4 duration-200">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-slate-900 text-white shadow-2xl border border-slate-800 max-w-md">
-            <CheckCircle2 className="w-5 h-5 text-[#c1ff72] shrink-0" />
-            <p className="text-xs sm:text-sm font-semibold text-slate-100">{toastMessage}</p>
-          </div>
-        </div>
-      )}
+      await apiDeleteCategory(category.id); setCategories(current => current.filter(item => item.id !== category.id)); setVideos(current => current.filter(video => video.categoryId !== category.id)); setNotice('Kategori berhasil dihapus.');
+    } catch (error) { setActionError(error instanceof Error ? error.message : 'Kategori gagal dihapus.'); }
+    finally { setBusy(false); }
+  }
+  async function removeEpisode(video: Video) {
+    if (busy || !confirm(`Hapus episode “${video.title}” dan progres belajar terkait? Tindakan ini tidak dapat dibatalkan.`)) return;
+    setBusy(true); setActionError('');
+    try { await apiDeleteVideo(video.id); setVideos(current => current.filter(item => item.id !== video.id)); setNotice('Episode berhasil dihapus.'); }
+    catch (error) { setActionError(error instanceof Error ? error.message : 'Episode gagal dihapus.'); }
+    finally { setBusy(false); }
+  }
+
+  const matchingVideos = useMemo(() => videos.filter(video => (access === 'all' || video.isFree === (access === 'free')) && (level === 'all' || videoLevelLabel(video.level) === level)), [videos, access, level]);
+  const text = query.toLowerCase().trim();
+  const filtered = categories.filter(category => {
+    const matches = matchingVideos.filter(video => video.categoryId === category.id);
+    return (access === 'all' && level === 'all' || matches.length > 0) && (!text || `${category.name} ${category.description}`.toLowerCase().includes(text) || matches.some(video => `${video.title} ${video.description}`.toLowerCase().includes(text)));
+  }).sort((a, b) => sort === 'name' ? a.name.localeCompare(b.name) : sort === 'episodes' ? videos.filter(video => video.categoryId === b.id).length - videos.filter(video => video.categoryId === a.id).length : a.order - b.order);
+  const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(page, pages);
+  const driveID = episodeForm ? extractDriveFileId(episodeForm.driveLink.trim()) : '';
+  const validDriveID = /^[a-zA-Z0-9_-]{10,}$/.test(driveID) ? driveID : '';
+  const selectedCategory = categories.find(category => category.id === episodeForm?.categoryId);
+  const changeEpisode = <K extends keyof EpisodeForm>(key: K, value: EpisodeForm[K]) => setEpisodeForm(form => form ? { ...form, [key]: value } : null);
+
+  return <div className={styles.page}>
+    <header className={styles.heading}><div><p className={styles.eyebrow}>Kurikulum GCL</p><h1>Kelola materi belajar</h1><p>Atur kategori, episode, dan level latihan senam.</p></div><button className={styles.primary} onClick={() => openCategory()} disabled={busy}><Plus size={18} />Tambah kategori</button></header>
+    <dl className={styles.stats}>{[[categories.length, 'Kategori'], [videos.length, 'Episode'], [videos.filter(video => video.isFree).length, 'Akses gratis'], [videos.filter(video => !video.isFree).length, 'Khusus anggota']].map(([value, label]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
+    {notice && <p className={styles.notice} role="status">{notice}</p>}
+    {actionError && <div className={styles.error} role="alert">{actionError}<button type="button" onClick={() => setActionError('')}>Tutup pesan</button></div>}
+    <div className={styles.filters}>
+      <label className={styles.search}>Cari materi<input type="search" placeholder="Nama kategori atau judul episode" value={query} onChange={event => { setQuery(event.target.value); setPage(1); }} /></label>
+      <label>Akses<select value={access} onChange={event => { setAccess(event.target.value); setPage(1); }}><option value="all">Semua akses</option><option value="free">Gratis</option><option value="members">Khusus anggota</option></select></label>
+      <label>Level<select value={level} onChange={event => { setLevel(event.target.value); setPage(1); }}><option value="all">Semua level</option>{['Level 1', 'Level 2', 'Level 3'].map(value => <option key={value}>{value}</option>)}</select></label>
+      <label>Urutan<select value={sort} onChange={event => { setSort(event.target.value); setPage(1); }}><option value="order">Urutan kategori</option><option value="name">Nama A–Z</option><option value="episodes">Episode terbanyak</option></select></label>
+      {(query || access !== 'all' || level !== 'all' || sort !== 'order') && <button type="button" className={styles.secondary} onClick={() => { setQuery(''); setAccess('all'); setLevel('all'); setSort('order'); setPage(1); }}>Hapus filter</button>}
     </div>
-  );
+    {loading ? <p role="status" className={styles.empty}>Memuat kategori dan episode…</p> : loadError ? <div role="alert" className={styles.error}><p>{loadError}</p><button onClick={load} className={styles.secondary}>Coba lagi</button></div> : <>
+      <p className={styles.result}>{filtered.length} kategori • Halaman {currentPage} dari {pages}</p>
+      {filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize).map(category => {
+        const episodes = matchingVideos.filter(video => video.categoryId === category.id && (!text || `${category.name} ${category.description} ${video.title} ${video.description}`.toLowerCase().includes(text))).sort((a, b) => a.episodeNum - b.episodeNum);
+        const total = videos.filter(video => video.categoryId === category.id).length;
+        return <section key={category.id} className={styles.category} aria-label={`Kategori ${category.name}`}>
+          <header className={styles.categoryHeader}>
+            <div className={styles.categoryInfo}><div className={styles.cover}><CategoryCover src={category.thumbnail} name={category.name} /></div><div><h2>{category.name}</h2><p>{total} episode</p>{category.description && <p className={styles.categoryDescription}>{category.description}</p>}</div></div>
+            <div className={styles.actions}><button className={styles.dark} disabled={busy} onClick={() => addEpisode(category.id)}><Plus size={17} />Tambah episode</button><button className={styles.iconButton} aria-label={`Edit kategori ${category.name}`} disabled={busy} onClick={() => openCategory(category)}><Pencil size={18} /></button><button className={`${styles.iconButton} ${styles.danger}`} aria-label={`Hapus kategori ${category.name}`} disabled={busy} onClick={() => removeCategory(category)}><Trash2 size={18} /></button><button className={styles.iconButton} aria-expanded={!collapsed[category.id]} aria-controls={`episodes-${category.id}`} aria-label={`${collapsed[category.id] ? 'Buka' : 'Tutup'} daftar episode ${category.name}`} onClick={() => setCollapsed(current => ({ ...current, [category.id]: !current[category.id] }))}>{collapsed[category.id] ? <ChevronDown size={18} /> : <ChevronUp size={18} />}</button></div>
+          </header>
+          {!collapsed[category.id] && <div id={`episodes-${category.id}`}>
+            {episodes.length === 0 ? <div className={styles.empty}><p>{total ? 'Tidak ada episode yang sesuai filter.' : 'Belum ada episode dalam kategori ini.'}</p>{!total && <><p>Tambahkan video materi dari Google Drive.</p><button className={styles.secondary} onClick={() => addEpisode(category.id)}>Tambah episode pertama</button></>}</div> : episodes.map(video => <article key={video.id} className={styles.episode} aria-label={`Episode ${video.episodeNum}: ${video.title}`}>
+              <div className={styles.episodeImage}><VideoThumbnail video={video} sizes="160px" /><span>EP {video.episodeNum}</span></div>
+              <div className={styles.episodeInfo}><p className={styles.metadata}>{videoLevelLabel(video.level)}<span><Clock size={14} />{video.duration || 'Durasi belum diisi'}</span><span>{video.isFree ? 'Gratis' : 'Khusus anggota'}</span></p><h3>{video.title}</h3><p>{video.description}</p></div>
+              <div className={styles.actions}><Link className={styles.iconButton} href={`/watch/${encodeURIComponent(video.id)}`} target="_blank" aria-label={`Lihat episode ${video.title}`}><Eye size={18} /></Link><button className={styles.secondary} disabled={busy} onClick={() => editEpisode(video)}><Pencil size={16} />Edit</button><button className={`${styles.secondary} ${styles.danger}`} disabled={busy} onClick={() => removeEpisode(video)}><Trash2 size={16} />Hapus</button></div>
+            </article>)}
+          </div>}
+        </section>;
+      })}
+      {filtered.length === 0 && <div className={styles.empty}><p>{categories.length ? 'Tidak ada materi yang sesuai filter.' : 'Belum ada kategori. Tambahkan kategori pertama untuk mulai mengisi materi.'}</p></div>}
+      <footer className={styles.pagination}><label>Kategori per halaman<select value={pageSize} onChange={event => { setPageSize(Number(event.target.value)); setPage(1); }}>{[4, 8, 12, 24].map(value => <option key={value} value={value}>{value}</option>)}</select></label><div className={styles.actions}><button className={styles.secondary} disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>Sebelumnya</button><span>{currentPage} / {pages}</span><button className={styles.secondary} disabled={currentPage === pages} onClick={() => setPage(currentPage + 1)}>Berikutnya</button></div></footer>
+    </>}
+
+    {categoryForm && <Modal title={categoryForm.id !== null ? 'Edit kategori' : 'Tambah kategori'} onClose={closeCategory}>
+      <form onSubmit={saveCategory}>
+        <fieldset disabled={busy} className={styles.categoryFields}>
+          <label htmlFor="category-name">Nama kategori<input id="category-name" required maxLength={128} value={categoryForm.name} onChange={event => setCategoryForm({ ...categoryForm, name: event.target.value })} /></label>
+          <label htmlFor="category-description">Deskripsi <span className={styles.optional}>(opsional)</span><textarea id="category-description" rows={3} maxLength={20000} value={categoryForm.description} onChange={event => setCategoryForm({ ...categoryForm, description: event.target.value })} /></label>
+          <div className={styles.upload}><div className={styles.uploadPreview}><CategoryCover src={categoryForm.thumbnail} name={categoryForm.name || 'kategori'} /></div><div><label htmlFor="category-cover">Sampul kategori <span className={styles.optional}>(opsional)</span><input id="category-cover" type="file" accept="image/*" disabled={readingImage} onChange={event => { void chooseCover(event.target.files?.[0]); event.target.value = ''; }} aria-describedby="cover-help" /></label><p id="cover-help" className={styles.hint}>Pilih gambar dari perangkat. Sistem memperkecil dan mengubahnya ke WebP. Tanpa sampul, kategori menampilkan tanda tanya.</p>{categoryForm.thumbnail && <button type="button" className={styles.textButton} onClick={() => { imageRequest.current++; setReadingImage(false); setCategoryForm({ ...categoryForm, thumbnail: '', coverData: '' }); }}>Hapus sampul</button>}</div></div>
+          {readingImage && <p role="status">Menyiapkan gambar…</p>}
+          {categoryForm.id === null && <p className={styles.hint}>Kategori baru ditambahkan pada urutan terakhir.</p>}
+          {categoryError && <p role="alert" className={styles.error}>{categoryError}</p>}
+        </fieldset>
+        <footer className={styles.modalFooter}><button type="button" disabled={busy} className={styles.secondary} onClick={closeCategory}>Batal</button><button type="submit" disabled={busy || readingImage} className={styles.primary}>{busy ? 'Menyimpan…' : categoryForm.id !== null ? 'Simpan perubahan' : 'Tambah kategori'}</button></footer>
+      </form>
+    </Modal>}
+
+    {episodeForm && <Modal title={editingEpisode ? 'Edit episode / level' : 'Tambah episode / level'} onClose={closeEpisode} wide>
+      <form onSubmit={saveEpisode}>
+        <div className={styles.editorGrid}>
+          <fieldset disabled={busy} className={styles.fields}>
+            <div className={styles.context}><label htmlFor="episode-category">Kategori<select id="episode-category" value={episodeForm.categoryId} required onChange={event => { const categoryId = event.target.value; const episodeNum = nextEpisode(categoryId, editingEpisode?.id); setEpisodeForm({ ...episodeForm, categoryId, episodeNum, ...(!editingEpisode ? { level: `Level ${Math.min(episodeNum, 3)}` } : {}) }); }}>{categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label><p className={styles.hint}>Kategori mengikuti tombol Tambah episode yang dipilih. Nomor berikutnya dihitung dari episode dalam kategori tersebut.</p>
+              <div className={styles.pair}><label htmlFor="episode-number">Nomor episode<input id="episode-number" type="number" min={1} max={9999} required value={episodeForm.episodeNum} onChange={event => changeEpisode('episodeNum', Number(event.target.value))} /></label><label htmlFor="episode-level">Level<select id="episode-level" value={episodeForm.level} onChange={event => changeEpisode('level', event.target.value)}>{Array.from(new Set(['Level 1', 'Level 2', 'Level 3', episodeForm.level])).map(value => <option key={value}>{value}</option>)}</select></label></div>
+            </div>
+            <label htmlFor="episode-title">Judul episode<input id="episode-title" required maxLength={255} value={episodeForm.title} onChange={event => changeEpisode('title', event.target.value)} placeholder="Contoh: Teknik pendaratan lompat meja" /></label>
+            <label htmlFor="episode-drive">Tautan / ID video Google Drive<input id="episode-drive" required value={episodeForm.driveLink} onChange={event => changeEpisode('driveLink', event.target.value)} placeholder="https://drive.google.com/file/d/…/view" aria-describedby="drive-help" /></label><p id="drive-help" className={styles.hint}>Di Google Drive, pilih Bagikan → Akses umum → Siapa saja yang memiliki link. Sampul diambil otomatis dari video ini; jika belum tersedia, sistem menampilkan penanda sampul kosong.</p>
+            <div className={styles.pair}>
+              <label htmlFor="episode-duration">
+                <span className={styles.fieldLabel}>Durasi video</span>
+                <input id="episode-duration" required value={episodeForm.duration} onChange={event => changeEpisode('duration', event.target.value)} placeholder="04:30" inputMode="text" aria-describedby="duration-help" />
+                <span id="duration-help" className={styles.hint}>Menit:detik atau jam:menit:detik.</span>
+              </label>
+              <div>
+                <div className={styles.accessLabel}>
+                  <label htmlFor="episode-access">Akses video</label>
+                  <span className={styles.tooltip}>
+                    <button type="button" aria-label="Penjelasan akses video" aria-expanded={showAccessHelp} aria-describedby="access-help" onClick={() => setShowAccessHelp(!showAccessHelp)}><Info size={18} /></button>
+                    <span id="access-help" role="tooltip" className={showAccessHelp ? styles.tooltipOpen : ''}>Gratis: dapat ditonton tanpa login. Khusus anggota: dapat ditonton semua pengguna yang sudah login.</span>
+                  </span>
+                </div>
+                <select id="episode-access" value={episodeForm.isFree ? 'free' : 'members'} onChange={event => changeEpisode('isFree', event.target.value === 'free')}><option value="free">Gratis</option><option value="members">Khusus anggota</option></select>
+              </div>
+            </div>
+            <label htmlFor="episode-description">Deskripsi video<textarea id="episode-description" required rows={4} maxLength={20000} value={episodeForm.description} onChange={event => changeEpisode('description', event.target.value)} /></label>
+            <label htmlFor="episode-checklist">Checklist materi <span className={styles.optional}>(opsional)</span><textarea id="episode-checklist" rows={5} value={episodeForm.checklistText} onChange={event => changeEpisode('checklistText', event.target.value)} aria-describedby="checklist-help" /></label><p id="checklist-help" className={styles.hint}>Satu poin per baris, maksimal 100 poin. Poin dengan teks yang sama mempertahankan progres pengguna, termasuk setelah diurutkan ulang. Mengubah teks membuat poin baru.</p>
+          </fieldset>
+          <aside className={styles.preview} aria-label="Pratinjau episode"><h3>Pratinjau episode</h3><div className={styles.tabs}><button type="button" aria-pressed={!previewPlayer} onClick={() => setPreviewPlayer(false)}>Kartu video</button><button type="button" aria-pressed={previewPlayer} onClick={() => setPreviewPlayer(true)}>Uji putar</button></div>
+            {previewPlayer ? validDriveID ? <iframe title="Uji putar video Google Drive" src={`https://drive.google.com/file/d/${validDriveID}/preview`} allow="autoplay; fullscreen" allowFullScreen /> : <div className={styles.previewEmpty}>Masukkan tautan video untuk menguji pemutar.</div> : <div className={styles.previewImage}><VideoThumbnail key={validDriveID} video={{ title: episodeForm.title || 'episode baru', thumbnail: '', driveFileId: validDriveID }} sizes="420px" /><span>EP {episodeForm.episodeNum} • {episodeForm.level}</span></div>}
+            <div className={styles.previewContent}><p className={styles.metadata}>{selectedCategory?.name}<span>{episodeForm.isFree ? 'Gratis' : 'Khusus anggota'}</span></p><h3>{episodeForm.title.trim() || 'Judul episode'}</h3><p>{episodeForm.description.trim() || 'Deskripsi video akan tampil di sini.'}</p><p className={styles.metadata}><Clock size={15} />{episodeForm.duration || 'Durasi belum diisi'}</p></div>
+          </aside>
+        </div>
+        <footer className={styles.modalFooter}>{episodeError && <div role="alert" className={styles.error}>{episodeError}</div>}<p>{busy ? 'Sedang menyimpan ke server…' : 'Perubahan disimpan setelah menekan tombol simpan.'}</p><button type="button" disabled={busy} className={styles.secondary} onClick={() => { if (confirm('Kembalikan seluruh isian ke nilai saat formulir dibuka?')) { setEpisodeForm(JSON.parse(initialEpisode)); setEpisodeError(''); } }}>Atur ulang</button><button type="button" disabled={busy} className={styles.secondary} onClick={closeEpisode}>Batal</button><button type="submit" disabled={busy} className={styles.primary}>{busy ? 'Menyimpan…' : editingEpisode ? 'Simpan perubahan' : 'Simpan episode'}</button></footer>
+      </form>
+    </Modal>}
+  </div>;
 }
 
 export default function AdminPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="p-8 text-center text-slate-500">
-          <div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm font-semibold">Loading video curriculum...</p>
-        </div>
-      }
-    >
-      <AdminVideoManagementContent />
-    </Suspense>
-  );
+  return <Suspense fallback={<p className="p-6">Memuat pengelolaan materi…</p>}><AdminVideoManagement /></Suspense>;
 }

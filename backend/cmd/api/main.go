@@ -54,6 +54,7 @@ func main() {
 	r.POST("/api/auth/login", handler.Login)
 	r.POST("/api/auth/google", handler.GoogleLogin)
 	r.GET("/api/categories", handler.GetCategories)
+	r.GET("/api/categories/:id/cover", handler.GetCategoryCover)
 	r.GET("/api/videos", middleware.OptionalAuth(), handler.GetVideos)
 	r.GET("/api/videos/:id", middleware.OptionalAuth(), handler.GetVideoByID)
 	r.GET("/api/videos/:id/playback", middleware.OptionalAuth(), handler.GetVideoPlayback)

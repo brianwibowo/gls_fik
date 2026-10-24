@@ -26,7 +26,10 @@ Password bawaan akun demo lama ditolak khusus pada ID akun seed tersebut. Akun t
 
 - `GET /api/videos` dan `GET /api/videos/:id` menampilkan metadata. Sumber Drive video terkunci hanya tersedia pada metadata untuk admin.
 - `GET /api/videos/:id/playback` tersedia untuk video gratis; video lain memerlukan sesi yang valid.
-- `GET /api/videos/:id/thumbnail` mengambil gambar cuplikan dari Drive di server. URL thumbnail tidak membocorkan ID Drive. Admin dapat memilih URL thumbnail sendiri melalui field `thumbnail`; nilai kosong memakai cuplikan otomatis.
+- `GET /api/videos/:id/thumbnail` mengambil gambar cuplikan dari Drive di server. URL thumbnail tidak membocorkan ID Drive. Sampul episode selalu mengikuti video Google Drive; input thumbnail manual tidak digunakan. Jika Drive belum menyediakan cuplikan, UI menampilkan penanda sampul kosong.
+- Kategori baru mendapat ID otomatis dan urutan setelah kategori terakhir di server. Saat startup, kategori lama dengan ID kosong diperbaiki beserta relasi video/tekniknya.
+- Sampul kategori bersifat opsional. Formulir menerima gambar yang dapat dibaca browser, memperkecil ke lebar/tinggi maksimal 1280 px, dan mengubahnya menjadi WebP maksimal 512 KB. `POST /api/categories` dan `PUT /api/categories/:id` menerima `coverData` berupa data URL gambar. Tidak mengirim field ini mempertahankan sampul; string kosong menghapusnya. Gambar disimpan pada PostgreSQL dan dilayani melalui `GET /api/categories/:id/cover`, sehingga tidak memerlukan folder upload atau volume Docker baru.
+- Kurikulum bawaan hanya diisi pada database baru; penanda `seed_states` mencegah episode/kategori yang telah dihapus muncul kembali saat restart. Instalasi yang sudah berisi kategori dianggap sudah memiliki kurikulum dan tetap menggunakan materi saat ini.
 - `GET /api/videos/:id/tracker` mengambil checklist, status, catatan pribadi, dan persentase pemahaman akun yang masuk.
 - `PUT /api/videos/:id/tracker/items/:itemId` menerima `{ "status": "pending|review|understood", "note": "..." }`.
 - `PUT /api/videos/:id/tracker/note` menerima `{ "note": "..." }`.

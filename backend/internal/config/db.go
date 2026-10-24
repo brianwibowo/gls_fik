@@ -1,6 +1,8 @@
 package config
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"os"
@@ -40,6 +42,7 @@ func ConnectDatabase() *gorm.DB {
 
 func MigrateDatabase(db *gorm.DB) {
 	err := db.AutoMigrate(
+		&model.SeedState{},
 		&model.User{},
 		&model.Category{},
 		&model.Video{},
@@ -56,7 +59,47 @@ func MigrateDatabase(db *gorm.DB) {
 	if err := db.Exec("UPDATE users SET email = lower(trim(email)) WHERE email <> lower(trim(email))").Error; err != nil {
 		log.Fatalf("Gagal menormalkan email pengguna: %v", err)
 	}
+	if err := RepairCategoryIDs(db); err != nil {
+		log.Fatalf("Gagal memperbaiki ID kategori: %v", err)
+	}
 	log.Println("Berhasil migrasi tabel: users, categories, videos, techniques, athlete_progress, technique_evaluations")
+}
+
+// Older category creation allowed an empty primary key; copy the parent before moving its children.
+func RepairCategoryIDs(db *gorm.DB) error {
+	return db.Transaction(func(tx *gorm.DB) error {
+		var categories []model.Category
+		if err := tx.Where("id = ?", "").Find(&categories).Error; err != nil {
+			return err
+		}
+		for _, category := range categories {
+			var random [16]byte
+			if _, err := rand.Read(random[:]); err != nil {
+				return err
+			}
+			category.ID = "cat-" + hex.EncodeToString(random[:])
+			var last int
+			if err := tx.Model(&model.Category{}).Select("COALESCE(MAX(\"order\"), 0)").Scan(&last).Error; err != nil {
+				return err
+			}
+			category.Order = last + 1
+			if category.Thumbnail == "/images/apparatus-floor.webp" {
+				category.Thumbnail = ""
+			}
+			if err := tx.Omit("Videos").Create(&category).Error; err != nil {
+				return err
+			}
+			for _, table := range []any{&model.Video{}, &model.Technique{}} {
+				if err := tx.Model(table).Where("category_id = ?", "").Update("category_id", category.ID).Error; err != nil {
+					return err
+				}
+			}
+			if err := tx.Where("id = ?", "").Delete(&model.Category{}).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 func getEnv(key, fallback string) string {

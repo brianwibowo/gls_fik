@@ -19,18 +19,20 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func publicVideo(c *gin.Context, video model.Video, admin bool) model.Video {
-	if video.Thumbnail == "" || strings.HasPrefix(video.Thumbnail, "/images/apparatus-") {
-		origin := strings.TrimRight(os.Getenv("PUBLIC_API_URL"), "/")
-		if origin == "" {
-			scheme := "http"
-			if c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https" {
-				scheme = "https"
-			}
-			origin = scheme + "://" + c.Request.Host
+func apiOrigin(c *gin.Context) string {
+	origin := strings.TrimRight(os.Getenv("PUBLIC_API_URL"), "/")
+	if origin == "" {
+		scheme := "http"
+		if c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https" {
+			scheme = "https"
 		}
-		video.Thumbnail = origin + "/api/videos/" + url.PathEscape(video.ID) + "/thumbnail?v=" + strconv.FormatInt(video.UpdatedAt.UnixNano(), 10)
+		origin = scheme + "://" + c.Request.Host
 	}
+	return origin
+}
+
+func publicVideo(c *gin.Context, video model.Video, admin bool) model.Video {
+	video.Thumbnail = apiOrigin(c) + "/api/videos/" + url.PathEscape(video.ID) + "/thumbnail?v=" + strconv.FormatInt(video.UpdatedAt.UnixNano(), 10)
 	if !video.IsFree && !admin {
 		video.DriveFileID = ""
 		video.DriveLink = ""
@@ -139,7 +141,6 @@ type videoRequest struct {
 	Description    string                      `json:"description"`
 	DriveFileID    string                      `json:"driveFileId"`
 	DriveLink      string                      `json:"driveLink"`
-	Thumbnail      string                      `json:"thumbnail"`
 	Duration       string                      `json:"duration"`
 	Level          string                      `json:"level"`
 	EpisodeNum     int                         `json:"episodeNum"`
@@ -148,6 +149,7 @@ type videoRequest struct {
 }
 
 var validRecordID = regexp.MustCompile(`^[a-zA-Z0-9_-]{1,64}$`)
+var validDuration = regexp.MustCompile(`^\d{1,3}:[0-5]\d(:[0-5]\d)?$`)
 
 func (req videoRequest) validate() string {
 	if strings.TrimSpace(req.Title) == "" || utf8.RuneCountInString(req.Title) > 255 {
@@ -156,20 +158,17 @@ func (req videoRequest) validate() string {
 	if req.CategoryID == "" {
 		return "Kategori wajib dipilih"
 	}
+	if req.EpisodeNum < 0 || req.EpisodeNum > 9999 {
+		return "Nomor episode harus antara 1 dan 9999"
+	}
+	if req.Duration != "" && !validDuration.MatchString(req.Duration) {
+		return "Durasi harus berformat menit:detik atau jam:menit:detik"
+	}
 	if req.ID != "" && !validRecordID.MatchString(req.ID) {
 		return "ID video tidak valid"
 	}
 	if utf8.RuneCountInString(req.Description) > 20000 {
 		return "Deskripsi maksimal 20000 karakter"
-	}
-	if len(req.Thumbnail) > 2048 {
-		return "URL thumbnail terlalu panjang"
-	}
-	if req.Thumbnail != "" && !strings.HasPrefix(req.Thumbnail, "/") {
-		u, err := url.Parse(req.Thumbnail)
-		if err != nil || u.Host == "" || (u.Scheme != "http" && u.Scheme != "https") {
-			return "Thumbnail harus berupa URL gambar atau path lokal"
-		}
 	}
 	if req.ChecklistItems != nil {
 		if len(*req.ChecklistItems) > 100 {
@@ -197,13 +196,13 @@ func (req videoRequest) apply(video *model.Video) {
 	video.Description = req.Description
 	video.DriveFileID = req.DriveFileID
 	video.DriveLink = req.DriveLink
-	video.Thumbnail = req.Thumbnail
-	if thumbnail, err := url.Parse(req.Thumbnail); err == nil && thumbnail.Path == "/api/videos/"+video.ID+"/thumbnail" {
-		video.Thumbnail = ""
-	}
+	video.Thumbnail = ""
 	video.Duration = req.Duration
 	video.Level = req.Level
 	video.EpisodeNum = req.EpisodeNum
+	if video.EpisodeNum == 0 {
+		video.EpisodeNum = 1
+	}
 	video.IsFree = req.IsFree
 }
 

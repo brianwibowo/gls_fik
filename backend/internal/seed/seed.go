@@ -11,9 +11,31 @@ import (
 )
 
 func SeedData(db *gorm.DB) {
-	seedCategories(db)
-	seedVideos(db)
-	seedTechniques(db)
+	if err := db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Exec("LOCK TABLE seed_states IN EXCLUSIVE MODE").Error; err != nil {
+			return err
+		}
+		var count int64
+		if err := tx.Model(&model.SeedState{}).Where("id = ?", "initial-curriculum").Count(&count).Error; err != nil {
+			return err
+		}
+		if count > 0 {
+			return nil
+		}
+		// Existing installations already have a curriculum; don't restore material deleted by an admin.
+		var existing int64
+		if err := tx.Model(&model.Category{}).Count(&existing).Error; err != nil {
+			return err
+		}
+		if existing == 0 {
+			seedCategories(tx)
+			seedVideos(tx)
+			seedTechniques(tx)
+		}
+		return tx.Create(&model.SeedState{ID: "initial-curriculum"}).Error
+	}); err != nil {
+		log.Fatalf("Gagal menyiapkan kurikulum awal: %v", err)
+	}
 	seedVideoChecklists(db)
 }
 

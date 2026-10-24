@@ -4,6 +4,10 @@ import (
 	"time"
 )
 
+type SeedState struct {
+	ID string `gorm:"primaryKey;type:varchar(64)"`
+}
+
 // User represents accounts (coach/admin and athletes)
 type User struct {
 	ID        string    `gorm:"primaryKey;type:varchar(64)" json:"id"`
@@ -23,6 +27,8 @@ type Category struct {
 	Name        string    `gorm:"type:varchar(128);not null" json:"name"`
 	Description string    `gorm:"type:text" json:"description"`
 	Thumbnail   string    `gorm:"type:text" json:"thumbnail"`
+	CoverData   []byte    `gorm:"type:bytea" json:"-"`
+	CoverType   string    `gorm:"type:varchar(32)" json:"-"`
 	Order       int       `gorm:"not null;default:0" json:"order"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`

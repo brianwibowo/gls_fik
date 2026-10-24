@@ -81,11 +81,13 @@ export function apiGetCategories(): Promise<Category[]> {
   return fetchApi('/categories');
 }
 
-export function apiCreateCategory(data: Partial<Category>): Promise<Category> {
+export type CategoryInput = Pick<Category, 'name' | 'description'> & { coverData?: string };
+
+export function apiCreateCategory(data: CategoryInput): Promise<Category> {
   return fetchApi('/categories', { method: 'POST', body: JSON.stringify(data) });
 }
 
-export function apiUpdateCategory(id: string, data: Partial<Category>): Promise<Category> {
+export function apiUpdateCategory(id: string, data: CategoryInput): Promise<Category> {
   return fetchApi(`/categories/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) });
 }
 
